@@ -10,6 +10,7 @@ import { z } from "zod";
 
 import { searchAssets, DEFAULT_CATEGORIES } from "./toolbox.js";
 import { Store, diversify, filterByTerms } from "./store.js";
+import { formatPropHuntGateReport, validatePropHuntGate } from "./propHuntGate.js";
 
 const store = new Store();
 const POOL = 40; // raw candidates fetched + cached per query; excludes applied after
@@ -61,7 +62,7 @@ function formatAsset(a, index) {
 
 const text = (s) => ({ content: [{ type: "text", text: s }] });
 
-const server = new McpServer({ name: "asset-search", version: "0.2.0" });
+const server = new McpServer({ name: "asset-search", version: "0.3.0" });
 
 server.tool(
   "search_assets",
@@ -191,6 +192,49 @@ server.tool(
 );
 
 server.tool(
+  "record_inspection",
+  "Record the latest StudioMCP inspection for an asset: measured size, script/basepart counts, anchored capability, PrimaryPart readiness, and issues. This server does not inspect Studio itself; it stores the leader's measured facts so curation and Prop Hunt validation can fail fast before build.",
+  {
+    asset_id: z.number(),
+    slot: z.string().optional(),
+    size_studs: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional().describe("Bounding-box size from Studio in studs."),
+    has_scripts: z.boolean().optional(),
+    script_count: z.number().int().min(0).optional(),
+    base_part_count: z.number().int().min(0).optional(),
+    anchored_capable: z.boolean().optional(),
+    primary_part: z.boolean().optional().describe("True when the model has or can be assigned a PrimaryPart for disguise registration."),
+    issues: z.array(z.string()).optional(),
+    reviewer: z.string().optional(),
+    source: z.string().optional().describe("Usually StudioMCP or a specific inspection pass label."),
+  },
+  async (args) => {
+    await store.recordInspection(args.asset_id, {
+      slot: args.slot ?? null,
+      sizeStuds: args.size_studs ?? null,
+      hasScripts: args.has_scripts ?? null,
+      scriptCount: args.script_count ?? null,
+      basePartCount: args.base_part_count ?? null,
+      anchoredCapable: args.anchored_capable ?? null,
+      primaryPart: args.primary_part ?? null,
+      issues: args.issues ?? [],
+      reviewer: args.reviewer ?? null,
+      source: args.source ?? "StudioMCP",
+    });
+    return text(`Recorded Studio inspection for ${args.asset_id}${args.slot ? ` (${args.slot})` : ""}.`);
+  }
+);
+
+server.tool(
+  "get_inspection",
+  "Get the latest persisted StudioMCP inspection for an asset id.",
+  { asset_id: z.number() },
+  async (args) => {
+    const inspection = store.getInspection(args.asset_id);
+    return text(inspection ? JSON.stringify(inspection, null, 2) : `No inspection recorded for ${args.asset_id}.`);
+  }
+);
+
+server.tool(
   "commit_palette",
   "Freeze the chosen asset for a slot into the project palette (also claims it). The build phase reads this.",
   { project: z.string(), slot: z.string(), asset_id: z.number(), name: z.string().optional() },
@@ -212,9 +256,39 @@ server.tool(
   }
 );
 
+server.tool(
+  "validate_prop_hunt_gate",
+  "Validate the committed palette as the repo-side Prop Hunt gate before a live Studio build. Slot names should be area.hideable.name or area.setpiece.name. Defaults match the current Place1 gate: 3 areas, 20 hideable props, 4 set pieces, inspected script-free hideables between 1 and 8 studs with PrimaryPart readiness.",
+  {
+    project: z.string().optional().describe("Palette project name (default: prophunt)"),
+    min_areas: z.number().int().min(1).optional(),
+    min_hideable_total: z.number().int().min(0).optional(),
+    min_setpiece_total: z.number().int().min(0).optional(),
+    min_hideable_per_area: z.number().int().min(0).optional(),
+    min_setpiece_per_area: z.number().int().min(0).optional(),
+    min_hideable_studs: z.number().min(0).optional(),
+    max_hideable_studs: z.number().min(0).optional(),
+    require_inspections: z.boolean().optional(),
+    require_primary_part: z.boolean().optional(),
+    format: z.enum(["text", "json"]).optional().describe("Return human-readable text (default) or JSON."),
+  },
+  async (args) => {
+    const project = args.project || "prophunt";
+    const { format, ...options } = args;
+    const result = validatePropHuntGate({
+      project,
+      palette: store.getPalette(project),
+      getInspection: (id) => store.getInspection(id),
+      getReviews: (id) => store.getReviews(id),
+      options,
+    });
+    return text(format === "json" ? JSON.stringify(result, null, 2) : formatPropHuntGateReport(result));
+  }
+);
+
 async function main() {
   await store.ready();
   await server.connect(new StdioServerTransport());
-  console.error("asset-search-mcp v0.2 ready (stdio) — shared rejection/claim memory active");
+  console.error("asset-search-mcp v0.3 ready (stdio) — shared rejection/claim/inspection memory active");
 }
 main().catch((err) => { console.error("fatal:", err); process.exit(1); });

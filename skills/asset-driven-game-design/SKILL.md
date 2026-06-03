@@ -32,7 +32,7 @@ placed asset**.
 
 | Server | Role | Key tools |
 |--------|------|-----------|
-| **asset-search-mcp** (this repo, standalone, search-only) | discover + curate + **shared memory** | `search_assets`, `curate_assets`, `claim_assets`, `reject_asset`, `review_asset`, `get_reviews`, `commit_palette`, `get_palette` |
+| **asset-search-mcp** (this repo, standalone, search-only) | discover + curate + **shared memory** | `search_assets`, `curate_assets`, `claim_assets`, `reject_asset`, `review_asset`, `get_reviews`, `record_inspection`, `get_inspection`, `commit_palette`, `get_palette`, `validate_prop_hunt_gate` |
 | **StudioMCP** (official, bundled in Roblox Studio) | build + measure | `insert_from_creator_store`, `run_code`/`execute_luau`, playtest tools |
 
 `asset-search-mcp` is the advantage the official MCP lacks: ranked, multi-category
@@ -40,6 +40,21 @@ candidate lists with metadata, **cached and single-flighted** so parallel agents
 are cheap, plus curation, a shared review cache, and a committed palette. It is
 deliberately decoupled from Studio — geometric measurement (real size,
 orientation) is done through StudioMCP, because that requires loading the asset.
+After measurement, record those facts back into `asset-search-mcp` with
+`record_inspection` so other agents can reuse the evidence and the Prop Hunt
+gate can fail before a live build.
+
+## Claude-history operating rules
+
+This repo exists partly to bottle hard-won lessons from prior Roblox MCP work:
+
+- Keep search/discovery separate from Studio build/measurement.
+- Treat Studio actions as serial and leader-owned; do not trust subagent claims
+  that a live Studio test passed.
+- Insert Creator Store assets in edit mode, not play mode.
+- Use asset names or snapshot diffs to locate inserted models.
+- Persist measured facts, rejections, claims, and palette choices so parallel
+  agents do not redo the same fragile work.
 
 ## The two tiers of metadata
 
@@ -81,7 +96,9 @@ re-preview, or re-reject the same item. Each agent runs this loop:
    agents preview the same asset.
 3. **Inspect the shortlist in Studio** via StudioMCP: load each (`GetObjects` /
    `LoadAsset`), read `GetBoundingBox()` for size/orientation, count parts/scripts,
-   check anchored, then destroy.
+   check anchored and PrimaryPart readiness, then destroy. Immediately call
+   `record_inspection(asset_id, slot, size_studs, has_scripts, script_count,
+   base_part_count, anchored_capable, primary_part, issues)`.
 4. `reject_asset(asset_id, reason)` for anything disqualified (oversized/tiny,
    stray scripts, no BaseParts, untextured, off-theme). The veto is **shared** —
    it vanishes from every other agent's results immediately.
@@ -99,6 +116,10 @@ buildable.** If no good "crypt" exists but "mausoleum" assets are excellent,
 rename the area. The design serves the assets, not the other way around.
 
 ### 4. Build in Studio (StudioMCP)
+0. Run `validate_prop_hunt_gate(project="prophunt")`. Do not start the live
+   Studio build until the asset palette passes the repo-side gate, or until the
+   failure is explicitly documented as the current blocker. From a shell, the
+   same check is `cd asset-search-mcp && npm run gate:prop-hunt`.
 1. Build the **stage** with `execute_luau`: flat floors per area, invisible
    walls, spawn pads, zone trigger parts (CanCollide off, Transparency 1).
 2. For each committed slot, insert the asset **by id** and seat it on the floor
@@ -127,9 +148,13 @@ A prop hunt is the gate that proves the whole pipeline end to end:
 
 1. 3 contrasting themes so areas look different (medieval market, sci-fi lab,
    cozy cabin).
-2. ~6 set pieces + ~10 hideable props per area, all from search + curation.
+2. Palette slots named as `area.hideable.name` or `area.setpiece.name`; the
+   default repo gate expects 20+ hideables and 4+ set pieces across 3 areas.
+   For a stricter production pass, raise this to ~6 set pieces + ~10 hideable
+   props per area.
 3. Hideable props must be **single-model, 1–8 studs, anchored-capable,
-   script-free** — enforce in the inspect/reject step (these become disguises).
+   PrimaryPart-ready, script-free** — enforce in the inspect/reject step and
+   record via `record_inspection` (these become disguises).
 4. Register every placed prop Model (with a `PrimaryPart`) into
    `Workspace.HideableProps`, which the round logic reads.
 5. Round loop: timer, assign seekers, hiders disguise as a nearby prop, seekers

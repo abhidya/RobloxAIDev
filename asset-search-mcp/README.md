@@ -24,8 +24,12 @@ agents need:
   slot (no single creator's pack dominating).
 - **`review_asset` / `get_reviews`** — persist an agent's keep/reject verdict so
   other agents reuse it instead of re-vetting.
+- **`record_inspection` / `get_inspection`** — persist StudioMCP-measured
+  geometry and safety facts without coupling this server to Studio.
 - **`commit_palette` / `get_palette`** — freeze the chosen asset per slot for the
   build phase.
+- **`validate_prop_hunt_gate`** — validate the committed Prop Hunt asset palette
+  before a live Studio build/playtest.
 
 State persists as plain JSON under `~/.roblox-asset-brain/` — no native deps, no
 build step.
@@ -57,8 +61,11 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 | `reject_asset(asset_id, reason, slot?, reviewer?)` | Shared veto: the asset is auto-excluded from every agent's future results. |
 | `review_asset(asset_id, verdict, slot?, rating?, notes?, reviewer?)` | Persist a shared verdict (`reject` auto-excludes). |
 | `get_reviews(asset_id)` | Read all verdicts + claim status for an asset. |
+| `record_inspection(asset_id, slot?, size_studs?, has_scripts?, script_count?, base_part_count?, anchored_capable?, primary_part?, issues?, reviewer?, source?)` | Store the latest StudioMCP-measured facts for an asset. |
+| `get_inspection(asset_id)` | Read the latest persisted Studio inspection for an asset. |
 | `commit_palette(project, slot, asset_id, name?)` | Freeze a chosen asset per slot (also claims it). |
 | `get_palette(project)` | Read the committed palette for the build phase. |
+| `validate_prop_hunt_gate(project?, min_areas?, min_hideable_total?, min_setpiece_total?, min_hideable_per_area?, min_setpiece_per_area?, min_hideable_studs?, max_hideable_studs?, require_inspections?, require_primary_part?, format?)` | Check the committed Prop Hunt palette before Studio build. |
 
 ### How it prevents multi-agent collisions
 
@@ -76,7 +83,37 @@ every call reads and writes the same rejection/claim memory, more agents means
 | Geometric (StudioMCP) | load + measure in Studio | bounding-box size, orientation, anchored?, issues |
 
 Catalog search is cheap; narrow to a shortlist here, then measure only the
-shortlist in Studio before placing.
+shortlist in Studio before placing. Store those measured facts with
+`record_inspection` so future agents can reuse them and so validation can fail
+before a live build.
+
+## Prop Hunt gate
+
+Prop Hunt is this repo's validation gate. Commit palette slots using explicit
+names:
+
+```text
+medieval_market.hideable.barrel
+medieval_market.setpiece.market_stall
+sci_fi_lab.hideable.canister
+cozy_cabin.setpiece.fireplace
+```
+
+Then record StudioMCP measurements for every committed asset and run
+`validate_prop_hunt_gate(project: "prophunt")`. Defaults match the current
+`Place1.rbxl` gate: 3 areas, 20 hideables, 4 set pieces, inspected hideables
+between 1 and 8 studs, no scripts, anchored-capable, and `primary_part=true`.
+
+The gate intentionally stops at asset readiness. The live Studio pass still must
+insert in edit mode, populate `Workspace.HideableProps`, and playtest the round
+loop.
+
+You can also run the same check against the persisted asset brain from a shell:
+
+```bash
+npm run gate:prop-hunt
+node scripts/validate-prop-hunt-gate.mjs --project prophunt --json
+```
 
 ## Config
 
@@ -87,8 +124,11 @@ shortlist in Studio before placing.
 
 ```
 src/index.js     MCP server + tool registrations
+src/propHuntGate.js Prop Hunt palette + inspection validation
+scripts/validate-prop-hunt-gate.mjs CLI for the persisted Prop Hunt gate
 src/toolbox.js   Toolbox v2 search, ranking, extensive query expansion
-src/store.js     JSON persistence, TTL cache, single-flight, reviews, palette
+src/store.js     JSON persistence, TTL cache, single-flight, reviews, inspections, palette
 test/offline.mjs deterministic parsing/scoring/curation test (no network)
+test/gate-cli.mjs deterministic CLI gate test (no network)
 test/smoke.mjs   spins up the server as an MCP client end-to-end
 ```

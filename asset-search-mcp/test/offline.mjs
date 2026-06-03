@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { normalizeAsset, scoreAsset, expandQuery } from "../src/toolbox.js";
 import { Store, diversify, filterByTerms } from "../src/store.js";
+import { formatPropHuntGateReport, validatePropHuntGate } from "../src/propHuntGate.js";
 
 // ---- toolbox parsing/ranking ----
 const sample = {
@@ -59,10 +60,105 @@ await store.commitPalette("game", "well", 555, "Stone Well");
 assert.equal(store.isClaimed(555), "well", "commit auto-claims");
 assert.equal(store.getPalette("game").well.assetId, 555, "palette stored");
 
+// Studio inspection facts persist separately from reviews and are used by gates.
+await store.recordInspection(555, {
+  slot: "well",
+  sizeStuds: { x: 10, y: 8, z: 10 },
+  hasScripts: false,
+  scriptCount: 0,
+  basePartCount: 4,
+  anchoredCapable: true,
+  primaryPart: true,
+  issues: [],
+  source: "offline",
+});
+assert.equal(store.getInspection(555).sizeStuds.x, 10, "inspection stored");
+
 // persistence: a fresh Store sees the same state
 const store2 = new Store();
 await store2.ready();
 assert.ok(store2.isRejected(111) && store2.isClaimed(333) === "barrel", "state persisted across instances");
+assert.equal(store2.getInspection(555).basePartCount, 4, "inspection persisted");
+
+// ---- Prop Hunt asset gate: palette + StudioMCP inspection facts ----
+const areas = ["medieval_market", "sci_fi_lab", "cozy_cabin"];
+let nextAsset = 1000;
+for (let i = 0; i < 20; i += 1) {
+  const area = areas[i % areas.length];
+  const assetId = nextAsset++;
+  const slot = `${area}.hideable.prop_${i + 1}`;
+  await store.commitPalette("prophunt", slot, assetId, `Prop ${i + 1}`);
+  await store.recordInspection(assetId, {
+    slot,
+    sizeStuds: { x: 2 + (i % 3), y: 3, z: 2 },
+    hasScripts: false,
+    scriptCount: 0,
+    basePartCount: 1,
+    anchoredCapable: true,
+    primaryPart: true,
+    issues: [],
+    source: "offline",
+  });
+}
+for (let i = 0; i < 4; i += 1) {
+  const area = areas[i % areas.length];
+  const assetId = nextAsset++;
+  const slot = `${area}.setpiece.anchor_${i + 1}`;
+  await store.commitPalette("prophunt", slot, assetId, `Set Piece ${i + 1}`);
+  await store.recordInspection(assetId, {
+    slot,
+    sizeStuds: { x: 16, y: 10, z: 12 },
+    hasScripts: false,
+    scriptCount: 0,
+    basePartCount: 3,
+    anchoredCapable: true,
+    primaryPart: true,
+    issues: [],
+    source: "offline",
+  });
+}
+
+const gate = validatePropHuntGate({
+  project: "prophunt",
+  palette: store.getPalette("prophunt"),
+  getInspection: (id) => store.getInspection(id),
+  getReviews: (id) => store.getReviews(id),
+});
+assert.equal(gate.passed, true, formatPropHuntGateReport(gate));
+assert.deepEqual(gate.counts, { palette_assets: 24, areas: 3, hideable_total: 20, setpiece_total: 4 }, "default Prop Hunt counts");
+
+const badId = nextAsset++;
+await store.commitPalette("bad-prophunt", "medieval_market.hideable.bad_barrel", badId, "Bad Barrel");
+await store.recordInspection(badId, {
+  slot: "medieval_market.hideable.bad_barrel",
+  sizeStuds: { x: 12, y: 2, z: 2 },
+  hasScripts: true,
+  scriptCount: 1,
+  basePartCount: 1,
+  anchoredCapable: true,
+  primaryPart: true,
+});
+const badGate = validatePropHuntGate({
+  project: "bad-prophunt",
+  palette: store.getPalette("bad-prophunt"),
+  getInspection: (id) => store.getInspection(id),
+  getReviews: (id) => store.getReviews(id),
+  options: { min_areas: 1, min_hideable_total: 1, min_setpiece_total: 0 },
+});
+assert.equal(badGate.passed, false, "bad gate fails");
+assert.ok(badGate.errors.some((e) => e.includes("outside 1-8 studs")), "oversized hideable rejected");
+assert.ok(badGate.errors.some((e) => e.includes("has scripts")), "scripted hideable rejected");
+
+await store.commitPalette("unclassified-prophunt", "medieval_market.ambience.song", nextAsset++, "Song");
+const unclassifiedGate = validatePropHuntGate({
+  project: "unclassified-prophunt",
+  palette: store.getPalette("unclassified-prophunt"),
+  getInspection: (id) => store.getInspection(id),
+  getReviews: (id) => store.getReviews(id),
+  options: { min_areas: 1, min_hideable_total: 0, min_setpiece_total: 0, require_inspections: false },
+});
+assert.equal(unclassifiedGate.counts.areas, 0, "unclassified slots do not satisfy area count");
+assert.equal(unclassifiedGate.passed, false, "unclassified-only palette fails area gate");
 
 await fs.rm(dir, { recursive: true, force: true });
-console.log("OFFLINE OK — parsing, ranking, curation, off-theme filter, rejections, claims, persistence");
+console.log("OFFLINE OK — parsing, ranking, curation, off-theme filter, rejections, claims, inspections, Prop Hunt gate, persistence");

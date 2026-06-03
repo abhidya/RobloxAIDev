@@ -7,6 +7,8 @@
 //   * claims              — an asset reserved for a slot is hidden from other
 //                           agents, so two agents never pick / preview the same one
 //   * palette             — the chosen asset per design slot, frozen for build
+//   * inspections         — StudioMCP-measured geometry and safety facts for a
+//                           shortlisted or committed asset
 //
 // Persistence is plain JSON under ~/.roblox-asset-brain/ — no native deps.
 
@@ -37,11 +39,13 @@ export class Store {
       reviews: path.join(this.dir, "reviews.json"),
       palette: path.join(this.dir, "palette.json"),
       claims: path.join(this.dir, "claims.json"),
+      inspections: path.join(this.dir, "inspections.json"),
     };
     this.searchCache = {};
     this.reviews = {};   // assetId -> [review]
     this.palette = {};   // project -> { slot -> {assetId,name} }
     this.claims = {};    // assetId -> { slot, reviewer, project, at }
+    this.inspections = {}; // assetId -> latest StudioMCP inspection record
     this._inflight = new Map();
     this._ready = this._load();
   }
@@ -52,6 +56,7 @@ export class Store {
     this.reviews = await readJson(this.files.reviews, {});
     this.palette = await readJson(this.files.palette, {});
     this.claims = await readJson(this.files.claims, {});
+    this.inspections = await readJson(this.files.inspections, {});
   }
   async ready() { await this._ready; }
 
@@ -123,12 +128,27 @@ export class Store {
     await writeJsonAtomic(this.files.claims, this.claims);
   }
 
+  // --- StudioMCP inspection memory ------------------------------------
+  async recordInspection(assetId, inspection) {
+    const id = String(assetId);
+    this.inspections[id] = {
+      ...inspection,
+      assetId: Number(assetId),
+      recordedAt: Date.now(),
+    };
+    await writeJsonAtomic(this.files.inspections, this.inspections);
+  }
+  getInspection(assetId) {
+    return this.inspections[String(assetId)] || null;
+  }
+
   /** Per-candidate annotation other agents should see before acting. */
   annotate(assetId) {
     const rs = this.getReviews(assetId);
     return {
       claimedBy: this.isClaimed(assetId),
       rejected: this.isRejected(assetId),
+      inspection: this.getInspection(assetId),
       reviews: rs.map((r) => ({ verdict: r.verdict, notes: r.notes, slot: r.slot, reviewer: r.reviewer })),
     };
   }

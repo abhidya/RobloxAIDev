@@ -10,8 +10,9 @@ is the validation gate** that proves the pipeline end to end.
 
 - **`asset-search-mcp/`** — a standalone, search-only MCP (Node): ranked Creator
   Store discovery, search caching + single-flight, extensive query expansion,
-  per-slot curation, a shared review cache, and a committed palette. Decoupled
-  from the Roblox Studio MCP. See [`asset-search-mcp/README.md`](asset-search-mcp/README.md).
+  per-slot curation, a shared review cache, Studio inspection memory, a committed
+  palette, and the repo-side Prop Hunt asset gate. Decoupled from the Roblox
+  Studio MCP. See [`asset-search-mcp/README.md`](asset-search-mcp/README.md).
 - **`skills/asset-driven-game-design/`** — the Claude skill that orchestrates the
   two MCPs (this search MCP for discovery, the official StudioMCP for building +
   geometric measurement) using a parallel fan-out / fan-in workflow.
@@ -69,6 +70,20 @@ connected):
 /asset-driven-game-design build a 3-theme prop hunt
   (medieval market, sci-fi lab, cozy cabin)
 ```
+
+Before spending a live Studio pass, use the MCP's repo-side gate:
+
+1. Commit selected slots with names like `medieval_market.hideable.barrel` or
+   `sci_fi_lab.setpiece.console_bank`.
+2. Measure the shortlist in StudioMCP and store those facts with
+   `record_inspection`.
+3. Run `validate_prop_hunt_gate(project: "prophunt")`.
+
+The default gate expects 3 areas, 20 hideable props, 4 set pieces, and inspected
+hideables that are script-free, anchored-capable, PrimaryPart-ready, and 1-8
+studs. The same check is available from the shell with
+`cd asset-search-mcp && npm run gate:prop-hunt`. See
+[`docs/prop-hunt-gate.md`](docs/prop-hunt-gate.md).
 
 ## Checking work in
 

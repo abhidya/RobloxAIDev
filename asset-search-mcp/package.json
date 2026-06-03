@@ -1,6 +1,6 @@
 {
   "name": "asset-search-mcp",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "Standalone, search-only MCP for asset-driven Roblox game design: ranked Creator Store discovery, search caching + single-flight, extensive query expansion, per-slot curation, shared asset reviews, and a committed palette. Decoupled from the Roblox Studio MCP.",
@@ -12,7 +12,11 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "test": "node test/smoke.mjs"
+    "gate:prop-hunt": "node scripts/validate-prop-hunt-gate.mjs --project prophunt",
+    "test": "npm run test:offline && npm run test:gate && npm run test:smoke",
+    "test:gate": "node test/gate-cli.mjs",
+    "test:offline": "node test/offline.mjs",
+    "test:smoke": "node test/smoke.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
