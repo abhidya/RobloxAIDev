@@ -52,8 +52,20 @@ The same gate is available without an MCP client:
 
 ```bash
 cd asset-search-mcp
+npm run seed:prop-hunt-place1
 npm run gate:prop-hunt
 node scripts/validate-prop-hunt-gate.mjs --project prophunt --json
+```
+
+`seed:prop-hunt-place1` imports `fixtures/place1-prop-hunt-gate.json`, a
+replayable StudioMCP audit of the shipped place. Use this when a fresh local
+`~/.roblox-asset-brain/` has no committed `prophunt` palette yet.
+
+The live Prop Hunt logic is source-controlled with Rojo:
+
+```bash
+rojo serve --address 127.0.0.1 --port 34872
+rojo build default.project.json -o /tmp/RobloxAIDevPropHunt.rbxlx
 ```
 
 ## Studio-Only Checks
@@ -64,6 +76,8 @@ After the MCP gate passes, the leader still must verify in Studio:
 - `Workspace.HideableProps` contains valid disguise models with `PrimaryPart`.
 - No inserted asset scripts are enabled.
 - The round loop runs Intermission -> Hiding -> Hunting -> RoundEnd.
+- A hider can disguise through the client input path (`E` near a prop), and the
+  server attaches a `Disguise` model.
 - A two-client local server test works, or the solo `Config.MIN_PLAYERS = 1` loop is documented as the current smoke path.
 
 ## Traceability

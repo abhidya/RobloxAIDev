@@ -18,13 +18,15 @@ agents need:
 - **`search_assets`** — ranked, multi-category Toolbox v2 search with vote/creator/
   script/mesh metadata and ids. `extensive=true` expands the query into variants
   for broader exploration.
+- **`plan_game_asset_coverage`** — turns a Roblox game idea into search slots for
+  lobby spawn, NPCs, portals, upgrade/cosmetic surfaces, and themed room packs.
 - **Cache + single-flight** — results are cached (24h) and identical concurrent
   searches collapse to one network call, so N parallel agents are cheap.
 - **`curate_assets`** — a storyboard's slots → a diversity-capped shortlist per
   slot (no single creator's pack dominating).
 - **`review_asset` / `get_reviews`** — persist an agent's keep/reject verdict so
   other agents reuse it instead of re-vetting.
-- **`record_inspection` / `get_inspection`** — persist StudioMCP-measured
+- **`record_inspection` / `record_inspections` / `get_inspection`** — persist StudioMCP-measured
   geometry and safety facts without coupling this server to Studio.
 - **`commit_palette` / `get_palette`** — freeze the chosen asset per slot for the
   build phase.
@@ -55,6 +57,7 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 
 | Tool | Purpose |
 |------|---------|
+| `plan_game_asset_coverage(game?, themes?, include_defaults?, include_lobby?, max_themes?, format?)` | Generate lobby/session/room asset search coverage before curation. |
 | `search_assets(query, max_results?, categories?, verified_only?, extensive?, exclude_terms?, exclude_rejected?, exclude_claimed?, exclude_ids?)` | Ranked search; auto-hides rejected/claimed; `exclude_terms` drops off-theme names; results annotated with prior verdicts/claims. |
 | `curate_assets(slots[], per_slot?, verified_only?, extensive?, exclude_terms?, exclude_claimed?)` | Diverse shortlist per slot; excludes rejected + claimed; no asset suggested for two slots. |
 | `claim_assets(project, slot, asset_ids[], reviewer?)` | Reserve assets to a slot so other agents' results hide them — prevents collisions. |
@@ -62,6 +65,7 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 | `review_asset(asset_id, verdict, slot?, rating?, notes?, reviewer?)` | Persist a shared verdict (`reject` auto-excludes). |
 | `get_reviews(asset_id)` | Read all verdicts + claim status for an asset. |
 | `record_inspection(asset_id, slot?, size_studs?, has_scripts?, script_count?, base_part_count?, anchored_capable?, primary_part?, issues?, reviewer?, source?)` | Store the latest StudioMCP-measured facts for an asset. |
+| `record_inspections(inspections[])` | Store many StudioMCP inspection records in one call after a live palette audit. |
 | `get_inspection(asset_id)` | Read the latest persisted Studio inspection for an asset. |
 | `commit_palette(project, slot, asset_id, name?)` | Freeze a chosen asset per slot (also claims it). |
 | `get_palette(project)` | Read the committed palette for the build phase. |
@@ -87,6 +91,30 @@ shortlist in Studio before placing. Store those measured facts with
 `record_inspection` so future agents can reuse them and so validation can fail
 before a live build.
 
+## Game coverage planning
+
+Use `plan_game_asset_coverage` before curation whenever the skill is building or
+expanding a Roblox game. It gives the skill generic Roblox coverage instead of a
+single arena list:
+
+- lobby spawn/plaza
+- NPC guide, room hosts, upgrade shop, cosmetics, leaderboard
+- portal and room queue affordances
+- themed room shells, setpieces, hideable prop packs, avatar/forms, ambience
+
+Example:
+
+```text
+plan_game_asset_coverage(
+  game: "party prop hunt",
+  themes: ["underwater reef", "space station"],
+  include_defaults: true
+)
+```
+
+Feed the returned slots into `curate_assets(..., extensive=true)`, claim the
+shortlists, inspect in Studio, then commit the best assets to the palette.
+
 ## Prop Hunt gate
 
 Prop Hunt is this repo's validation gate. Commit palette slots using explicit
@@ -111,9 +139,15 @@ loop.
 You can also run the same check against the persisted asset brain from a shell:
 
 ```bash
+npm run seed:prop-hunt-place1  # imports the audited Place1.rbxl gate fixture
 npm run gate:prop-hunt
 node scripts/validate-prop-hunt-gate.mjs --project prophunt --json
 ```
+
+`fixtures/place1-prop-hunt-gate.json` is a replayable snapshot of the live
+StudioMCP audit for `Place1.rbxl`: 20 measured hideables and 4 set pieces across
+the three shipped areas. It exists so the repo-side gate can be reproduced even
+when `~/.roblox-asset-brain/` starts empty.
 
 ## Config
 
@@ -124,11 +158,15 @@ node scripts/validate-prop-hunt-gate.mjs --project prophunt --json
 
 ```
 src/index.js     MCP server + tool registrations
+src/gameCoverage.js generic Roblox lobby/session/room coverage planner
 src/propHuntGate.js Prop Hunt palette + inspection validation
+fixtures/place1-prop-hunt-gate.json audited Place1 gate fixture
+scripts/import-prop-hunt-gate.mjs imports audited gate fixtures into the store
 scripts/validate-prop-hunt-gate.mjs CLI for the persisted Prop Hunt gate
 src/toolbox.js   Toolbox v2 search, ranking, extensive query expansion
 src/store.js     JSON persistence, TTL cache, single-flight, reviews, inspections, palette
 test/offline.mjs deterministic parsing/scoring/curation test (no network)
 test/gate-cli.mjs deterministic CLI gate test (no network)
+test/fixture-import.mjs deterministic Place1 fixture import test (no network)
 test/smoke.mjs   spins up the server as an MCP client end-to-end
 ```

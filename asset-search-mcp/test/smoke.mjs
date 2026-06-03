@@ -25,7 +25,7 @@ await client.connect(transport);
 const tools = await client.listTools();
 const toolNames = tools.tools.map((t) => t.name);
 console.log("TOOLS:", toolNames.join(", "));
-for (const requiredTool of ["record_inspection", "get_inspection", "validate_prop_hunt_gate"]) {
+for (const requiredTool of ["plan_game_asset_coverage", "record_inspection", "record_inspections", "get_inspection", "validate_prop_hunt_gate"]) {
   assert.ok(toolNames.includes(requiredTool), `${requiredTool} is listed`);
 }
 
@@ -36,6 +36,16 @@ async function call(name, args) {
 
 console.log("\n--- search_assets ---");
 console.log((await call("search_assets", { query: "wooden barrel", max_results: 3 })).slice(0, 700));
+
+console.log("\n--- plan_game_asset_coverage ---");
+const coverageText = await call("plan_game_asset_coverage", {
+  game: "party prop hunt",
+  themes: ["underwater reef", "space station"],
+  include_defaults: false,
+});
+assert.ok(coverageText.includes("lobby.portal.room_queue"), "coverage includes lobby portal");
+assert.ok(coverageText.includes("underwater_reef.hideable.prop_pack"), "coverage includes underwater room props");
+console.log(coverageText.slice(0, 900));
 
 console.log("\n--- curate_assets ---");
 console.log(
@@ -58,6 +68,19 @@ console.log(await call("record_inspection", {
   anchored_capable: true,
   primary_part: true,
   source: "smoke",
+}));
+console.log(await call("record_inspections", {
+  inspections: [{
+    asset_id: 34567,
+    slot: "medieval_market.hideable.crate",
+    size_studs: { x: 3, y: 3, z: 3 },
+    has_scripts: false,
+    script_count: 0,
+    base_part_count: 1,
+    anchored_capable: true,
+    primary_part: true,
+    source: "smoke-bulk",
+  }],
 }));
 console.log(await call("commit_palette", { project: "prophunt-smoke", slot: "medieval_market.setpiece.market_stall", asset_id: 23456, name: "Market Stall" }));
 console.log(await call("record_inspection", {

@@ -10,6 +10,7 @@ import { z } from "zod";
 
 import { searchAssets, DEFAULT_CATEGORIES } from "./toolbox.js";
 import { Store, diversify, filterByTerms } from "./store.js";
+import { buildGameAssetCoverage, formatGameAssetCoverage } from "./gameCoverage.js";
 import { formatPropHuntGateReport, validatePropHuntGate } from "./propHuntGate.js";
 
 const store = new Store();
@@ -63,6 +64,29 @@ function formatAsset(a, index) {
 const text = (s) => ({ content: [{ type: "text", text: s }] });
 
 const server = new McpServer({ name: "asset-search", version: "0.3.0" });
+
+server.tool(
+  "plan_game_asset_coverage",
+  "Create a generic Roblox game asset coverage plan for the asset-driven skill: lobby spawn, NPCs, portals, upgrade shop, leaderboard/cosmetics, and capacity-limited themed room packs. Use this before curate_assets so new rooms such as underwater, space, haunted, or jungle are grounded in searchable Creator Store slots instead of hand-built placeholders.",
+  {
+    game: z.string().optional().describe("Short game idea or title."),
+    themes: z.array(z.string()).optional().describe("Room themes to cover, e.g. ['underwater reef', 'space station']."),
+    include_defaults: z.boolean().optional().describe("Add default expansion themes when true (default true)."),
+    include_lobby: z.boolean().optional().describe("Include lobby/social shell slots when true (default true)."),
+    max_themes: z.number().int().min(1).max(12).optional(),
+    format: z.enum(["text", "json"]).optional(),
+  },
+  async (args) => {
+    const coverage = buildGameAssetCoverage({
+      game: args.game || "Roblox game",
+      themes: args.themes || [],
+      includeDefaults: args.include_defaults !== false,
+      includeLobby: args.include_lobby !== false,
+      maxThemes: args.max_themes ?? 6,
+    });
+    return text(args.format === "json" ? JSON.stringify(coverage, null, 2) : formatGameAssetCoverage(coverage));
+  }
+);
 
 server.tool(
   "search_assets",
@@ -208,19 +232,51 @@ server.tool(
     source: z.string().optional().describe("Usually StudioMCP or a specific inspection pass label."),
   },
   async (args) => {
-    await store.recordInspection(args.asset_id, {
-      slot: args.slot ?? null,
-      sizeStuds: args.size_studs ?? null,
-      hasScripts: args.has_scripts ?? null,
-      scriptCount: args.script_count ?? null,
-      basePartCount: args.base_part_count ?? null,
-      anchoredCapable: args.anchored_capable ?? null,
-      primaryPart: args.primary_part ?? null,
-      issues: args.issues ?? [],
-      reviewer: args.reviewer ?? null,
-      source: args.source ?? "StudioMCP",
-    });
+    await store.recordInspection(args.asset_id, normalizeInspection(args));
     return text(`Recorded Studio inspection for ${args.asset_id}${args.slot ? ` (${args.slot})` : ""}.`);
+  }
+);
+
+const inspectionSchema = z.object({
+  asset_id: z.number(),
+  slot: z.string().optional(),
+  size_studs: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional().describe("Bounding-box size from Studio in studs."),
+  has_scripts: z.boolean().optional(),
+  script_count: z.number().int().min(0).optional(),
+  base_part_count: z.number().int().min(0).optional(),
+  anchored_capable: z.boolean().optional(),
+  primary_part: z.boolean().optional(),
+  issues: z.array(z.string()).optional(),
+  reviewer: z.string().optional(),
+  source: z.string().optional(),
+});
+
+function normalizeInspection(args) {
+  return {
+    slot: args.slot ?? null,
+    sizeStuds: args.size_studs ?? null,
+    hasScripts: args.has_scripts ?? null,
+    scriptCount: args.script_count ?? null,
+    basePartCount: args.base_part_count ?? null,
+    anchoredCapable: args.anchored_capable ?? null,
+    primaryPart: args.primary_part ?? null,
+    issues: args.issues ?? [],
+    reviewer: args.reviewer ?? null,
+    source: args.source ?? "StudioMCP",
+  };
+}
+
+server.tool(
+  "record_inspections",
+  "Record many StudioMCP inspection records in one call. Use this after a live Studio audit of a full Prop Hunt palette so the search MCP has reusable geometry/safety evidence without dozens of individual tool calls.",
+  {
+    inspections: z.array(inspectionSchema).min(1).max(200),
+  },
+  async (args) => {
+    for (const inspection of args.inspections) {
+      await store.recordInspection(inspection.asset_id, normalizeInspection(inspection));
+    }
+    return text(`Recorded ${args.inspections.length} Studio inspection(s).`);
   }
 );
 

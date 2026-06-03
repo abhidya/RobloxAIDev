@@ -4,9 +4,11 @@ description: >-
   Turn a one-line game idea into a playable Roblox game whose world is built
   from real Creator Store assets — not hand-rolled parts. Use when the user asks
   to "build a game", "make a prop hunt / obby / tycoon / sim", "fill a map with
-  assets", or wants AI to storyboard and assemble a Roblox experience. Fans out
-  parallel agents that explore, rank, curate, inspect, and review real assets,
-  then bends the storyboard to what is buildable and assembles it in Studio.
+  assets", or wants AI to storyboard and assemble a Roblox experience with a
+  lobby, NPCs, portals, upgrades, matchmaking, teams, and themed room sessions.
+  Fans out parallel agents that explore, rank, curate, inspect, and review real
+  assets, then bends the storyboard to what is buildable and assembles it in
+  Studio.
 ---
 
 # Asset-Driven Game Design
@@ -23,7 +25,7 @@ the Creator Store via search. You only hand-write:
 
 - **Game logic** (round system, scoring, state machine) — code, not content.
 - **Structural geometry** (flat floors, invisible walls, spawn pads, zone
-  triggers) — the stage, not the props.
+  triggers, queue pads, teleport volumes) — the stage, not the props.
 
 Everything a player looks at or hides as is a **searched, curated, inspected,
 placed asset**.
@@ -32,7 +34,7 @@ placed asset**.
 
 | Server | Role | Key tools |
 |--------|------|-----------|
-| **asset-search-mcp** (this repo, standalone, search-only) | discover + curate + **shared memory** | `search_assets`, `curate_assets`, `claim_assets`, `reject_asset`, `review_asset`, `get_reviews`, `record_inspection`, `get_inspection`, `commit_palette`, `get_palette`, `validate_prop_hunt_gate` |
+| **asset-search-mcp** (this repo, standalone, search-only) | discover + curate + **shared memory** | `plan_game_asset_coverage`, `search_assets`, `curate_assets`, `claim_assets`, `reject_asset`, `review_asset`, `get_reviews`, `record_inspection`, `record_inspections`, `get_inspection`, `commit_palette`, `get_palette`, `validate_prop_hunt_gate` |
 | **StudioMCP** (official, bundled in Roblox Studio) | build + measure | `insert_from_creator_store`, `run_code`/`execute_luau`, playtest tools |
 
 `asset-search-mcp` is the advantage the official MCP lacks: ranked, multi-category
@@ -41,8 +43,8 @@ are cheap, plus curation, a shared review cache, and a committed palette. It is
 deliberately decoupled from Studio — geometric measurement (real size,
 orientation) is done through StudioMCP, because that requires loading the asset.
 After measurement, record those facts back into `asset-search-mcp` with
-`record_inspection` so other agents can reuse the evidence and the Prop Hunt
-gate can fail before a live build.
+`record_inspection` or batched `record_inspections` so other agents can reuse the
+evidence and the Prop Hunt gate can fail before a live build.
 
 ## Claude-history operating rules
 
@@ -66,18 +68,64 @@ This repo exists partly to bottle hard-won lessons from prior Roblox MCP work:
 Size/scale/orientation are **not** in the catalog. Search + curate cheaply to a
 shortlist, then measure only the shortlist in Studio before placing.
 
-## Workflow
+## Generic Roblox game shell
 
-### 1. Storyboard into slots
-From the prompt, write a short brief and break the world into **themed areas**,
-each into **asset slots**. A slot is one concrete thing to find.
+Do not treat a Roblox game as "three worlds on a baseplate." Build the reusable
+shell first, then plug asset-built rooms into it.
+
+Required shell elements:
+
+- **Lobby spawn**: players start at a `SpawnLocation` in a social lobby.
+- **NPCs**: guide, upgrades, cosmetics, and room hosts use ProximityPrompt or
+  ClickDetector; the visible NPCs come from searched assets.
+- **Portals/queues**: each room has a portal or queue pad with min players, max
+  players, fill timer, status display, and leave behavior.
+- **Room sessions**: a session owns its players, team assignment, room spawns,
+  phase state, scoring, and return-to-lobby teleport.
+- **Teams**: assign seekers/hiders or game-specific teams per session, not
+  globally across all players in the server.
+- **Upgrades/cosmetics**: buy or preview in the lobby; avoid gameplay advantage
+  claims unless implemented and tested.
+- **Expandable rooms**: underwater, space station, haunted mansion, jungle
+  temple, or any new theme starts as asset coverage, not a hard-coded idea.
+
+Each room config should have at least:
 
 ```
-areas:
-  medieval_market: [ market_stall, barrel, crate, hay_bale, basket ]
-  sci_fi_lab:      [ console, storage_crate, canister, robot, monitor ]
-  cozy_cabin:      [ fireplace, bookshelf, wooden_chair, lamp, log ]
-ambience: [ ambient_loop, footstep_sfx ]
+id, display_name, theme, min_players, max_players, fill_seconds,
+teams, lobby_portal, room_spawn_folder, hideable_folder, palette_project
+```
+
+## Room dreaming from assets
+
+Before searching individual props, call:
+
+```
+plan_game_asset_coverage(game="party prop hunt", themes=["underwater reef","space station"])
+```
+
+This returns search slots for the persistent lobby plus each candidate room:
+arena shell, portal, NPC host, setpiece anchor, hideable prop pack, small props,
+avatar/form, and ambience. Feed those slots into `curate_assets`. If the search
+finds a strong "coral reef + fish morph + sea cave" pack, make an underwater
+room where players are fish and hide as coral. If it finds a stronger space
+station pack than an exact "social deduction ship" pack, bend the room toward
+the asset reality.
+
+## Workflow
+
+### 1. Coverage first: shell + rooms
+From the prompt, write a short brief and call `plan_game_asset_coverage` to cover
+the Roblox shell and expandable room packs. Then break the chosen game into
+**lobby slots** and **room slots**. A slot is one concrete thing to find.
+
+```
+lobby:
+  [ spawn_plaza, room_queue_portal, guide_npc, upgrade_shop, leaderboard ]
+rooms:
+  underwater_reef: [ coral_cave, coral_props, fish_morph, reef_ambience ]
+  space_station:   [ reactor_room, crate_props, astronaut_morph, alarm_loop ]
+  cozy_cabin:      [ fireplace, bookshelf, chair_props, cabin_host ]
 ```
 
 ### 2. Fan out — parallel agents that don't collide
@@ -115,23 +163,39 @@ Read the committed palette (`get_palette`). **Bend the storyboard to what is
 buildable.** If no good "crypt" exists but "mausoleum" assets are excellent,
 rename the area. The design serves the assets, not the other way around.
 
+Room approval rule: a room is buildable only when the asset set covers a readable
+arena, enough hideables/interactive props, a portal/lobby affordance, and at
+least one role/form/NPC/ambience cue that makes the theme legible.
+
 ### 4. Build in Studio (StudioMCP)
 0. Run `validate_prop_hunt_gate(project="prophunt")`. Do not start the live
    Studio build until the asset palette passes the repo-side gate, or until the
    failure is explicitly documented as the current blocker. From a shell, the
-   same check is `cd asset-search-mcp && npm run gate:prop-hunt`.
-1. Build the **stage** with `execute_luau`: flat floors per area, invisible
-   walls, spawn pads, zone trigger parts (CanCollide off, Transparency 1).
+   same check is `cd asset-search-mcp && npm run gate:prop-hunt`. If the local
+   asset-brain store is empty for the shipped `Place1.rbxl`, seed the recovered
+   Studio audit first with `npm run seed:prop-hunt-place1`.
+1. Build the **stage** with `execute_luau`: lobby SpawnLocation, structural
+   floors, invisible walls, queue pads, portals, room spawn folders, and zone
+   trigger parts (CanCollide off, Transparency 1).
 2. For each committed slot, insert the asset **by id** and seat it on the floor
    using its measured bounding box: `PivotTo(CFrame.new(x, floorY + size.Y/2, z))`.
    Scale only if the measured size is wrong.
 3. Scatter prop instances with small random rotation/position jitter; `:Clone()`
    the inserted asset for repeats instead of re-inserting.
+4. Register room metadata in code: portal id, min/max players, teams, spawn
+   folder, hideable folder, and palette project.
 
 ### 5. Wire game logic + playtest
-Copy the hand-written game logic (e.g. `examples/prop-hunt`), point it at the
-asset-built world, then playtest with StudioMCP and confirm the loop runs with
-no asset-load errors. Fix placement and re-run.
+Wire lobby/session logic before declaring the game playable:
+
+1. Players spawn in lobby.
+2. Portal/NPC interaction joins a room queue.
+3. Queue fills until `min_players` or timer, caps at `max_players`, then creates
+   a session.
+4. Session assigns teams, teleports only queued players into the room, runs the
+   game loop, scores, cleans disguises/effects, and returns players to lobby.
+5. Playtest with StudioMCP and confirm no asset-load errors, no global-round
+   leakage, and clean return-to-lobby behavior.
 
 ## Placement math
 
@@ -146,8 +210,10 @@ After measuring `size = boundingBox.ExtentsSize`:
 
 A prop hunt is the gate that proves the whole pipeline end to end:
 
-1. 3 contrasting themes so areas look different (medieval market, sci-fi lab,
-   cozy cabin).
+1. A playable lobby plus at least one capacity-limited Prop Hunt room. The
+   shipped gate uses 3 contrasting room themes (medieval market, sci-fi lab,
+   cozy cabin); future gates can add underwater reef, space station, or other
+   asset-supported rooms.
 2. Palette slots named as `area.hideable.name` or `area.setpiece.name`; the
    default repo gate expects 20+ hideables and 4+ set pieces across 3 areas.
    For a stricter production pass, raise this to ~6 set pieces + ~10 hideable
@@ -157,8 +223,8 @@ A prop hunt is the gate that proves the whole pipeline end to end:
    record via `record_inspection` (these become disguises).
 4. Register every placed prop Model (with a `PrimaryPart`) into
    `Workspace.HideableProps`, which the round logic reads.
-5. Round loop: timer, assign seekers, hiders disguise as a nearby prop, seekers
-   tag, scoring, repeat.
+5. Room loop: queue, teleport, timer, assign seekers, hiders disguise as a
+   nearby prop, seekers tag, scoring, return to lobby, repeat.
 
 ## Efficiency rules
 
@@ -169,9 +235,18 @@ A prop hunt is the gate that proves the whole pipeline end to end:
 
 ## Definition of done
 
-- 3+ visually distinct areas, each built from real assets (zero placeholder
-  parts for props).
+- Players spawn into a lobby with asset-backed NPCs, portals/queues, and upgrade
+  or cosmetic affordances.
+- At least one capacity-limited room session works end to end; production gates
+  should support multiple room definitions even if only one room is active.
+- 3+ visually distinct room themes or one polished room plus asset coverage for
+  the next rooms, each built from real assets (zero placeholder parts for props).
 - Every placed prop was inspected (known size, no rejected issues) and the best
   pick committed to the palette.
-- A `HideableProps` folder populated with valid disguise models.
-- Round loop runs start→finish in playtest with no asset-load errors.
+- Room-scoped hideable folders are populated with valid disguise models.
+- Matchmaking, team assignment, teleport-in, round loop, scoring, and
+  return-to-lobby run start→finish in playtest with no asset-load errors.
+- Run the repo-local `roblox-playable-space-review` signoff skill before final
+  delivery. Aerial screenshots and console logs are not enough; playable areas
+  must pass player-height quadrant review for theme, density, orientation,
+  scale, navigation, and UI/UX.

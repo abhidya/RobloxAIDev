@@ -12,7 +12,7 @@ Follow-up instruction:
 
 - Repo-local skill: `skills/asset-driven-game-design/SKILL.md`.
 - MCP under active development: `asset-search-mcp/`.
-- Validation artifact: `Place1.rbxl`, described as a 3-theme Prop Hunt gate.
+- Validation artifact: `Place1.rbxl`, described as a 3-theme Prop Hunt gate and verified by Studio MCP solo smoke in the continuation.
 - Direct Claude history for this repo path was not found in local Claude project transcripts.
 - Relevant Claude history was found in the earlier Roblox `eggBreakers` project. That history informs this repo's operating rules but is evidence from a related project, not direct proof about `Place1.rbxl`.
 
@@ -37,6 +37,6 @@ This repo is intended to package those lessons as a cleaner asset-driven workflo
 
 ## Stop Condition For This Pass
 
-Add a deterministic repo-side Prop Hunt asset gate to the MCP and skill, then verify it with automated tests. The live Studio playtest remains a separate gate when the Studio MCP proxy cannot reach an opened place.
+Add a deterministic repo-side Prop Hunt asset gate to the MCP and skill, verify it with automated tests, add Rojo source for the Prop Hunt logic, and run live Studio validation when MCP can reach the place.
 
 Continuation update: Roblox Studio MCP tools were later discoverable, but the active Studio instance remained unreachable for read-only tree probes even after opening `Place1.rbxl`. See `docs/studio-validation-log.md`.

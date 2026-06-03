@@ -1,0 +1,274 @@
+{
+  "project": "prophunt",
+  "source": "Place1.rbxl StudioMCP audit on 2026-06-03",
+  "notes": [
+    "Recovered from the live Place1.rbxl validation map so the search MCP can replay the committed Prop Hunt palette and Studio inspection facts.",
+    "asset_id values are Roblox mesh/asset references when Studio exposes them; 900.../910... ids are stable recovered local assembly ids for part-built imported models that do not expose a mesh id."
+  ],
+  "entries": [
+    {
+      "slot": "medieval_market.hideable.barrel_m_1",
+      "asset_id": 12495640104,
+      "name": "Barrel_M_1",
+      "size_studs": { "x": 3.11, "y": 3.11, "z": 3.4 },
+      "base_part_count": 4,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "medieval_market.hideable.barrel_m_2",
+      "asset_id": 12495640104,
+      "name": "Barrel_M_2",
+      "size_studs": { "x": 3.11, "y": 3.11, "z": 3.4 },
+      "base_part_count": 4,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "medieval_market.hideable.barrel_m_3",
+      "asset_id": 12495640104,
+      "name": "Barrel_M_3",
+      "size_studs": { "x": 3.11, "y": 3.11, "z": 3.4 },
+      "base_part_count": 4,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "medieval_market.hideable.barrel_m_4",
+      "asset_id": 12495640104,
+      "name": "Barrel_M_4",
+      "size_studs": { "x": 3.11, "y": 3.11, "z": 3.4 },
+      "base_part_count": 4,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "medieval_market.hideable.barrel_m_5",
+      "asset_id": 12495640104,
+      "name": "Barrel_M_5",
+      "size_studs": { "x": 3.11, "y": 3.11, "z": 3.4 },
+      "base_part_count": 4,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "medieval_market.hideable.barrel_m_6",
+      "asset_id": 12495640104,
+      "name": "Barrel_M_6",
+      "size_studs": { "x": 3.11, "y": 3.11, "z": 3.4 },
+      "base_part_count": 4,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "medieval_market.hideable.barrel_m_7",
+      "asset_id": 12495640104,
+      "name": "Barrel_M_7",
+      "size_studs": { "x": 3.11, "y": 3.11, "z": 3.4 },
+      "base_part_count": 4,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "sci_fi_lab.hideable.oxygentank_s_1",
+      "asset_id": 9916179644,
+      "name": "OxygenTank_S_1",
+      "size_studs": { "x": 1.82, "y": 0.58, "z": 0.58 },
+      "base_part_count": 1,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "sci_fi_lab.hideable.oxygentank_s_2",
+      "asset_id": 9916179644,
+      "name": "OxygenTank_S_2",
+      "size_studs": { "x": 1.82, "y": 0.58, "z": 0.58 },
+      "base_part_count": 1,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "sci_fi_lab.hideable.oxygentank_s_3",
+      "asset_id": 9916179644,
+      "name": "OxygenTank_S_3",
+      "size_studs": { "x": 1.82, "y": 0.58, "z": 0.58 },
+      "base_part_count": 1,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "sci_fi_lab.hideable.oxygentank_s_4",
+      "asset_id": 9916179644,
+      "name": "OxygenTank_S_4",
+      "size_studs": { "x": 1.82, "y": 0.58, "z": 0.58 },
+      "base_part_count": 1,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "sci_fi_lab.hideable.oxygentank_s_5",
+      "asset_id": 9916179644,
+      "name": "OxygenTank_S_5",
+      "size_studs": { "x": 1.82, "y": 0.58, "z": 0.58 },
+      "base_part_count": 1,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "sci_fi_lab.hideable.supplycrate_s_1",
+      "asset_id": 900000000013,
+      "name": "SupplyCrate_S_1",
+      "size_studs": { "x": 4.02, "y": 0.91, "z": 1.22 },
+      "base_part_count": 311,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "sci_fi_lab.hideable.supplycrate_s_2",
+      "asset_id": 900000000014,
+      "name": "SupplyCrate_S_2",
+      "size_studs": { "x": 4.02, "y": 0.91, "z": 1.22 },
+      "base_part_count": 311,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "cozy_cabin.hideable.chair_c_1",
+      "asset_id": 900000000015,
+      "name": "Chair_C_1",
+      "size_studs": { "x": 3.6, "y": 2.71, "z": 3.3 },
+      "base_part_count": 16,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "cozy_cabin.hideable.chair_c_2",
+      "asset_id": 900000000016,
+      "name": "Chair_C_2",
+      "size_studs": { "x": 3.6, "y": 2.71, "z": 3.3 },
+      "base_part_count": 16,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "cozy_cabin.hideable.barrel_c_1",
+      "asset_id": 12495640104,
+      "name": "Barrel_C_1",
+      "size_studs": { "x": 3.11, "y": 3.11, "z": 3.4 },
+      "base_part_count": 4,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "cozy_cabin.hideable.barrel_c_2",
+      "asset_id": 12495640104,
+      "name": "Barrel_C_2",
+      "size_studs": { "x": 3.11, "y": 3.11, "z": 3.4 },
+      "base_part_count": 4,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "cozy_cabin.hideable.barrel_c_3",
+      "asset_id": 12495640104,
+      "name": "Barrel_C_3",
+      "size_studs": { "x": 3.11, "y": 3.11, "z": 3.4 },
+      "base_part_count": 4,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "cozy_cabin.hideable.crate_c_1",
+      "asset_id": 900000000020,
+      "name": "Crate_C_1",
+      "size_studs": { "x": 3, "y": 3, "z": 3 },
+      "base_part_count": 1,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "medieval_market.setpiece.well_1",
+      "asset_id": 910000000001,
+      "name": "Well_1",
+      "size_studs": { "x": 12.14, "y": 13, "z": 9.17 },
+      "base_part_count": 12,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "medieval_market.setpiece.cart_1",
+      "asset_id": 910000000002,
+      "name": "Cart_1",
+      "size_studs": { "x": 11.56, "y": 4.48, "z": 6.11 },
+      "base_part_count": 60,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "sci_fi_lab.setpiece.reactor_1",
+      "asset_id": 910000000003,
+      "name": "Reactor_1",
+      "size_studs": { "x": 7.26, "y": 22, "z": 7.08 },
+      "base_part_count": 136,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    },
+    {
+      "slot": "cozy_cabin.setpiece.cabinshell_1",
+      "asset_id": 1931768342,
+      "name": "CabinShell_1",
+      "size_studs": { "x": 34, "y": 24.11, "z": 27.69 },
+      "base_part_count": 139,
+      "script_count": 0,
+      "has_scripts": false,
+      "anchored_capable": true,
+      "primary_part": true
+    }
+  ]
+}

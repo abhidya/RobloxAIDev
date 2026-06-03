@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { normalizeAsset, scoreAsset, expandQuery } from "../src/toolbox.js";
 import { Store, diversify, filterByTerms } from "../src/store.js";
+import { buildGameAssetCoverage } from "../src/gameCoverage.js";
 import { formatPropHuntGateReport, validatePropHuntGate } from "../src/propHuntGate.js";
 
 // ---- toolbox parsing/ranking ----
@@ -31,6 +32,20 @@ const themed = filterByTerms(
   ["palm","sci-fi","neon"]
 );
 assert.deepEqual(themed.map((x)=>x.name), ["Medieval Barrel","Wooden Cart"], "off-theme names dropped");
+
+// ---- skill asset coverage planner ----
+const coverage = buildGameAssetCoverage({
+  game: "party prop hunt",
+  themes: ["underwater reef", "space station"],
+  includeDefaults: false,
+});
+const coverageSlots = coverage.slots.map((slot) => slot.slot);
+assert.ok(coverage.systems.some((system) => system.includes("Spawn")), "generic Roblox spawn system covered");
+assert.ok(coverage.systems.some((system) => system.includes("capacity-limited")), "room matchmaking covered");
+assert.ok(coverageSlots.includes("lobby.portal.room_queue"), "lobby portal slot covered");
+assert.ok(coverageSlots.includes("underwater_reef.hideable.prop_pack"), "underwater hideable slot covered");
+assert.ok(coverageSlots.includes("underwater_reef.avatar.form"), "underwater fish/morph slot covered");
+assert.ok(coverageSlots.includes("space_station.room.arena_shell"), "space room slot covered");
 
 // ---- shared-brain: rejections + claims + annotation ----
 const dir = path.join(os.tmpdir(), "brain-offline-" + Date.now());
@@ -73,6 +88,17 @@ await store.recordInspection(555, {
   source: "offline",
 });
 assert.equal(store.getInspection(555).sizeStuds.x, 10, "inspection stored");
+await store.recordInspection(556, {
+  slot: "batch-a",
+  sizeStuds: { x: 2, y: 2, z: 2 },
+  hasScripts: false,
+  scriptCount: 0,
+  basePartCount: 1,
+  anchoredCapable: true,
+  primaryPart: true,
+  source: "offline-batch-shape",
+});
+assert.equal(store.getInspection(556).primaryPart, true, "second inspection stored");
 
 // persistence: a fresh Store sees the same state
 const store2 = new Store();
@@ -161,4 +187,4 @@ assert.equal(unclassifiedGate.counts.areas, 0, "unclassified slots do not satisf
 assert.equal(unclassifiedGate.passed, false, "unclassified-only palette fails area gate");
 
 await fs.rm(dir, { recursive: true, force: true });
-console.log("OFFLINE OK — parsing, ranking, curation, off-theme filter, rejections, claims, inspections, Prop Hunt gate, persistence");
+console.log("OFFLINE OK — parsing, ranking, curation, game coverage, off-theme filter, rejections, claims, inspections, Prop Hunt gate, persistence");

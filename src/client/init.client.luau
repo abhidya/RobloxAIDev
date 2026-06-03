@@ -14,6 +14,7 @@ local player = Players.LocalPlayer
 local stateChanged = Remotes.get("StateChanged") :: RemoteEvent
 local requestDisguise = Remotes.get("RequestDisguise") :: RemoteEvent
 local notify = Remotes.get("Notify") :: RemoteEvent
+local latestState: any = nil
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "PropHuntHUD"
@@ -31,6 +32,54 @@ phaseLabel.TextScaled = true
 phaseLabel.Font = Enum.Font.GothamBold
 phaseLabel.Text = "Waiting..."
 phaseLabel.Parent = gui
+
+local roleLabel = Instance.new("TextLabel")
+roleLabel.AnchorPoint = Vector2.new(0.5, 0)
+roleLabel.Position = UDim2.new(0.5, 0, 0.085, 0)
+roleLabel.Size = UDim2.new(0.34, 0, 0.04, 0)
+roleLabel.BackgroundTransparency = 0.55
+roleLabel.BackgroundColor3 = Color3.new(0, 0, 0)
+roleLabel.TextColor3 = Color3.fromRGB(210, 235, 255)
+roleLabel.TextScaled = true
+roleLabel.Font = Enum.Font.GothamMedium
+roleLabel.Text = "Waiting for round"
+roleLabel.Parent = gui
+
+local scoreLabel = Instance.new("TextLabel")
+scoreLabel.AnchorPoint = Vector2.new(1, 0)
+scoreLabel.Position = UDim2.new(0.98, 0, 0.02, 0)
+scoreLabel.Size = UDim2.new(0.16, 0, 0.045, 0)
+scoreLabel.BackgroundTransparency = 0.45
+scoreLabel.BackgroundColor3 = Color3.new(0, 0, 0)
+scoreLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+scoreLabel.TextScaled = true
+scoreLabel.Font = Enum.Font.GothamBold
+scoreLabel.Text = "Score 0"
+scoreLabel.Parent = gui
+
+local roomLabel = Instance.new("TextLabel")
+roomLabel.AnchorPoint = Vector2.new(0, 0)
+roomLabel.Position = UDim2.new(0.02, 0, 0.02, 0)
+roomLabel.Size = UDim2.new(0.22, 0, 0.045, 0)
+roomLabel.BackgroundTransparency = 0.45
+roomLabel.BackgroundColor3 = Color3.new(0, 0, 0)
+roomLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+roomLabel.TextScaled = true
+roomLabel.Font = Enum.Font.GothamBold
+roomLabel.Text = "Lobby"
+roomLabel.Parent = gui
+
+local queueLabel = Instance.new("TextLabel")
+queueLabel.AnchorPoint = Vector2.new(0, 0)
+queueLabel.Position = UDim2.new(0.02, 0, 0.07, 0)
+queueLabel.Size = UDim2.new(0.26, 0, 0.04, 0)
+queueLabel.BackgroundTransparency = 0.55
+queueLabel.BackgroundColor3 = Color3.new(0, 0, 0)
+queueLabel.TextColor3 = Color3.fromRGB(210, 235, 255)
+queueLabel.TextScaled = true
+queueLabel.Font = Enum.Font.GothamMedium
+queueLabel.Text = "Choose a portal"
+queueLabel.Parent = gui
 
 local toast = Instance.new("TextLabel")
 toast.AnchorPoint = Vector2.new(0.5, 1)
@@ -68,8 +117,71 @@ local function showToast(message: string)
 	end)
 end
 
+local function includesUserId(list: { any }?, userId: number): boolean
+	if not list then
+		return false
+	end
+	for _, id in list do
+		if id == userId then
+			return true
+		end
+	end
+	return false
+end
+
+local function currentRole(): string
+	if not latestState then
+		return "Waiting"
+	end
+	if includesUserId(latestState.seekers, player.UserId) then
+		return "Seeker"
+	elseif includesUserId(latestState.hiders, player.UserId) then
+		return "Hider"
+	end
+	return "Waiting"
+end
+
+local function isHiderActive(): boolean
+	local phase = latestState and latestState.phase
+	return currentRole() == "Hider" and (phase == "Hiding" or phase == "Hunting")
+end
+
+local function scoreForLocalPlayer(): number
+	local scores = latestState and latestState.scores
+	if type(scores) ~= "table" then
+		return 0
+	end
+	return scores[player.UserId] or scores[tostring(player.UserId)] or 0
+end
+
+local function updateRoomText(state)
+	local phase = tostring(state.phase)
+	local roomName = tostring(state.roomName or "Lobby")
+	roomLabel.Text = roomName
+
+	if phase == "Lobby" then
+		queueLabel.Text = "Choose a portal"
+	elseif phase == "Queue" then
+		local count = tonumber(state.queueCount) or 0
+		local maxPlayers = tonumber(state.maxPlayers) or 0
+		local minPlayers = tonumber(state.minPlayers) or 0
+		queueLabel.Text = "Queue " .. tostring(count) .. "/" .. tostring(maxPlayers) .. "  Min " .. tostring(minPlayers)
+	else
+		local role = currentRole()
+		if role == "Waiting" then
+			queueLabel.Text = "Spectating"
+		else
+			queueLabel.Text = role .. " in " .. roomName
+		end
+	end
+end
+
 stateChanged.OnClientEvent:Connect(function(state)
+	latestState = state
 	phaseLabel.Text = tostring(state.phase)
+	roleLabel.Text = currentRole()
+	scoreLabel.Text = "Score " .. tostring(scoreForLocalPlayer())
+	updateRoomText(state)
 end)
 notify.OnClientEvent:Connect(showToast)
 
@@ -96,8 +208,22 @@ local function nearestProp(): Model?
 end
 
 RunService.RenderStepped:Connect(function()
+	if latestState and latestState.endsAt then
+		local remaining = math.max(0, math.ceil(latestState.endsAt - os.clock()))
+		if remaining > 0 then
+			phaseLabel.Text = tostring(latestState.phase) .. "  " .. tostring(remaining)
+		else
+			phaseLabel.Text = tostring(latestState.phase)
+		end
+	end
+	roleLabel.Text = currentRole()
+	scoreLabel.Text = "Score " .. tostring(scoreForLocalPlayer())
+	if latestState then
+		updateRoomText(latestState)
+	end
+
 	local prop = nearestProp()
-	if prop then
+	if prop and isHiderActive() then
 		hint.Text = "Press E to hide as " .. prop.Name
 		hint.Visible = true
 	else
@@ -111,7 +237,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 	if input.KeyCode == Enum.KeyCode.E then
 		local prop = nearestProp()
-		if prop then
+		if prop and isHiderActive() then
 			requestDisguise:FireServer(prop.Name)
 		end
 	end

@@ -41,6 +41,9 @@ cp -R "$(pwd)/../skills/asset-driven-game-design" ~/.claude/skills/
 # 3. Open Roblox Studio (official StudioMCP live), then in Claude Code:
 #    /asset-driven-game-design build a 3-theme prop hunt
 #      (medieval market, sci-fi lab, cozy cabin)
+
+# Optional source sync for the Prop Hunt logic
+rojo serve --address 127.0.0.1 --port 34872
 ```
 
 ## Play the prop hunt (the validation gate)
@@ -50,6 +53,14 @@ Store assets by the skill: **20 hideable props + 4 set pieces** across a Medieva
 Market, a Sci-Fi Lab, and a Cozy Cabin, plus the round logic in
 ServerScriptService / ReplicatedStorage / StarterPlayerScripts.
 
+The game logic is now source-controlled through Rojo:
+
+- `default.project.json`
+- `src/server/init.server.luau`
+- `src/shared/Config.luau`
+- `src/shared/Remotes.luau`
+- `src/client/init.client.luau`
+
 Prop hunt needs **2+ players**, so to actually play a round:
 
 1. Open `Place1.rbxl` in Studio.
@@ -58,10 +69,11 @@ Prop hunt needs **2+ players**, so to actually play a round:
 3. In each client: walk near a prop and press **E** to disguise as it; seekers
    tag hiders. The HUD shows the current phase.
 
-To **solo-test the loop** instead, set `Config.MIN_PLAYERS = 1` in
-`ReplicatedStorage.PropHunt.Config` and press **Play** — one round cycles
-Intermission → Hiding → Hunting → RoundEnd (watch the Output for
-`[PropHunt] phase -> ...`).
+To **solo-test the loop** instead, set `Config.DEBUG_SOLO = true` in
+`ReplicatedStorage.PropHunt.Config`, then press **Play**. For a very fast smoke
+run, also set `Config.DEBUG_FAST_TIMINGS = true` — the loop cycles
+Intermission → Hiding → Hunting → RoundEnd in seconds (watch the Output for
+`[PropHunt] phase -> ...`). Keep both flags `false` for normal play.
 
 Rebuild or extend the world anytime with the skill (Studio open, both MCPs
 connected):
@@ -82,7 +94,9 @@ Before spending a live Studio pass, use the MCP's repo-side gate:
 The default gate expects 3 areas, 20 hideable props, 4 set pieces, and inspected
 hideables that are script-free, anchored-capable, PrimaryPart-ready, and 1-8
 studs. The same check is available from the shell with
-`cd asset-search-mcp && npm run gate:prop-hunt`. See
+`cd asset-search-mcp && npm run gate:prop-hunt`. If the local asset-brain store
+is empty, seed it from the audited `Place1.rbxl` fixture first with
+`npm run seed:prop-hunt-place1`. See
 [`docs/prop-hunt-gate.md`](docs/prop-hunt-gate.md).
 
 ## Checking work in
