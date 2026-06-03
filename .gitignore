@@ -1,0 +1,11 @@
+# The Roblox Studio Rust MCP is its own repo — do NOT track it as a subrepo here.
+roblox-studio-rust-mcp-server/
+
+# Node
+node_modules/
+
+# Asset-brain persistence (local cache, not source)
+.roblox-asset-brain/
+
+# Studio lock files
+*.rbxl.lock
