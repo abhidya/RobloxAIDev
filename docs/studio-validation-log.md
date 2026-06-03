@@ -231,3 +231,53 @@ Remaining risk:
   room was recaptured, Sci-Fi still has edge bleed, lobby labels are duplicated,
   and several cover clusters are blocky placeholders rather than final curated
   assets.
+
+## 2026-06-03 Working-Copy Visual Review Pass
+
+Goal: use a duplicated place as the working ground, continue the quadrant-style
+visual gate, and preserve any useful working-copy edits without touching the
+source-controlled `Place1.rbxl` checkpoint.
+
+Setup:
+
+- Copied `Place1.rbxl` to `work/rojo-working/Place1.working.rbxl`.
+- Built a Rojo output copy with
+  `rojo build default.project.json -o work/rojo-working/Place1.rojo-built.rbxlx`.
+- Opened `Place1.working.rbxl` in a second Studio instance and selected it via
+  Studio MCP.
+- `rojo serve --address 127.0.0.1 --port 34872` remained running.
+
+Working-copy visual fixes applied live:
+
+- Softened lobby-facing room walls and reduced the black backdrop impression.
+- Disabled stale duplicated lobby sign GUIs.
+- Added short-range billboard labels for the three queue portals.
+- Added lobby floor guide lanes and low rails.
+- Added cloned existing assets for room density, while removing bad/floating
+  well clones after screenshot review.
+- Removed/recolored blocky or untextured problem objects found by screenshots:
+  white Sci-Fi console casing, artificial cabin cover, oversized dog placement,
+  and dark cabin shell pieces.
+- Preserved the pass as `scripts/studio_apply_working_visual_fixes.luau` because
+  Studio MCP could not call `SaveToFile`, and Cmd+S did not update the copied
+  `.rbxl` file timestamp.
+
+Screenshot evidence captured on the working copy:
+
+- `working_lobby_spawn_after_billboard_labels`: lobby is materially clearer,
+  with readable room choices and less black-wall dominance.
+- `working_medieval_player_nw_after_bad_well_removed`: removed an incorrectly
+  oriented/floating well clone; Medieval still has broad flat lanes.
+- `working_scifi_player_inside_after_console_recolor`: Sci-Fi no longer shows
+  lobby billboards or a white untextured block, but still has boxy cover.
+- `working_cabin_player_entry_after_dark_chairs_removed` and
+  `working_cabin_player_entry_after_artificial_cover_removed`: identified that
+  prior artificial cover hurt the scene; Cabin still needs a better first
+  player-height view because dark cabin/furniture silhouettes remain heavy.
+
+Verdict:
+
+- **Not signed off.** The review gate is working and caught real issues, but the
+  copied place still needs a full quadrant pass, cleaner cabin entry composition,
+  less boxy Sci-Fi cover, and a true two-client multiplayer check before
+  promoting the working copy back to `Place1.rbxl`.
