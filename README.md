@@ -42,6 +42,34 @@ cp -R "$(pwd)/../skills/asset-driven-game-design" ~/.claude/skills/
 #      (medieval market, sci-fi lab, cozy cabin)
 ```
 
+## Play the prop hunt (the validation gate)
+
+`Place1.rbxl` contains a 3-theme prop hunt assembled entirely from real Creator
+Store assets by the skill: **20 hideable props + 4 set pieces** across a Medieval
+Market, a Sci-Fi Lab, and a Cozy Cabin, plus the round logic in
+ServerScriptService / ReplicatedStorage / StarterPlayerScripts.
+
+Prop hunt needs **2+ players**, so to actually play a round:
+
+1. Open `Place1.rbxl` in Studio.
+2. In the **Test** tab, set **Clients** to 2 and **Server**, then click **Start**
+   (Local Server). Two windows spawn.
+3. In each client: walk near a prop and press **E** to disguise as it; seekers
+   tag hiders. The HUD shows the current phase.
+
+To **solo-test the loop** instead, set `Config.MIN_PLAYERS = 1` in
+`ReplicatedStorage.PropHunt.Config` and press **Play** — one round cycles
+Intermission → Hiding → Hunting → RoundEnd (watch the Output for
+`[PropHunt] phase -> ...`).
+
+Rebuild or extend the world anytime with the skill (Studio open, both MCPs
+connected):
+
+```
+/asset-driven-game-design build a 3-theme prop hunt
+  (medieval market, sci-fi lab, cozy cabin)
+```
+
 ## Checking work in
 
 This repo is pushed from your Mac (the build sandbox has no push credentials).
