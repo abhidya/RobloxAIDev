@@ -15,6 +15,7 @@ local Remotes = require(ReplicatedStorage.PropHunt.Remotes)
 Remotes.setup()
 local stateChanged = Remotes.get("StateChanged") :: RemoteEvent
 local requestDisguise = Remotes.get("RequestDisguise") :: RemoteEvent
+local leaveQueueRequested = Remotes.get("LeaveQueueRequested") :: RemoteEvent
 local notify = Remotes.get("Notify") :: RemoteEvent
 
 type QueueState = {
@@ -64,6 +65,61 @@ end
 local function setPlayerTeam(player: Player, team: Team)
 	player.Team = team
 	player.Neutral = false
+end
+
+local function getOrCreateFolder(parent: Instance, name: string): Folder
+	local existing = parent:FindFirstChild(name)
+	if existing and existing:IsA("Folder") then
+		return existing
+	end
+	if existing then
+		existing:Destroy()
+	end
+
+	local folder = Instance.new("Folder")
+	folder.Name = name
+	folder.Parent = parent
+	return folder
+end
+
+local function ensureMarkerPart(parent: Instance, name: string, position: Vector3, size: Vector3): BasePart
+	local existing = parent:FindFirstChild(name)
+	if existing and existing:IsA("BasePart") then
+		existing.Position = position
+		existing.Size = size
+		existing.Transparency = 1
+		existing.CanCollide = false
+		existing.Anchored = true
+		return existing
+	end
+	if existing then
+		existing:Destroy()
+	end
+
+	local part = Instance.new("Part")
+	part.Name = name
+	part.Position = position
+	part.Size = size
+	part.Anchored = true
+	part.CanCollide = false
+	part.Transparency = 1
+	part.Parent = parent
+	return part
+end
+
+local function setupWorldMarkers()
+	local roomsFolder = getOrCreateFolder(Workspace, "PropHuntRooms")
+	local spawnsFolder = getOrCreateFolder(Workspace, "RoomSpawns")
+	local lobbySpawns = getOrCreateFolder(spawnsFolder, "Lobby")
+	ensureMarkerPart(lobbySpawns, "ReturnSpawn", Vector3.new(0, 5, -40), Vector3.new(5, 0.25, 5))
+
+	for _, room in Config.ROOMS do
+		local roomFolder = getOrCreateFolder(roomsFolder, room.worldFolder)
+		local spawnFolder = getOrCreateFolder(spawnsFolder, room.roomSpawnFolder)
+		ensureMarkerPart(roomFolder, "Bounds", room.boundsCenter, room.boundsSize)
+		ensureMarkerPart(spawnFolder, "HiderSpawn", room.hiderSpawn, Vector3.new(4, 0.25, 4))
+		ensureMarkerPart(spawnFolder, "SeekerSpawn", room.seekerSpawn, Vector3.new(4, 0.25, 4))
+	end
 end
 
 local function minPlayersForRoom(room: any): number
@@ -577,7 +633,9 @@ local function runQueueLoop(queue: QueueState)
 			task.wait(1)
 		end
 
-		local countdown = phaseDuration("Queue")
+		local countdown = if Config.DEBUG_FAST_TIMINGS
+			then phaseDuration("Queue")
+			else (queue.room.fillSeconds or phaseDuration("Queue"))
 		local endsAt = os.clock() + countdown
 		while os.clock() < endsAt do
 			if queueCount(queue) < minPlayersForRoom(queue.room) then
@@ -738,6 +796,19 @@ requestDisguise.OnServerEvent:Connect(function(player, propName)
 	end
 end)
 
+leaveQueueRequested.OnServerEvent:Connect(function(player)
+	if playerActiveRoom[player.UserId] then
+		notify:FireClient(player, "Finish your current room before leaving")
+		return
+	end
+	if not playerQueueRoom[player.UserId] then
+		notify:FireClient(player, "You are not in a queue")
+		sendLobbyState(player)
+		return
+	end
+	leaveQueue(player, true)
+end)
+
 Players.PlayerAdded:Connect(function(player)
 	scores[player.UserId] = scores[player.UserId] or 0
 	setPlayerTeam(player, lobbyTeam)
@@ -775,6 +846,7 @@ Players.PlayerRemoving:Connect(function(player)
 	playerActiveRoom[player.UserId] = nil
 end)
 
+setupWorldMarkers()
 setupTeams()
 for _, room in Config.ROOMS do
 	roomsById[room.id] = room

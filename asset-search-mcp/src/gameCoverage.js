@@ -22,7 +22,7 @@ const SYSTEMS = [
   "Spawn at a lobby SpawnLocation before entering any round.",
   "NPCs use ProximityPrompt or ClickDetector to explain play, upgrades, and rooms.",
   "Room portals enqueue players into capacity-limited sessions instead of teleporting everyone globally.",
-  "Each room has min players, max players, fill timer, team assignment, and return-to-lobby behavior.",
+  "Each room has min players, max players, fill timer, leave-queue UX, team assignment, and return-to-lobby behavior.",
   "Upgrades/cosmetics are purchased or previewed in the lobby, not inside active rounds.",
   "New rooms start as asset coverage plans, then are curated, inspected, committed, built, and playtested.",
 ];

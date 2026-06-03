@@ -50,6 +50,7 @@ const coverage = buildGameAssetCoverage({
 const coverageSlots = coverage.slots.map((slot) => slot.slot);
 assert.ok(coverage.systems.some((system) => system.includes("Spawn")), "generic Roblox spawn system covered");
 assert.ok(coverage.systems.some((system) => system.includes("capacity-limited")), "room matchmaking covered");
+assert.ok(coverage.systems.some((system) => system.includes("leave-queue")), "room leave-queue UX covered");
 assert.ok(coverageSlots.includes("lobby.portal.room_queue"), "lobby portal slot covered");
 assert.ok(coverageSlots.includes("underwater_reef.hideable.prop_pack"), "underwater hideable slot covered");
 assert.ok(coverageSlots.includes("underwater_reef.avatar.form"), "underwater fish/morph slot covered");

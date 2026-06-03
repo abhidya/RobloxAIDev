@@ -324,3 +324,35 @@ Verdict:
 - **Not signed off.** This pass fixed real screenshot blockers and restored
   expected room/spawn folders, but it does not replace the full 54-shot
   playable-space review plan or a two-client multiplayer test.
+
+## 2026-06-03 Source-Owned Queue Shell Pass
+
+Goal: move more of the generic Roblox game shell into Rojo source so it is not
+only preserved as live Studio state or a replay script.
+
+What changed in source:
+
+- Added required room metadata to `src/shared/Config.luau`: theme, lobby portal,
+  fill timer, team names, room spawn folder, hideable folder, palette project,
+  and room bounds.
+- Added `LeaveQueueRequested` to `src/shared/Remotes.luau`.
+- Added a HUD `Leave Queue` button and `Q` keyboard shortcut in
+  `src/client/init.client.luau`.
+- Added server handling for leaving a queue before session start.
+- Added runtime creation of invisible `Workspace.PropHuntRooms` and
+  `Workspace.RoomSpawns` markers from room config in `src/server/init.server.luau`.
+- Updated the asset-search MCP game coverage planner to include leave-queue UX
+  as part of generated Roblox shell requirements.
+
+Repo-side validation:
+
+- `rojo build default.project.json -o /tmp/RobloxAIDevPropHunt.rbxlx` passed.
+- `npm test` passed in `asset-search-mcp`.
+- `git diff --check` passed.
+- Rojo remained running on `localhost:34872`.
+
+Studio MCP validation gap:
+
+- `list_roblox_studios` returned no connected Studio instances after the source
+  changes. The new leave button, remote, and runtime marker creation still need
+  a live Studio play-mode smoke after Studio reconnects.

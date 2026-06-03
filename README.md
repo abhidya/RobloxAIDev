@@ -68,7 +68,9 @@ Prop hunt needs **2+ players**, so to actually play a round:
 1. Open `Place1.rbxl` in Studio.
 2. In the **Test** tab, set **Clients** to 2 and **Server**, then click **Start**
    (Local Server). Two windows spawn.
-3. In each client: walk near a prop and press **E** to disguise as it; seekers
+3. Walk onto a room portal to queue. While queued, use the HUD **Leave Queue**
+   button or press **Q** to leave before the session starts.
+4. In each client: walk near a prop and press **E** to disguise as it; seekers
    tag hiders. The HUD shows the current phase.
 
 To **solo-test the loop** instead, set `Config.DEBUG_SOLO = true` in

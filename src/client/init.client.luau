@@ -13,6 +13,7 @@ local Remotes = require(ReplicatedStorage.PropHunt.Remotes)
 local player = Players.LocalPlayer
 local stateChanged = Remotes.get("StateChanged") :: RemoteEvent
 local requestDisguise = Remotes.get("RequestDisguise") :: RemoteEvent
+local leaveQueueRequested = Remotes.get("LeaveQueueRequested") :: RemoteEvent
 local notify = Remotes.get("Notify") :: RemoteEvent
 local latestState: any = nil
 
@@ -80,6 +81,19 @@ queueLabel.TextScaled = true
 queueLabel.Font = Enum.Font.GothamMedium
 queueLabel.Text = "Choose a portal"
 queueLabel.Parent = gui
+
+local leaveQueueButton = Instance.new("TextButton")
+leaveQueueButton.AnchorPoint = Vector2.new(0, 0)
+leaveQueueButton.Position = UDim2.new(0.02, 0, 0.115, 0)
+leaveQueueButton.Size = UDim2.new(0.14, 0, 0.04, 0)
+leaveQueueButton.BackgroundTransparency = 0.25
+leaveQueueButton.BackgroundColor3 = Color3.fromRGB(38, 43, 48)
+leaveQueueButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+leaveQueueButton.TextScaled = true
+leaveQueueButton.Font = Enum.Font.GothamBold
+leaveQueueButton.Text = "Leave Queue"
+leaveQueueButton.Visible = false
+leaveQueueButton.Parent = gui
 
 local toast = Instance.new("TextLabel")
 toast.AnchorPoint = Vector2.new(0.5, 1)
@@ -161,12 +175,15 @@ local function updateRoomText(state)
 
 	if phase == "Lobby" then
 		queueLabel.Text = "Choose a portal"
+		leaveQueueButton.Visible = false
 	elseif phase == "Queue" then
 		local count = tonumber(state.queueCount) or 0
 		local maxPlayers = tonumber(state.maxPlayers) or 0
 		local minPlayers = tonumber(state.minPlayers) or 0
 		queueLabel.Text = "Queue " .. tostring(count) .. "/" .. tostring(maxPlayers) .. "  Min " .. tostring(minPlayers)
+		leaveQueueButton.Visible = true
 	else
+		leaveQueueButton.Visible = false
 		local role = currentRole()
 		if role == "Waiting" then
 			queueLabel.Text = "Spectating"
@@ -184,6 +201,9 @@ stateChanged.OnClientEvent:Connect(function(state)
 	updateRoomText(state)
 end)
 notify.OnClientEvent:Connect(showToast)
+leaveQueueButton.Activated:Connect(function()
+	leaveQueueRequested:FireServer()
+end)
 
 local function nearestProp(): Model?
 	local character = player.Character
@@ -240,5 +260,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		if prop and isHiderActive() then
 			requestDisguise:FireServer(prop.Name)
 		end
+	elseif input.KeyCode == Enum.KeyCode.Q and latestState and latestState.phase == "Queue" then
+		leaveQueueRequested:FireServer()
 	end
 end)

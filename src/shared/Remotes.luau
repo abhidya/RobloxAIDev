@@ -10,6 +10,7 @@ local FOLDER_NAME = "PropHuntRemotes"
 local DEFINITIONS = {
 	StateChanged = "RemoteEvent",
 	RequestDisguise = "RemoteEvent",
+	LeaveQueueRequested = "RemoteEvent",
 	Notify = "RemoteEvent",
 }
 
