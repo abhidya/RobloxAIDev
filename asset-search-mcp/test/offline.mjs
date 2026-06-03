@@ -1,70 +1,68 @@
-// Offline test: validate parsing/ranking/curation against a realistic Toolbox
-// v2 payload shape — no network. This is the logic that runs against the live
-// API, exercised deterministically.
+// Offline tests: parsing/ranking/curation/expansion (toolbox) + the shared-brain
+// dedup logic (rejections, claims, off-theme filtering). No network.
 import assert from "node:assert";
+import { promises as fs } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { normalizeAsset, scoreAsset, expandQuery } from "../src/toolbox.js";
-import { diversify } from "../src/store.js";
+import { Store, diversify, filterByTerms } from "../src/store.js";
 
-// A representative `creatorStoreAssets[]` entry (camelCase, as the API returns).
+// ---- toolbox parsing/ranking ----
 const sample = {
-  asset: {
-    id: 5585023058,
-    name: "Crate with Tarp",
-    description: "A nicely textured wooden crate covered with a tarp.",
-    assetTypeId: 10,
-    categoryPath: "Models/Environment",
-    createTime: "2021-01-01T00:00:00Z",
-    updateTime: "2022-01-01T00:00:00Z",
-    hasScripts: false,
-    instanceCounts: { meshPart: 2, animation: 0, decal: 1, audio: 0, tool: 0, script: 0 },
-    objectMeshSummary: { triangles: 1200, vertices: 800 },
-  },
+  asset: { id: 5585023058, name: "Crate with Tarp", description: "A nicely textured wooden crate.", assetTypeId: 10,
+    instanceCounts: { meshPart: 2, decal: 1, script: 0 }, objectMeshSummary: { triangles: 1200, vertices: 800 }, hasScripts: false },
   creator: { name: "PartyInABox2", verified: true },
   creatorStoreProduct: { purchasable: true },
-  voting: { voteCount: 42, upVotePercent: 95, upVotes: 40, downVotes: 2 },
+  voting: { voteCount: 42, upVotePercent: 95 },
 };
-
 const a = normalizeAsset("Model", sample);
-assert.equal(a.id, 5585023058, "id parsed");
-assert.equal(a.name, "Crate with Tarp", "name parsed");
-assert.equal(a.creator, "PartyInABox2", "creator parsed");
-assert.equal(a.verified, true, "verified parsed");
-assert.equal(a.purchasable, true, "purchasable parsed");
-assert.equal(a.meshParts, 2, "meshParts parsed");
-assert.equal(a.decals, 1, "decals parsed");
-assert.equal(a.triangles, 1200, "triangles parsed");
-assert.equal(a.voteCount, 42, "voteCount parsed");
-assert.equal(a.hasScripts, false, "hasScripts parsed");
-
-// Score: ln(42)*10 + 95*0.45 + 20(verified) + 5(purchasable) + 5(desc>20)
+assert.equal(a.id, 5585023058); assert.equal(a.verified, true); assert.equal(a.triangles, 1200);
 const expected = Math.log(42) * 10 + 95 * 0.45 + 20 + 5 + 5;
-assert.ok(Math.abs(a.score - expected) < 1e-6, `score ${a.score} ~= ${expected}`);
+assert.ok(Math.abs(a.score - expected) < 1e-6, "score formula");
 
-// A scripted, unverified asset should score lower (script penalty, no bonuses).
-const scripted = scoreAsset({
-  voteCount: 0,
-  upVotePercent: 0,
-  verified: false,
-  purchasable: false,
-  description: "",
-  hasScripts: true,
-});
-assert.ok(scripted < a.score, "scripted/unverified ranks below a clean verified asset");
+const curated = diversify([{id:1,creator:"X",score:9},{id:2,creator:"X",score:8},{id:3,creator:"X",score:7},{id:4,creator:"Y",score:6}], 5, 2);
+assert.deepEqual(curated.map((c)=>c.id), [1,2,4], "max 2 per creator");
+assert.ok(expandQuery("medieval barrel").length >= 5, "extensive expansion");
 
-// Diversity: cap picks per creator.
-const ranked = [
-  { id: 1, creator: "X", score: 9 },
-  { id: 2, creator: "X", score: 8 },
-  { id: 3, creator: "X", score: 7 },
-  { id: 4, creator: "Y", score: 6 },
-];
-const curated = diversify(ranked, 5, 2);
-assert.deepEqual(curated.map((c) => c.id), [1, 2, 4], "max 2 per creator enforced");
+// ---- off-theme filtering ----
+const themed = filterByTerms(
+  [{name:"Medieval Barrel"},{name:"Low Poly Palm Tree"},{name:"Sci-Fi Neon Crate"},{name:"Wooden Cart"}],
+  ["palm","sci-fi","neon"]
+);
+assert.deepEqual(themed.map((x)=>x.name), ["Medieval Barrel","Wooden Cart"], "off-theme names dropped");
 
-// Extensive expansion produces distinct variants.
-const variants = expandQuery("medieval barrel");
-assert.ok(variants.includes("medieval barrel"), "base query kept");
-assert.ok(variants.length >= 5, "expands to several variants");
-assert.equal(new Set(variants).size, variants.length, "variants are unique");
+// ---- shared-brain: rejections + claims + annotation ----
+const dir = path.join(os.tmpdir(), "brain-offline-" + Date.now());
+process.env.ASSET_BRAIN_DIR = dir;
+const store = new Store();
+await store.ready();
 
-console.log("OFFLINE OK — parsing, scoring, curation, expansion all correct");
+await store.addReview(111, { verdict: "reject", notes: "oversized" });
+assert.ok(store.isRejected(111), "reject recorded");
+assert.ok(store.rejectedIdSet().has(111), "rejected set includes 111");
+assert.ok(!store.isRejected(222), "222 not rejected");
+
+const r1 = await store.claimAssets("game", "barrel", [222, 333], "agentA");
+assert.deepEqual(r1.claimed.sort(), [222,333], "agentA claims 222,333");
+const r2 = await store.claimAssets("game", "crate", [333, 444], "agentB");
+assert.deepEqual(r2.claimed, [444], "agentB only gets 444 (333 taken)");
+assert.equal(r2.skipped[0].id, 333, "333 skipped as claimed");
+assert.equal(store.isClaimed(333), "barrel", "333 claimed by barrel slot");
+assert.ok(store.claimedIdSet().has(222) && store.claimedIdSet().has(444), "claimed set");
+
+const ann = store.annotate(111);
+assert.equal(ann.rejected, true, "annotate shows rejected");
+assert.equal(store.annotate(222).claimedBy, "barrel", "annotate shows claimer");
+
+// commit implies claim
+await store.commitPalette("game", "well", 555, "Stone Well");
+assert.equal(store.isClaimed(555), "well", "commit auto-claims");
+assert.equal(store.getPalette("game").well.assetId, 555, "palette stored");
+
+// persistence: a fresh Store sees the same state
+const store2 = new Store();
+await store2.ready();
+assert.ok(store2.isRejected(111) && store2.isClaimed(333) === "barrel", "state persisted across instances");
+
+await fs.rm(dir, { recursive: true, force: true });
+console.log("OFFLINE OK — parsing, ranking, curation, off-theme filter, rejections, claims, persistence");

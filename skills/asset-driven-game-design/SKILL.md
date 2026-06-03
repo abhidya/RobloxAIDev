@@ -32,7 +32,7 @@ placed asset**.
 
 | Server | Role | Key tools |
 |--------|------|-----------|
-| **asset-search-mcp** (this repo, standalone, search-only) | discover + curate + remember | `search_assets`, `curate_assets`, `review_asset`, `get_reviews`, `commit_palette`, `get_palette` |
+| **asset-search-mcp** (this repo, standalone, search-only) | discover + curate + **shared memory** | `search_assets`, `curate_assets`, `claim_assets`, `reject_asset`, `review_asset`, `get_reviews`, `commit_palette`, `get_palette` |
 | **StudioMCP** (official, bundled in Roblox Studio) | build + measure | `insert_from_creator_store`, `run_code`/`execute_luau`, playtest tools |
 
 `asset-search-mcp` is the advantage the official MCP lacks: ranked, multi-category
@@ -65,28 +65,33 @@ areas:
 ambience: [ ambient_loop, footstep_sfx ]
 ```
 
-### 2. Fan out — parallel agents that EXPLORE well
-Spawn agents in parallel (Agent tool, multiple in one message), one per slot or
-slot-group. Each agent must explore broadly, not grab the first hit:
+### 2. Fan out — parallel agents that don't collide
+Spawn agents in parallel (Agent tool, multiple in one message), one per world or
+slot-group. The `asset-search-mcp` is a **shared brain**: searches are cached,
+rejections and claims are visible to everyone, so agents never re-find,
+re-preview, or re-reject the same item. Each agent runs this loop:
 
-1. `search_assets(query="<slot> <theme>", extensive=true, max_results=12)` —
-   `extensive` expands the query into variants (prop/pack/low poly/realistic/
-   model) and merges them, so you discover assets a single shallow query misses.
-2. Or `curate_assets(slots=[{slot, query}, ...], per_slot=5, extensive=true)` to
-   get a diversity-capped shortlist per slot in one call (no single creator's
-   pack dominating).
-3. **Inspect the shortlist in Studio** via StudioMCP: load each candidate
-   (`InsertService:LoadAsset`), read `GetBoundingBox()` for size/orientation,
-   count parts/scripts, check `Anchored`, then `:Destroy()`.
-4. **Reject** disqualifying issues: oversized/tiny scale, unexpected
-   `Script`/`LocalScript`, no BaseParts, absurd footprint.
-5. `review_asset(asset_id, verdict, slot, notes)` — persist the verdict so other
-   agents reuse it instead of re-vetting (the cache is shared across agents).
-6. Pick the best survivor and `commit_palette(project, slot, asset_id, name)`.
+1. `curate_assets(slots=[{slot, query, exclude_terms}], per_slot=5, extensive=true)`
+   — one call returns a diversity-capped shortlist per slot. It **auto-excludes**
+   assets other agents already rejected or claimed, applies `exclude_terms` to
+   drop off-theme names (e.g. `["palm","tropical","sci-fi"]` in a medieval world),
+   and never suggests one asset for two slots.
+2. `claim_assets(project, slot, asset_ids, reviewer)` on the shortlist **before
+   inspecting** — this reserves them so peers' curate calls skip them. No two
+   agents preview the same asset.
+3. **Inspect the shortlist in Studio** via StudioMCP: load each (`GetObjects` /
+   `LoadAsset`), read `GetBoundingBox()` for size/orientation, count parts/scripts,
+   check anchored, then destroy.
+4. `reject_asset(asset_id, reason)` for anything disqualified (oversized/tiny,
+   stray scripts, no BaseParts, untextured, off-theme). The veto is **shared** —
+   it vanishes from every other agent's results immediately.
+5. Pick the best survivor and `commit_palette(project, slot, asset_id, name)`
+   (which also claims it). Use `get_reviews(asset_id)` anytime to see prior
+   verdicts before spending an inspection.
 
-Because search results, reviews, and the palette are cached server-side,
-parallel agents share each other's work: the cache fans their effort together
-instead of duplicating searches and inspections.
+Because curate/claim/reject all read and write one shared store, the agents fan
+their effort together instead of duplicating it — the more agents, the less
+redundant work, not more.
 
 ### 3. Fan in — let assets reshape the design
 Read the committed palette (`get_palette`). **Bend the storyboard to what is

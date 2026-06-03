@@ -51,12 +51,22 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 
 | Tool | Purpose |
 |------|---------|
-| `search_assets(query, max_results?, categories?, verified_only?, extensive?)` | Ranked Creator Store search across categories. |
-| `curate_assets(slots[], per_slot?, verified_only?, extensive?)` | Diverse shortlist per storyboard slot. |
-| `review_asset(asset_id, verdict, slot?, rating?, notes?, reviewer?)` | Persist a shared agent verdict. |
-| `get_reviews(asset_id)` | Read all verdicts for an asset. |
-| `commit_palette(project, slot, asset_id, name?)` | Freeze a chosen asset per slot. |
+| `search_assets(query, max_results?, categories?, verified_only?, extensive?, exclude_terms?, exclude_rejected?, exclude_claimed?, exclude_ids?)` | Ranked search; auto-hides rejected/claimed; `exclude_terms` drops off-theme names; results annotated with prior verdicts/claims. |
+| `curate_assets(slots[], per_slot?, verified_only?, extensive?, exclude_terms?, exclude_claimed?)` | Diverse shortlist per slot; excludes rejected + claimed; no asset suggested for two slots. |
+| `claim_assets(project, slot, asset_ids[], reviewer?)` | Reserve assets to a slot so other agents' results hide them — prevents collisions. |
+| `reject_asset(asset_id, reason, slot?, reviewer?)` | Shared veto: the asset is auto-excluded from every agent's future results. |
+| `review_asset(asset_id, verdict, slot?, rating?, notes?, reviewer?)` | Persist a shared verdict (`reject` auto-excludes). |
+| `get_reviews(asset_id)` | Read all verdicts + claim status for an asset. |
+| `commit_palette(project, slot, asset_id, name?)` | Freeze a chosen asset per slot (also claims it). |
 | `get_palette(project)` | Read the committed palette for the build phase. |
+
+### How it prevents multi-agent collisions
+
+Parallel agents share one persistent store. The loop: `curate_assets` (already
+filtered) → `claim_assets` the shortlist (peers now skip it) → inspect in Studio
+→ `reject_asset` the duds (shared veto) → `commit_palette` the winner. Because
+every call reads and writes the same rejection/claim memory, more agents means
+*less* redundant searching, previewing, and rejecting — not more.
 
 ## Tiers of metadata
 

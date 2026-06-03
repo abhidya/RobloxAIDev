@@ -1,20 +1,20 @@
 #!/usr/bin/env node
-// asset-search-mcp — a standalone, search-only MCP for asset-driven Roblox game
-// design. Decoupled from the Roblox Studio MCP: this server only discovers,
-// ranks, curates, reviews, and remembers Creator Store assets. Building/placing
-// and geometric inspection are the official StudioMCP's job; the skill
-// orchestrates both.
+// asset-search-mcp — the shared "asset brain" for asset-driven, multi-agent
+// Roblox game design. Decoupled from the Roblox Studio MCP: it discovers,
+// ranks, curates, and REMEMBERS Creator Store assets so parallel agents never
+// re-search, re-preview, or re-reject the same items, and stay on-theme.
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
 import { searchAssets, DEFAULT_CATEGORIES } from "./toolbox.js";
-import { Store, diversify } from "./store.js";
+import { Store, diversify, filterByTerms } from "./store.js";
 
 const store = new Store();
+const POOL = 40; // raw candidates fetched + cached per query; excludes applied after
 
-// --- shared search path: cache-first + single-flight ----------------------
+// Cache-first + single-flight raw pool (cached WITHOUT excludes for max reuse).
 async function rankedSearch(opts) {
   const key = Store.searchKey(opts);
   const cached = store.getCachedSearch(key);
@@ -22,105 +22,112 @@ async function rankedSearch(opts) {
   return store.coalesce(key, async () => {
     const again = store.getCachedSearch(key);
     if (again) return again;
-    const ranked = await searchAssets(opts);
+    const ranked = await searchAssets({ ...opts, maxResults: POOL });
     await store.putCachedSearch(key, ranked);
     return ranked;
   });
 }
 
-// --- formatting -----------------------------------------------------------
+// Remove rejected / claimed / explicitly-excluded / off-theme candidates.
+function applyExcludes(ranked, o) {
+  const ex = new Set((o.excludeIds || []).map(Number));
+  if (o.excludeRejected) for (const id of store.rejectedIdSet()) ex.add(id);
+  if (o.excludeClaimed) for (const id of store.claimedIdSet()) ex.add(id);
+  let pool = ranked.filter((a) => !ex.has(a.id));
+  pool = filterByTerms(pool, o.excludeTerms);
+  return { pool, removed: ranked.length - pool.length };
+}
+
+function annotationSuffix(id) {
+  const a = store.annotate(id);
+  const bits = [];
+  if (a.claimedBy) bits.push(`CLAIMED:${a.claimedBy}`);
+  for (const r of a.reviews) bits.push(`${r.verdict}${r.notes ? `(${r.notes})` : ""}`);
+  return bits.length ? `  «${bits.join("; ")}»` : "";
+}
+
 function formatAsset(a, index) {
   const flags = [];
   if (a.verified) flags.push("verified");
-  if (a.purchasable) flags.push("purchasable");
-  if (a.hasScripts) flags.push(`SCRIPT_REVIEW(scripts=${a.scriptCount})`);
-  const mesh =
-    a.triangles != null ? ` triangles=${a.triangles} vertices=${a.vertices ?? "?"}` : "";
-  const desc = (a.description || "").split("\n")[0].trim().slice(0, 120);
+  if (a.hasScripts) flags.push(`SCRIPT_REVIEW(${a.scriptCount})`);
+  const mesh = a.triangles != null ? ` tris=${a.triangles}` : "";
+  const desc = (a.description || "").split("\n")[0].trim().slice(0, 90);
   return [
-    `${index + 1}. ${a.name} (ID: ${a.id})`,
-    `   category=${a.category}${a.categoryPath ? ` path=${a.categoryPath}` : ""} creator=${a.creator}${flags.length ? " [" + flags.join(", ") + "]" : ""}`,
-    `   score=${a.score.toFixed(1)} votes=${a.voteCount} up%=${a.upVotePercent} meshParts=${a.meshParts} decals=${a.decals} audio=${a.audio}${mesh}`,
+    `${index + 1}. ${a.name} (ID: ${a.id})${annotationSuffix(a.id)}`,
+    `   category=${a.category} creator=${a.creator}${flags.length ? " [" + flags.join(", ") + "]" : ""} score=${a.score.toFixed(1)} votes=${a.voteCount}${mesh}`,
     desc ? `   ${desc}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
-function formatRanked(query, ranked, extensive) {
-  if (!ranked.length) {
-    return `No Creator Store assets found for '${query}'.`;
-  }
-  const head = `Found ${ranked.length} Creator Store assets for '${query}'${extensive ? " (extensive)" : ""}, ranked across categories:`;
-  const body = ranked.map(formatAsset).join("\n");
-  return `${head}\n${body}\n\nGeometric size/orientation is not in the catalog — measure shortlisted ids in Studio (StudioMCP) before placing.`;
+  ].filter(Boolean).join("\n");
 }
 
 const text = (s) => ({ content: [{ type: "text", text: s }] });
 
-// --- server + tools -------------------------------------------------------
-const server = new McpServer({ name: "asset-search", version: "0.1.0" });
+const server = new McpServer({ name: "asset-search", version: "0.2.0" });
 
 server.tool(
   "search_assets",
-  "Search the Roblox Creator Store across asset categories (Toolbox v2), returning a ranked, de-duplicated list with votes, creator verification, script/mesh/audio counts, triangle summary, and ids. Results are cached (24h) and identical concurrent searches are coalesced, so parallel agents are cheap. Set extensive=true to expand the query into variants for broader exploration of storyboard-relevant assets.",
+  "Search the Creator Store (Toolbox v2), ranked + de-duplicated, CACHED (24h) and single-flighted so parallel agents are cheap. The shared brain auto-excludes assets other agents already rejected or claimed, and you can pass exclude_terms to drop off-theme results (e.g. ['palm','tropical','sci-fi'] when searching medieval). Each result is annotated with prior verdicts/claims so you never re-evaluate a known item.",
   {
-    query: z.string().describe("What to search for, e.g. 'medieval barrel' or 'sci-fi console'"),
-    max_results: z.number().int().min(1).max(50).optional().describe("Max ranked results (default 10)"),
-    categories: z
-      .array(z.string())
-      .optional()
-      .describe(`Categories to search. Defaults to: ${DEFAULT_CATEGORIES.join(", ")}`),
-    verified_only: z.boolean().optional().describe("Only assets from verified creators"),
-    extensive: z
-      .boolean()
-      .optional()
-      .describe("Expand the query into variants (prop/pack/low poly/realistic/model) and merge — broader exploration"),
+    query: z.string(),
+    max_results: z.number().int().min(1).max(40).optional().describe("How many to show after exclusions (default 10)"),
+    categories: z.array(z.string()).optional().describe(`Default: ${DEFAULT_CATEGORIES.join(", ")}`),
+    verified_only: z.boolean().optional(),
+    extensive: z.boolean().optional().describe("Expand query into variants for broader exploration"),
+    exclude_terms: z.array(z.string()).optional().describe("Drop results whose NAME contains any of these (off-theme filter)"),
+    exclude_rejected: z.boolean().optional().describe("Hide assets already rejected by any agent (default true)"),
+    exclude_claimed: z.boolean().optional().describe("Hide assets already claimed/committed by another slot (default false)"),
+    exclude_ids: z.array(z.number()).optional(),
   },
   async (args) => {
     const query = (args.query || "").trim();
     if (!query) return text("query must not be empty");
-    const opts = {
-      query,
-      categories: args.categories,
-      verifiedOnly: args.verified_only,
-      maxResults: args.max_results ?? 10,
-      extensive: args.extensive,
-    };
-    const ranked = await rankedSearch(opts);
-    return text(formatRanked(query, ranked, opts.extensive));
+    const ranked = await rankedSearch({ query, categories: args.categories, verifiedOnly: args.verified_only, extensive: args.extensive });
+    const { pool, removed } = applyExcludes(ranked, {
+      excludeRejected: args.exclude_rejected !== false,
+      excludeClaimed: !!args.exclude_claimed,
+      excludeIds: args.exclude_ids,
+      excludeTerms: args.exclude_terms,
+    });
+    const shown = pool.slice(0, args.max_results ?? 10);
+    if (!shown.length) return text(`No on-theme, unclaimed Creator Store assets for '${query}' (filtered ${removed}).`);
+    const head = `Found ${shown.length} assets for '${query}'${args.extensive ? " (extensive)" : ""} — ${removed} filtered (rejected/claimed/off-theme):`;
+    return text(`${head}\n${shown.map(formatAsset).join("\n")}\n\nMeasure geometry in Studio (StudioMCP) before placing.`);
   }
 );
 
 server.tool(
   "curate_assets",
-  "Turn a storyboard's asset slots into a curated, diverse shortlist per slot. For each {slot, query}, runs a ranked search then caps picks per creator so the shortlist isn't one creator's pack. Ideal for parallel agents fanning out over a storyboard: one call per slot-group, results shared via the same cache.",
+  "Turn a storyboard's slots into a diverse, de-duplicated shortlist per slot — the right tool for parallel agents. Auto-excludes rejected + claimed assets, applies per-slot off-theme filters, caps picks per creator, and guarantees NO asset is suggested for two slots in one call. Pair with claim_assets so agents lock in their picks and the next agent's curation skips them.",
   {
-    slots: z
-      .array(z.object({ slot: z.string(), query: z.string() }))
-      .describe("Design slots to fill, e.g. [{slot:'barrel', query:'medieval barrel'}, ...]"),
-    per_slot: z.number().int().min(1).max(20).optional().describe("Shortlist size per slot (default 5)"),
+    slots: z.array(z.object({
+      slot: z.string(),
+      query: z.string(),
+      exclude_terms: z.array(z.string()).optional(),
+    })).describe("e.g. [{slot:'barrel', query:'medieval barrel', exclude_terms:['sci-fi','neon']}]"),
+    per_slot: z.number().int().min(1).max(15).optional().describe("Shortlist size per slot (default 5)"),
     verified_only: z.boolean().optional(),
-    extensive: z.boolean().optional().describe("Use extensive expansion for each slot"),
+    extensive: z.boolean().optional(),
+    exclude_terms: z.array(z.string()).optional().describe("Global off-theme terms applied to every slot"),
+    exclude_claimed: z.boolean().optional().describe("Skip assets already claimed by other slots (default true)"),
   },
   async (args) => {
     const perSlot = args.per_slot ?? 5;
+    const chosen = new Set(); // cross-slot dedup within this call
     const sections = [];
-    for (const { slot, query } of args.slots) {
+    for (const s of args.slots) {
       try {
-        const ranked = await rankedSearch({
-          query,
-          verifiedOnly: args.verified_only,
-          maxResults: perSlot * 4,
-          extensive: args.extensive,
+        const ranked = await rankedSearch({ query: s.query, verifiedOnly: args.verified_only, extensive: args.extensive });
+        const { pool } = applyExcludes(ranked, {
+          excludeRejected: true,
+          excludeClaimed: args.exclude_claimed !== false,
+          excludeIds: [...chosen],
+          excludeTerms: [...(args.exclude_terms || []), ...(s.exclude_terms || [])],
         });
-        const curated = diversify(ranked, perSlot, 2);
-        const body = curated.length
-          ? curated.map(formatAsset).join("\n")
-          : "   (no candidates)";
-        sections.push(`## slot '${slot}'  query='${query}'\n${body}`);
+        const curated = diversify(pool, perSlot, 2);
+        curated.forEach((a) => chosen.add(a.id));
+        const body = curated.length ? curated.map(formatAsset).join("\n") : "   (no on-theme candidates)";
+        sections.push(`## slot '${s.slot}'  query='${s.query}'\n${body}`);
       } catch (e) {
-        sections.push(`## slot '${slot}'  query='${query}' — search failed: ${e.message}`);
+        sections.push(`## slot '${s.slot}' — search failed: ${e.message}`);
       }
     }
     return text(sections.join("\n\n"));
@@ -128,76 +135,86 @@ server.tool(
 );
 
 server.tool(
-  "review_asset",
-  "Persist an agent's verdict on an asset (keep/reject + notes) so other parallel agents reuse it instead of re-vetting. Returns all reviews for the asset.",
+  "claim_assets",
+  "Reserve asset ids for a design slot so other parallel agents' search/curate calls hide them. Prevents two agents picking or previewing the same asset. Returns which ids were claimed vs already taken.",
   {
-    asset_id: z.number().describe("Asset id being reviewed"),
-    verdict: z.string().describe("keep | reject | maybe"),
-    slot: z.string().optional().describe("Which design slot this was for"),
-    rating: z.number().int().min(0).max(10).optional(),
-    notes: z.string().optional().describe("Why — e.g. 'great mesh, no scripts' or 'oversized, rejected'"),
+    project: z.string(),
+    slot: z.string(),
+    asset_ids: z.array(z.number()),
     reviewer: z.string().optional().describe("Agent/slot identifier"),
   },
   async (args) => {
-    await store.addReview(args.asset_id, {
-      verdict: args.verdict,
-      slot: args.slot ?? null,
-      rating: args.rating ?? null,
-      notes: args.notes ?? null,
-      reviewer: args.reviewer ?? null,
-    });
-    const all = store.getReviews(args.asset_id);
-    return text(`Recorded. ${all.length} review(s) for ${args.asset_id}:\n${JSON.stringify(all, null, 2)}`);
+    const { claimed, skipped } = await store.claimAssets(args.project, args.slot, args.asset_ids, args.reviewer);
+    let msg = `Claimed ${claimed.length} for '${args.slot}': ${claimed.join(", ") || "none"}.`;
+    if (skipped.length) msg += `\nAlready claimed elsewhere: ${skipped.map((s) => `${s.id}→${s.by}`).join(", ")}.`;
+    return text(msg);
+  }
+);
+
+server.tool(
+  "reject_asset",
+  "Record that an asset is unsuitable (with a reason). It is then auto-excluded from every agent's future search/curate, so no one re-finds, re-previews, or re-rejects it.",
+  {
+    asset_id: z.number(),
+    reason: z.string().describe("Why — e.g. 'oversized', 'has scripts', 'off-theme', 'untextured'"),
+    slot: z.string().optional(),
+    reviewer: z.string().optional(),
+  },
+  async (args) => {
+    await store.addReview(args.asset_id, { verdict: "reject", notes: args.reason, slot: args.slot ?? null, reviewer: args.reviewer ?? null });
+    return text(`Rejected ${args.asset_id} (${args.reason}). It is now hidden from all agents' results.`);
+  }
+);
+
+server.tool(
+  "review_asset",
+  "Persist a verdict (keep/reject/maybe + notes) shared across agents. 'reject' verdicts auto-exclude the asset from future results. Returns all reviews for the asset.",
+  {
+    asset_id: z.number(),
+    verdict: z.string().describe("keep | reject | maybe"),
+    slot: z.string().optional(),
+    rating: z.number().int().min(0).max(10).optional(),
+    notes: z.string().optional(),
+    reviewer: z.string().optional(),
+  },
+  async (args) => {
+    await store.addReview(args.asset_id, { verdict: args.verdict, slot: args.slot ?? null, rating: args.rating ?? null, notes: args.notes ?? null, reviewer: args.reviewer ?? null });
+    return text(`Recorded '${args.verdict}' for ${args.asset_id}. ${store.getReviews(args.asset_id).length} total review(s).`);
   }
 );
 
 server.tool(
   "get_reviews",
-  "Get all persisted agent reviews for an asset id.",
+  "Get all persisted reviews + claim status for an asset id (so you can skip re-evaluating it).",
   { asset_id: z.number() },
-  async (args) => {
-    const all = store.getReviews(args.asset_id);
-    return text(all.length ? JSON.stringify(all, null, 2) : `No reviews yet for ${args.asset_id}.`);
-  }
+  async (args) => text(JSON.stringify(store.annotate(args.asset_id), null, 2))
 );
 
 server.tool(
   "commit_palette",
-  "Freeze the chosen asset for a design slot into the project's palette, so the build phase references a stable id.",
-  {
-    project: z.string().describe("Project/game name namespace"),
-    slot: z.string().describe("Design slot, e.g. 'medieval.barrel'"),
-    asset_id: z.number(),
-    name: z.string().optional(),
-  },
+  "Freeze the chosen asset for a slot into the project palette (also claims it). The build phase reads this.",
+  { project: z.string(), slot: z.string(), asset_id: z.number(), name: z.string().optional() },
   async (args) => {
     await store.commitPalette(args.project, args.slot, args.asset_id, args.name);
-    return text(`Committed ${args.slot} -> ${args.asset_id} in palette '${args.project}'.`);
+    return text(`Committed ${args.slot} -> ${args.asset_id} in '${args.project}' (and claimed it).`);
   }
 );
 
 server.tool(
   "get_palette",
-  "Return the committed palette (slot -> chosen asset id) for a project, for the build phase.",
+  "Return the committed palette (slot -> chosen asset id) for a project.",
   { project: z.string() },
   async (args) => {
     const pal = store.getPalette(args.project);
     const entries = Object.entries(pal);
     if (!entries.length) return text(`Palette '${args.project}' is empty.`);
-    const lines = entries.map(([slot, v]) => `${slot}: ${v.assetId}${v.name ? ` (${v.name})` : ""}`);
-    return text(`Palette '${args.project}':\n${lines.join("\n")}`);
+    return text(`Palette '${args.project}':\n${entries.map(([slot, v]) => `${slot}: ${v.assetId}${v.name ? ` (${v.name})` : ""}`).join("\n")}`);
   }
 );
 
 async function main() {
   await store.ready();
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  // Log to stderr only — stdout is the MCP transport.
-  console.error("asset-search-mcp ready (stdio)");
+  await server.connect(new StdioServerTransport());
+  console.error("asset-search-mcp v0.2 ready (stdio) — shared rejection/claim memory active");
 }
-
-main().catch((err) => {
-  console.error("fatal:", err);
-  process.exit(1);
-});
+main().catch((err) => { console.error("fatal:", err); process.exit(1); });
