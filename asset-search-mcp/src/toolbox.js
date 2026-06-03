@@ -82,7 +82,7 @@ export function scoreAsset(a) {
   return score;
 }
 
-function normalizeAsset(category, item) {
+export function normalizeAsset(category, item) {
   const asset = item.asset;
   if (!asset || asset.id == null) return null;
   const creator = item.creator || {};
