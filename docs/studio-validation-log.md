@@ -194,3 +194,40 @@ Visual gate status:
 - The game is still **not visually signed off**. Current screenshots still show
   sparse flat areas, theme bleed between adjacent rooms, and weak room entrance
   framing. See `docs/playable-space-review.md`.
+
+## 2026-06-03 Visual Room Isolation Pass
+
+Goal: respond to the screenshot gate by making the lobby and rooms less sparse
+and less visually mixed.
+
+What changed live in Studio and was saved into `Place1.rbxl`:
+
+- Added `Workspace.VisualPolish.RoomSignoffPolish`.
+- Added lobby portal facades, compact room labels, and a sightline backdrop.
+- Added visible room boundary shells for Medieval Market, Sci-Fi Lab, and Cozy
+  Cabin.
+- Moved room north boundaries out of the lobby camera path after
+  `qa_lobby_spawn_after_room_isolation` showed a black-wall blocker.
+- Raised room walls to reduce over-wall theme bleed.
+- Added foreground and vertical cover clusters:
+  - Medieval crate/hay/barrel/stall cover.
+  - Sci-Fi consoles, lockers, glowing cover, and supply stacks.
+  - Cabin shrubs, log stacks, crates, trees, and campsite cover.
+
+Screenshot evidence:
+
+- Lobby:
+  - `qa_lobby_spawn_after_room_isolation` failed.
+  - `qa_lobby_spawn_after_room_wall_fix` improved the blocker.
+  - `qa_lobby_spawn_after_compact_labels` is partial pass.
+- Rooms:
+  - `qa_medieval_after_vertical_cover` is partial pass.
+  - `qa_scifi_after_vertical_cover` is partial pass.
+  - `qa_cabin_after_vertical_cover` is partial pass and currently strongest.
+
+Remaining risk:
+
+- Visual gate is still not complete: only one post-fix player-height angle per
+  room was recaptured, Sci-Fi still has edge bleed, lobby labels are duplicated,
+  and several cover clusters are blocky placeholders rather than final curated
+  assets.
