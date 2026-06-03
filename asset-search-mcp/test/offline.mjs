@@ -7,6 +7,10 @@ import path from "node:path";
 import { normalizeAsset, scoreAsset, expandQuery } from "../src/toolbox.js";
 import { Store, diversify, filterByTerms } from "../src/store.js";
 import { buildGameAssetCoverage } from "../src/gameCoverage.js";
+import {
+  buildHeadlessAssemblyPlan,
+  validateFragmentManifest,
+} from "../src/headlessPipeline.js";
 import { formatPropHuntGateReport, validatePropHuntGate } from "../src/propHuntGate.js";
 
 // ---- toolbox parsing/ranking ----
@@ -46,6 +50,60 @@ assert.ok(coverageSlots.includes("lobby.portal.room_queue"), "lobby portal slot 
 assert.ok(coverageSlots.includes("underwater_reef.hideable.prop_pack"), "underwater hideable slot covered");
 assert.ok(coverageSlots.includes("underwater_reef.avatar.form"), "underwater fish/morph slot covered");
 assert.ok(coverageSlots.includes("space_station.room.arena_shell"), "space room slot covered");
+
+// ---- headless fragment assembly planning + manifest validation ----
+const headlessPlan = buildHeadlessAssemblyPlan({
+  project: "prophunt",
+  targetPlace: "Place1.rbxl",
+  themes: ["underwater reef", "space station"],
+  maxFragments: 3,
+});
+assert.equal(headlessPlan.mode, "headless-fragment-fanout", "headless plan mode");
+assert.ok(headlessPlan.endpoints.some((endpoint) => endpoint.url.includes("toolbox-service/v2/assets:search")), "Creator Store search endpoint documented");
+assert.ok(headlessPlan.endpoints.some((endpoint) => endpoint.url.includes("assetdelivery.roblox.com")), "Asset Delivery endpoint documented");
+assert.ok(headlessPlan.agent_work_packets.some((packet) => packet.fragment_id.includes("lobby_shell")), "lobby fragment packet generated");
+assert.ok(headlessPlan.agent_work_packets.some((packet) => packet.theme === "underwater reef"), "underwater fragment packet generated");
+assert.ok(headlessPlan.fragment_contract.required_fields.includes("source_digest"), "fragment contract requires digest");
+assert.ok(headlessPlan.coordinator_merge_steps.some((step) => step.includes("remap all referents")), "coordinator owns referent remap");
+
+const goodManifest = validateFragmentManifest({
+  version: "roblox-fragment-manifest/v1",
+  fragment_id: "underwater_room",
+  target_parent: "Workspace.PropHuntRooms",
+  order_key: "100-underwater",
+  single_root: true,
+  root_name: "UnderwaterRoom",
+  source_digest: "sha256:abc123",
+  asset_ids: [12345, "67890"],
+  external_anchors: ["Workspace.RoomSpawns.Underwater"],
+  identity_policy: {
+    referents: "coordinator_remap",
+    unique_ids: "strip",
+    history_ids: "strip",
+  },
+  scripts: [{ path: "UnderwaterRoom/ClientCue", source: "print('ready')" }],
+});
+assert.equal(goodManifest.passed, true, goodManifest.errors.join("; "));
+assert.equal(goodManifest.normalized.identity_policy.referents, "coordinator_remap", "referent policy normalized");
+
+const badManifest = validateFragmentManifest({
+  fragment_id: "bad_room",
+  target_parent: "Workspace.PropHuntRooms",
+  order_key: "999-bad",
+  roots: ["A", "B"],
+  source_digest: "abc123",
+  asset_ids: [12345],
+  preserve_referents: true,
+  identity_policy: {
+    referents: "agent_preserve",
+    unique_ids: "preserve",
+  },
+  scripts: [{ path: "Bad/Script", source: "local m = require(123456789)" }],
+});
+assert.equal(badManifest.passed, false, "unsafe fragment manifest fails");
+assert.ok(badManifest.errors.some((error) => error.includes("coordinator_remap")), "bad referent policy rejected");
+assert.ok(badManifest.errors.some((error) => error.includes("single_root")), "multi-root fragment rejected");
+assert.ok(badManifest.errors.some((error) => error.includes("require(assetId)")), "numeric require rejected");
 
 // ---- shared-brain: rejections + claims + annotation ----
 const dir = path.join(os.tmpdir(), "brain-offline-" + Date.now());
@@ -187,4 +245,4 @@ assert.equal(unclassifiedGate.counts.areas, 0, "unclassified slots do not satisf
 assert.equal(unclassifiedGate.passed, false, "unclassified-only palette fails area gate");
 
 await fs.rm(dir, { recursive: true, force: true });
-console.log("OFFLINE OK — parsing, ranking, curation, game coverage, off-theme filter, rejections, claims, inspections, Prop Hunt gate, persistence");
+console.log("OFFLINE OK — parsing, ranking, curation, game/headless coverage, off-theme filter, rejections, claims, inspections, Prop Hunt gate, persistence");

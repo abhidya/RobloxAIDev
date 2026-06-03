@@ -34,7 +34,7 @@ placed asset**.
 
 | Server | Role | Key tools |
 |--------|------|-----------|
-| **asset-search-mcp** (this repo, standalone, search-only) | discover + curate + **shared memory** | `plan_game_asset_coverage`, `search_assets`, `curate_assets`, `claim_assets`, `reject_asset`, `review_asset`, `get_reviews`, `record_inspection`, `record_inspections`, `get_inspection`, `commit_palette`, `get_palette`, `validate_prop_hunt_gate` |
+| **asset-search-mcp** (this repo, standalone, search-only) | discover + curate + **shared memory** | `plan_game_asset_coverage`, `plan_headless_assembly`, `validate_fragment_manifest`, `search_assets`, `curate_assets`, `claim_assets`, `reject_asset`, `review_asset`, `get_reviews`, `record_inspection`, `record_inspections`, `get_inspection`, `commit_palette`, `get_palette`, `validate_prop_hunt_gate` |
 | **StudioMCP** (official, bundled in Roblox Studio) | build + measure | `insert_from_creator_store`, `run_code`/`execute_luau`, playtest tools |
 
 `asset-search-mcp` is the advantage the official MCP lacks: ranked, multi-category
@@ -44,7 +44,10 @@ deliberately decoupled from Studio — geometric measurement (real size,
 orientation) is done through StudioMCP, because that requires loading the asset.
 After measurement, record those facts back into `asset-search-mcp` with
 `record_inspection` or batched `record_inspections` so other agents can reuse the
-evidence and the Prop Hunt gate can fail before a live build.
+evidence and the Prop Hunt gate can fail before a live build. When Studio would
+become the bottleneck, call `plan_headless_assembly` and have agents emit
+`.rbxm` fragments plus manifests; the coordinator must run
+`validate_fragment_manifest` before any direct `.rbxl` merge.
 
 ## Claude-history operating rules
 
@@ -102,6 +105,7 @@ Before searching individual props, call:
 
 ```
 plan_game_asset_coverage(game="party prop hunt", themes=["underwater reef","space station"])
+plan_headless_assembly(project="prophunt", target_place="Place1.rbxl", themes=["underwater reef","space station"])
 ```
 
 This returns search slots for the persistent lobby plus each candidate room:
@@ -157,6 +161,21 @@ re-preview, or re-reject the same item. Each agent runs this loop:
 Because curate/claim/reject all read and write one shared store, the agents fan
 their effort together instead of duplicating it — the more agents, the less
 redundant work, not more.
+
+For headless builds, give each agent the packet from `plan_headless_assembly`.
+Each packet must return:
+
+- one `.rbxm` subtree with exactly one root model,
+- one manifest with `fragment_id`, `target_parent`, `order_key`,
+  `source_digest`, `asset_ids`, declared external anchors, and identity policy,
+- no preserved raw referents, `UniqueId`, `HistoryId`, or parent links that the
+  coordinator is expected to trust,
+- no risky runtime loaders (`require(assetId)`, `InsertService:LoadAsset`,
+  `loadstring`, or unapproved `HttpService` calls).
+
+Run `validate_fragment_manifest` on every manifest before merge. The coordinator,
+not the agents, remaps referents, strips or regenerates identity fields, resolves
+parent links, writes the merged place, then runs Rojo/Lune validation.
 
 ### 3. Fan in — let assets reshape the design
 Read the committed palette (`get_palette`). **Bend the storyboard to what is

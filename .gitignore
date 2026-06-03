@@ -12,3 +12,4 @@ node_modules/
 
 # Headless file-mutation scratch outputs
 work/headless-poc/
+work/rojo-working/

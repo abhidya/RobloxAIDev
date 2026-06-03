@@ -7,7 +7,10 @@ that actually exist, with parallel agents exploring cheaply.
 
 Building and placing assets, and measuring their real geometry, are the official
 **StudioMCP**'s job. This server never touches Studio. The
-`asset-driven-game-design` skill orchestrates the two together.
+`asset-driven-game-design` skill orchestrates the two together. For heavier
+parallel builds, it also emits a headless fragment plan so agents can produce
+`.rbxm` subtrees and manifests that a coordinator can merge safely before the
+final Studio visual pass.
 
 ## Why it exists
 
@@ -32,6 +35,8 @@ agents need:
   build phase.
 - **`validate_prop_hunt_gate`** — validate the committed Prop Hunt asset palette
   before a live Studio build/playtest.
+- **`plan_headless_assembly` / `validate_fragment_manifest`** — define and check
+  referent-safe `.rbxm` fragment packets for parallel headless place assembly.
 
 State persists as plain JSON under `~/.roblox-asset-brain/` — no native deps, no
 build step.
@@ -58,6 +63,8 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 | Tool | Purpose |
 |------|---------|
 | `plan_game_asset_coverage(game?, themes?, include_defaults?, include_lobby?, max_themes?, format?)` | Generate lobby/session/room asset search coverage before curation. |
+| `plan_headless_assembly(project?, target_place?, themes?, include_lobby?, max_fragments?, format?)` | Generate parallel headless fragment packets, merge contract, endpoints, Rojo/Lune validation commands, and Studio visual gate. |
+| `validate_fragment_manifest(manifest, format?)` | Reject unsafe or under-specified `.rbxm` fragment manifests before coordinator merge. |
 | `search_assets(query, max_results?, categories?, verified_only?, extensive?, exclude_terms?, exclude_rejected?, exclude_claimed?, exclude_ids?)` | Ranked search; auto-hides rejected/claimed; `exclude_terms` drops off-theme names; results annotated with prior verdicts/claims. |
 | `curate_assets(slots[], per_slot?, verified_only?, extensive?, exclude_terms?, exclude_claimed?)` | Diverse shortlist per slot; excludes rejected + claimed; no asset suggested for two slots. |
 | `claim_assets(project, slot, asset_ids[], reviewer?)` | Reserve assets to a slot so other agents' results hide them — prevents collisions. |
@@ -115,6 +122,30 @@ plan_game_asset_coverage(
 Feed the returned slots into `curate_assets(..., extensive=true)`, claim the
 shortlists, inspect in Studio, then commit the best assets to the palette.
 
+## Headless fragment assembly
+
+Use `plan_headless_assembly` when multiple agents should build room/lobby
+subtrees without serializing every mutation through Studio. The tool returns:
+
+- work packets for the lobby and each themed room
+- the `.rbxm` model output path and companion manifest path per packet
+- Creator Store search/download and Open Cloud publish endpoints to keep outside
+  Studio-specific logic
+- the coordinator merge steps for remapping referents, stripping/regenerating
+  identity fields, resolving parent links, and writing a merged `.rbxl`
+- validation commands for Lune, Rojo, the Prop Hunt gate, and the final Studio
+  visual review
+
+Every agent fragment must pass `validate_fragment_manifest` before merge. The
+manifest contract requires one root model, `target_parent`, `order_key`,
+`source_digest`, `asset_ids`, and an identity policy where the coordinator owns
+referent remapping and strips or regenerates unique IDs. The validator also
+flags risky script loaders such as `require(assetId)`, `InsertService:LoadAsset`,
+`loadstring`, and `HttpService` requests.
+
+The research and proof-of-concept backing this flow live in
+[`../docs/headless-roblox-file-pipeline.md`](../docs/headless-roblox-file-pipeline.md).
+
 ## Prop Hunt gate
 
 Prop Hunt is this repo's validation gate. Commit palette slots using explicit
@@ -159,6 +190,7 @@ when `~/.roblox-asset-brain/` starts empty.
 ```
 src/index.js     MCP server + tool registrations
 src/gameCoverage.js generic Roblox lobby/session/room coverage planner
+src/headlessPipeline.js headless fragment assembly planner + manifest validator
 src/propHuntGate.js Prop Hunt palette + inspection validation
 fixtures/place1-prop-hunt-gate.json audited Place1 gate fixture
 scripts/import-prop-hunt-gate.mjs imports audited gate fixtures into the store

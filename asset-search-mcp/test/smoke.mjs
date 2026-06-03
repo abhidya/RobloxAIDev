@@ -25,7 +25,15 @@ await client.connect(transport);
 const tools = await client.listTools();
 const toolNames = tools.tools.map((t) => t.name);
 console.log("TOOLS:", toolNames.join(", "));
-for (const requiredTool of ["plan_game_asset_coverage", "record_inspection", "record_inspections", "get_inspection", "validate_prop_hunt_gate"]) {
+for (const requiredTool of [
+  "plan_game_asset_coverage",
+  "plan_headless_assembly",
+  "validate_fragment_manifest",
+  "record_inspection",
+  "record_inspections",
+  "get_inspection",
+  "validate_prop_hunt_gate",
+]) {
   assert.ok(toolNames.includes(requiredTool), `${requiredTool} is listed`);
 }
 
@@ -46,6 +54,59 @@ const coverageText = await call("plan_game_asset_coverage", {
 assert.ok(coverageText.includes("lobby.portal.room_queue"), "coverage includes lobby portal");
 assert.ok(coverageText.includes("underwater_reef.hideable.prop_pack"), "coverage includes underwater room props");
 console.log(coverageText.slice(0, 900));
+
+console.log("\n--- plan_headless_assembly ---");
+const headlessJson = JSON.parse(await call("plan_headless_assembly", {
+  project: "prophunt",
+  target_place: "Place1.rbxl",
+  themes: ["underwater reef", "space station"],
+  include_lobby: true,
+  max_fragments: 3,
+  format: "json",
+}));
+assert.equal(headlessJson.mode, "headless-fragment-fanout", "headless assembly plan mode");
+assert.ok(headlessJson.agent_work_packets.some((packet) => packet.fragment_id.includes("lobby_shell")), "headless plan includes lobby packet");
+assert.ok(headlessJson.coordinator_merge_steps.some((step) => step.includes("referents")), "headless plan includes referent merge steps");
+console.log(JSON.stringify({
+  packets: headlessJson.agent_work_packets.map((packet) => packet.fragment_id),
+  validation: headlessJson.validation_commands,
+}, null, 2));
+
+console.log("\n--- validate_fragment_manifest ---");
+const manifestJson = JSON.parse(await call("validate_fragment_manifest", {
+  format: "json",
+  manifest: {
+    version: "roblox-fragment-manifest/v1",
+    fragment_id: "smoke_lobby",
+    target_parent: "Workspace",
+    order_key: "000-lobby",
+    single_root: true,
+    root_name: "SmokeLobby",
+    source_digest: "sha256:smoke",
+    asset_ids: [12345],
+    identity_policy: {
+      referents: "coordinator_remap",
+      unique_ids: "strip",
+      history_ids: "strip",
+    },
+  },
+}));
+assert.equal(manifestJson.passed, true, "safe manifest passes");
+const badManifestText = await call("validate_fragment_manifest", {
+  manifest: {
+    fragment_id: "bad",
+    target_parent: "Workspace",
+    order_key: "999-bad",
+    roots: ["A", "B"],
+    source_digest: "sha256:bad",
+    asset_ids: [111],
+    identity_policy: { referents: "agent_preserve", unique_ids: "preserve" },
+    scripts: [{ path: "Bad/Script", source: "require(123456789)" }],
+  },
+});
+assert.ok(badManifestText.startsWith("FAIL"), "unsafe manifest fails");
+assert.ok(badManifestText.includes("require(assetId)"), "unsafe manifest reports numeric require");
+console.log(badManifestText.split("\n").slice(0, 5).join("\n"));
 
 console.log("\n--- curate_assets ---");
 console.log(

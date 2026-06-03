@@ -57,6 +57,9 @@ The repo now contains:
 - `scripts/headless_place_verify_poc.luau`
 
 Scratch binary outputs are intentionally ignored under `work/headless-poc/`.
+Rojo working copies are ignored under `work/rojo-working/`; use that folder for
+temporary `.rbxl` duplicates and Rojo-built `.rbxlx` outputs while keeping the
+source-controlled `Place1.rbxl` as the checkpoint.
 
 Run:
 
@@ -87,6 +90,21 @@ POC caveat:
 - A first run failed when setting legacy `TextLabel.Font`; Lune/DOM expected
   modern `FontFace`. This is useful: headless validation must always include a
   reload/serialize check because schema drift surfaces as serializer errors.
+
+## MCP Coverage
+
+The asset search MCP now exposes the headless pipeline as callable tools:
+
+- `plan_headless_assembly` returns lobby/room fragment packets, endpoint
+  boundaries, the manifest contract, coordinator merge steps, validation
+  commands, and the Studio screenshot/playtest gate.
+- `validate_fragment_manifest` rejects fragments that omit merge metadata,
+  preserve raw referents, use invalid unique-id policy, declare multiple roots,
+  hide external anchors, or contain risky loaders such as `require(assetId)`,
+  `InsertService:LoadAsset`, `loadstring`, or unapproved `HttpService` calls.
+
+This keeps parallel agents focused on producing bounded `.rbxm` subtrees while
+the coordinator owns identity, parent links, validation, and final place writes.
 
 ## WS2 - Referent-Safe Parallel Merge Spec
 

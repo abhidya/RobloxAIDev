@@ -11,6 +11,12 @@ import { z } from "zod";
 import { searchAssets, DEFAULT_CATEGORIES } from "./toolbox.js";
 import { Store, diversify, filterByTerms } from "./store.js";
 import { buildGameAssetCoverage, formatGameAssetCoverage } from "./gameCoverage.js";
+import {
+  buildHeadlessAssemblyPlan,
+  formatFragmentManifestReport,
+  formatHeadlessAssemblyPlan,
+  validateFragmentManifest,
+} from "./headlessPipeline.js";
 import { formatPropHuntGateReport, validatePropHuntGate } from "./propHuntGate.js";
 
 const store = new Store();
@@ -63,7 +69,7 @@ function formatAsset(a, index) {
 
 const text = (s) => ({ content: [{ type: "text", text: s }] });
 
-const server = new McpServer({ name: "asset-search", version: "0.3.0" });
+const server = new McpServer({ name: "asset-search", version: "0.4.0" });
 
 server.tool(
   "plan_game_asset_coverage",
@@ -85,6 +91,42 @@ server.tool(
       maxThemes: args.max_themes ?? 6,
     });
     return text(args.format === "json" ? JSON.stringify(coverage, null, 2) : formatGameAssetCoverage(coverage));
+  }
+);
+
+server.tool(
+  "plan_headless_assembly",
+  "Create the headless fan-out/fan-in assembly plan for parallel Roblox game agents. Returns agent fragment packets, the referent-safe manifest contract, asset/search/download/publish endpoints, coordinator merge steps, Rojo/Lune validation commands, and the Studio visual gate.",
+  {
+    project: z.string().optional().describe("Project or game name (default: prophunt)."),
+    target_place: z.string().optional().describe("Source place file to copy before mutation (default: Place1.rbxl)."),
+    themes: z.array(z.string()).optional().describe("Themed room packets to generate, e.g. ['underwater reef','space station']."),
+    include_lobby: z.boolean().optional().describe("Include the persistent lobby fragment packet (default true)."),
+    max_fragments: z.number().int().min(1).max(12).optional(),
+    format: z.enum(["text", "json"]).optional(),
+  },
+  async (args) => {
+    const plan = buildHeadlessAssemblyPlan({
+      project: args.project || "prophunt",
+      targetPlace: args.target_place || "Place1.rbxl",
+      themes: args.themes || [],
+      includeLobby: args.include_lobby !== false,
+      maxFragments: args.max_fragments ?? 6,
+    });
+    return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatHeadlessAssemblyPlan(plan));
+  }
+);
+
+server.tool(
+  "validate_fragment_manifest",
+  "Validate an agent-produced rbxm fragment manifest before a coordinator merges it into a Roblox place. Enforces one-root fragments, coordinator-owned referent remapping, strip/regenerate UniqueId policy, declared asset ids/external anchors, and blocks risky script loaders such as require(assetId), InsertService:LoadAsset, loadstring, and HttpService requests.",
+  {
+    manifest: z.record(z.any()),
+    format: z.enum(["text", "json"]).optional(),
+  },
+  async (args) => {
+    const result = validateFragmentManifest(args.manifest);
+    return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatFragmentManifestReport(result));
   }
 );
 
@@ -345,6 +387,6 @@ server.tool(
 async function main() {
   await store.ready();
   await server.connect(new StdioServerTransport());
-  console.error("asset-search-mcp v0.3 ready (stdio) — shared rejection/claim/inspection memory active");
+  console.error("asset-search-mcp v0.4 ready (stdio) — shared rejection/claim/inspection/headless memory active");
 }
 main().catch((err) => { console.error("fatal:", err); process.exit(1); });

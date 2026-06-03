@@ -11,8 +11,9 @@ is the validation gate** that proves the pipeline end to end.
 - **`asset-search-mcp/`** — a standalone, search-only MCP (Node): ranked Creator
   Store discovery, search caching + single-flight, extensive query expansion,
   per-slot curation, a shared review cache, Studio inspection memory, a committed
-  palette, and the repo-side Prop Hunt asset gate. Decoupled from the Roblox
-  Studio MCP. See [`asset-search-mcp/README.md`](asset-search-mcp/README.md).
+  palette, the repo-side Prop Hunt asset gate, and headless fragment assembly
+  planning for parallel `.rbxm` work packets. Decoupled from the Roblox Studio
+  MCP. See [`asset-search-mcp/README.md`](asset-search-mcp/README.md).
 - **`skills/asset-driven-game-design/`** — the Claude skill that orchestrates the
   two MCPs (this search MCP for discovery, the official StudioMCP for building +
   geometric measurement) using a parallel fan-out / fan-in workflow.
@@ -98,6 +99,12 @@ studs. The same check is available from the shell with
 is empty, seed it from the audited `Place1.rbxl` fixture first with
 `npm run seed:prop-hunt-place1`. See
 [`docs/prop-hunt-gate.md`](docs/prop-hunt-gate.md).
+
+For parallel headless assembly, call `plan_headless_assembly` to generate lobby
+and room fragment packets, then reject every fragment manifest that fails
+`validate_fragment_manifest` before merge. This keeps referent remapping,
+`UniqueId`/`HistoryId` stripping, parent assignment, and risky script screening
+owned by the coordinator instead of scattered across agents.
 
 For the next parallelization step, see
 [`docs/headless-roblox-file-pipeline.md`](docs/headless-roblox-file-pipeline.md):
