@@ -74,6 +74,47 @@ export class Store {
     this.searchCache[key] = { ranked, createdAt: Date.now() };
     await writeJsonAtomic(this.files.search, this.searchCache);
   }
+  searchCacheStatus(ttlMs = SEARCH_TTL_MS, now = Date.now()) {
+    let fresh = 0;
+    let stale = 0;
+    let oldestAgeMs = 0;
+    let newestAgeMs = null;
+    for (const entry of Object.values(this.searchCache)) {
+      const ageMs = Math.max(0, now - Number(entry.createdAt || 0));
+      if (ageMs <= ttlMs) fresh += 1;
+      else stale += 1;
+      oldestAgeMs = Math.max(oldestAgeMs, ageMs);
+      newestAgeMs = newestAgeMs == null ? ageMs : Math.min(newestAgeMs, ageMs);
+    }
+    return {
+      entries: Object.keys(this.searchCache).length,
+      fresh,
+      stale,
+      ttlHours: Math.round((ttlMs / 60 / 60 / 1000) * 100) / 100,
+      oldestAgeHours: Math.round((oldestAgeMs / 60 / 60 / 1000) * 100) / 100,
+      newestAgeHours: newestAgeMs == null ? 0 : Math.round((newestAgeMs / 60 / 60 / 1000) * 100) / 100,
+    };
+  }
+  async pruneSearchCache(ttlMs = SEARCH_TTL_MS, dryRun = false, now = Date.now()) {
+    const kept = {};
+    const removedKeys = [];
+    for (const [key, entry] of Object.entries(this.searchCache)) {
+      const ageMs = Math.max(0, now - Number(entry.createdAt || 0));
+      if (ageMs <= ttlMs) kept[key] = entry;
+      else removedKeys.push(key);
+    }
+    if (!dryRun && removedKeys.length) {
+      this.searchCache = kept;
+      await writeJsonAtomic(this.files.search, this.searchCache);
+    }
+    return {
+      dryRun,
+      removed: removedKeys.length,
+      kept: Object.keys(kept).length,
+      removedKeys,
+      ttlHours: Math.round((ttlMs / 60 / 60 / 1000) * 100) / 100,
+    };
+  }
   async coalesce(key, produce) {
     if (this._inflight.has(key)) return this._inflight.get(key);
     const p = (async () => { try { return await produce(); } finally { this._inflight.delete(key); } })();
@@ -162,6 +203,27 @@ export class Store {
     await this.claimAssets(project, slot, [assetId], "commit");
   }
   getPalette(project) { return this.palette[project] || {}; }
+
+  brainStatus(ttlMs = SEARCH_TTL_MS) {
+    const paletteByProject = {};
+    for (const [project, slots] of Object.entries(this.palette)) {
+      paletteByProject[project] = Object.keys(slots || {}).length;
+    }
+    const reviewCounts = Object.values(this.reviews).map((reviews) => Array.isArray(reviews) ? reviews.length : 0);
+    return {
+      searchCache: this.searchCacheStatus(ttlMs),
+      counts: {
+        reviewedAssets: Object.keys(this.reviews).length,
+        reviews: reviewCounts.reduce((sum, count) => sum + count, 0),
+        rejectedAssets: this.rejectedIdSet().size,
+        claims: Object.keys(this.claims).length,
+        inspections: Object.keys(this.inspections).length,
+        paletteProjects: Object.keys(this.palette).length,
+        paletteAssets: Object.values(paletteByProject).reduce((sum, count) => sum + count, 0),
+      },
+      paletteByProject,
+    };
+  }
 }
 
 /** Diversity cap: at most `maxPerCreator` picks from one creator. */
