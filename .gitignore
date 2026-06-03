@@ -9,3 +9,6 @@ node_modules/
 
 # Studio lock files
 *.rbxl.lock
+
+# Headless file-mutation scratch outputs
+work/headless-poc/

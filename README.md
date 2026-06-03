@@ -99,6 +99,12 @@ is empty, seed it from the audited `Place1.rbxl` fixture first with
 `npm run seed:prop-hunt-place1`. See
 [`docs/prop-hunt-gate.md`](docs/prop-hunt-gate.md).
 
+For the next parallelization step, see
+[`docs/headless-roblox-file-pipeline.md`](docs/headless-roblox-file-pipeline.md):
+it documents the no-Studio `.rbxl`/`.rbxm` mutation POC, referent-safe fragment
+merge contract, Creator Store search/download path, pricing/licensing notes, and
+Open Cloud publish flow.
+
 ## Checking work in
 
 This repo is pushed from your Mac (the build sandbox has no push credentials).
