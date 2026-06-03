@@ -11,6 +11,10 @@ import {
   buildHeadlessAssemblyPlan,
   validateFragmentManifest,
 } from "../src/headlessPipeline.js";
+import {
+  buildPlayableSpaceReviewPlan,
+  validatePlayableSpaceReview,
+} from "../src/playableSpaceReview.js";
 import { formatPropHuntGateReport, validatePropHuntGate } from "../src/propHuntGate.js";
 
 // ---- toolbox parsing/ranking ----
@@ -104,6 +108,43 @@ assert.equal(badManifest.passed, false, "unsafe fragment manifest fails");
 assert.ok(badManifest.errors.some((error) => error.includes("coordinator_remap")), "bad referent policy rejected");
 assert.ok(badManifest.errors.some((error) => error.includes("single_root")), "multi-root fragment rejected");
 assert.ok(badManifest.errors.some((error) => error.includes("require(assetId)")), "numeric require rejected");
+
+// ---- playable-space visual review plan + validation ----
+const visualPlan = buildPlayableSpaceReviewPlan({ project: "prophunt" });
+assert.ok(visualPlan.spaces.some((space) => space.id === "lobby"), "visual review includes lobby");
+assert.ok(visualPlan.spaces.some((space) => space.id === "medieval_market"), "visual review includes medieval room");
+assert.ok(visualPlan.captures.some((shot) => shot.kind === "player_height_quadrant" && shot.quadrant === "nw"), "visual review requires quadrant player shot");
+assert.ok(visualPlan.captures.some((shot) => shot.kind === "ui_state" && shot.ui_state === "hiding"), "visual review includes round UI states");
+
+const goodVisualReport = {
+  project: "prophunt",
+  spaces_reviewed: visualPlan.spaces.map((space) => space.id),
+  screenshots: visualPlan.captures.map((shot) => ({
+    capture_id: shot.capture_id,
+    space_id: shot.space_id,
+    kind: shot.kind,
+    quadrant: shot.quadrant,
+    ui_state: shot.ui_state,
+    passed: true,
+  })),
+  findings: [],
+  fixes: [],
+  verdict: "signed_off",
+};
+const goodVisual = validatePlayableSpaceReview(goodVisualReport, visualPlan);
+assert.equal(goodVisual.passed, true, goodVisual.errors.join("; "));
+assert.equal(goodVisual.counts.spaces_required, 4, "visual review requires all default spaces");
+
+const badVisual = validatePlayableSpaceReview({
+  project: "prophunt",
+  spaces_reviewed: ["lobby"],
+  screenshots: [{ capture_id: "only_lobby_entry", space_id: "lobby", kind: "entry" }],
+  findings: [{ id: "cab-dark-blocker", space_id: "cozy_cabin", severity: "blocker", status: "open", description: "Cabin entry blocked by dark object" }],
+  verdict: "signed_off",
+}, visualPlan);
+assert.equal(badVisual.passed, false, "incomplete visual review fails");
+assert.ok(badVisual.errors.some((error) => error.includes("missing player-height quadrant")), "missing quadrant screenshot rejected");
+assert.ok(badVisual.errors.some((error) => error.includes("unresolved blocker")), "unresolved blocker rejected");
 
 // ---- shared-brain: rejections + claims + annotation ----
 const dir = path.join(os.tmpdir(), "brain-offline-" + Date.now());
@@ -245,4 +286,4 @@ assert.equal(unclassifiedGate.counts.areas, 0, "unclassified slots do not satisf
 assert.equal(unclassifiedGate.passed, false, "unclassified-only palette fails area gate");
 
 await fs.rm(dir, { recursive: true, force: true });
-console.log("OFFLINE OK — parsing, ranking, curation, game/headless coverage, off-theme filter, rejections, claims, inspections, Prop Hunt gate, persistence");
+console.log("OFFLINE OK — parsing, ranking, curation, game/headless/visual coverage, off-theme filter, rejections, claims, inspections, Prop Hunt gate, persistence");

@@ -29,6 +29,8 @@ for (const requiredTool of [
   "plan_game_asset_coverage",
   "plan_headless_assembly",
   "validate_fragment_manifest",
+  "plan_playable_space_review",
+  "validate_playable_space_review",
   "record_inspection",
   "record_inspections",
   "get_inspection",
@@ -107,6 +109,54 @@ const badManifestText = await call("validate_fragment_manifest", {
 assert.ok(badManifestText.startsWith("FAIL"), "unsafe manifest fails");
 assert.ok(badManifestText.includes("require(assetId)"), "unsafe manifest reports numeric require");
 console.log(badManifestText.split("\n").slice(0, 5).join("\n"));
+
+console.log("\n--- plan_playable_space_review ---");
+const reviewPlan = JSON.parse(await call("plan_playable_space_review", {
+  project: "prophunt",
+  format: "json",
+}));
+assert.ok(reviewPlan.spaces.some((space) => space.id === "lobby"), "playable-space plan includes lobby");
+assert.ok(reviewPlan.captures.some((shot) => shot.kind === "player_height_quadrant"), "playable-space plan includes player-height quadrants");
+console.log(JSON.stringify({
+  spaces: reviewPlan.spaces.map((space) => space.id),
+  captures: reviewPlan.captures.length,
+}, null, 2));
+
+console.log("\n--- validate_playable_space_review ---");
+const reviewReport = {
+  project: "prophunt",
+  spaces_reviewed: reviewPlan.spaces.map((space) => space.id),
+  screenshots: reviewPlan.captures.map((shot) => ({
+    capture_id: shot.capture_id,
+    space_id: shot.space_id,
+    kind: shot.kind,
+    quadrant: shot.quadrant,
+    ui_state: shot.ui_state,
+    passed: true,
+  })),
+  findings: [],
+  fixes: [],
+  verdict: "signed_off",
+};
+const reviewValidation = JSON.parse(await call("validate_playable_space_review", {
+  report: reviewReport,
+  plan: reviewPlan,
+  format: "json",
+}));
+assert.equal(reviewValidation.passed, true, "complete visual report passes");
+const badReviewText = await call("validate_playable_space_review", {
+  report: {
+    project: "prophunt",
+    spaces_reviewed: ["lobby"],
+    screenshots: [{ capture_id: "only_lobby_entry", space_id: "lobby", kind: "entry" }],
+    findings: [{ id: "bad", space_id: "cozy_cabin", severity: "blocker", status: "open", description: "bad view" }],
+    verdict: "signed_off",
+  },
+  plan: reviewPlan,
+});
+assert.ok(badReviewText.startsWith("FAIL"), "incomplete visual review fails");
+assert.ok(badReviewText.includes("unresolved blocker"), "visual review reports unresolved blocker");
+console.log(badReviewText.split("\n").slice(0, 7).join("\n"));
 
 console.log("\n--- curate_assets ---");
 console.log(

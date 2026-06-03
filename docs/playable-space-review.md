@@ -8,6 +8,17 @@ This review uses the repo-local `roblox-playable-space-review` gate. Console
 phase logs and aerial screenshots are not sufficient evidence for a polished
 Roblox game.
 
+The current MCP-backed minimum gate is:
+
+```text
+plan_playable_space_review(project: "prophunt")
+validate_playable_space_review(report: ..., plan: ...)
+```
+
+The validator must pass before this document can change to `signed off`; it
+requires every playable space, player-height quadrant screenshots, required
+shot kinds, UI states, and no unresolved major/blocker findings.
+
 ## Screenshots Captured
 
 | Area/state | Screenshot id | Verdict |

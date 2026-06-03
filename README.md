@@ -12,8 +12,9 @@ is the validation gate** that proves the pipeline end to end.
   Store discovery, search caching + single-flight, extensive query expansion,
   per-slot curation, a shared review cache, Studio inspection memory, a committed
   palette, the repo-side Prop Hunt asset gate, and headless fragment assembly
-  planning for parallel `.rbxm` work packets. Decoupled from the Roblox Studio
-  MCP. See [`asset-search-mcp/README.md`](asset-search-mcp/README.md).
+  planning for parallel `.rbxm` work packets, plus playable-space screenshot
+  review gating. Decoupled from the Roblox Studio MCP. See
+  [`asset-search-mcp/README.md`](asset-search-mcp/README.md).
 - **`skills/asset-driven-game-design/`** — the Claude skill that orchestrates the
   two MCPs (this search MCP for discovery, the official StudioMCP for building +
   geometric measurement) using a parallel fan-out / fan-in workflow.
@@ -105,6 +106,11 @@ and room fragment packets, then reject every fragment manifest that fails
 `validate_fragment_manifest` before merge. This keeps referent remapping,
 `UniqueId`/`HistoryId` stripping, parent assignment, and risky script screening
 owned by the coordinator instead of scattered across agents.
+
+For visual signoff, call `plan_playable_space_review`, capture the returned
+Studio screenshot queue, log findings/fixes, then run
+`validate_playable_space_review`. Missing player-height quadrants or unresolved
+major/blocker issues mean the map is not signed off.
 
 For the next parallelization step, see
 [`docs/headless-roblox-file-pipeline.md`](docs/headless-roblox-file-pipeline.md):

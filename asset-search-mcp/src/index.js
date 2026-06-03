@@ -17,6 +17,12 @@ import {
   formatHeadlessAssemblyPlan,
   validateFragmentManifest,
 } from "./headlessPipeline.js";
+import {
+  buildPlayableSpaceReviewPlan,
+  formatPlayableSpaceReviewPlan,
+  formatPlayableSpaceReviewValidation,
+  validatePlayableSpaceReview,
+} from "./playableSpaceReview.js";
 import { formatPropHuntGateReport, validatePropHuntGate } from "./propHuntGate.js";
 
 const store = new Store();
@@ -69,7 +75,7 @@ function formatAsset(a, index) {
 
 const text = (s) => ({ content: [{ type: "text", text: s }] });
 
-const server = new McpServer({ name: "asset-search", version: "0.4.0" });
+const server = new McpServer({ name: "asset-search", version: "0.5.0" });
 
 server.tool(
   "plan_game_asset_coverage",
@@ -127,6 +133,50 @@ server.tool(
   async (args) => {
     const result = validateFragmentManifest(args.manifest);
     return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatFragmentManifestReport(result));
+  }
+);
+
+server.tool(
+  "plan_playable_space_review",
+  "Create a Studio screenshot plan for Roblox playable-space signoff. Covers lobby, portals, Prop Hunt rooms, player-height quadrants, reverse shots, UI states, and the visual rubric. Use this before claiming a Roblox map is pretty, playable, or signed off.",
+  {
+    project: z.string().optional().describe("Project name for capture ids (default: prophunt)."),
+    spaces: z.array(z.object({
+      id: z.string().optional(),
+      name: z.string().optional(),
+      type: z.string().optional(),
+      center: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
+      size: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
+      entry: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
+      look_at: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
+      quadrants: z.array(z.string()).optional(),
+      ui_states: z.array(z.string()).optional(),
+    })).optional().describe("Optional custom playable spaces. Defaults to Place1 Prop Hunt lobby + 3 rooms."),
+    include_defaults: z.boolean().optional().describe("Use default Prop Hunt spaces when spaces is empty (default true)."),
+    format: z.enum(["text", "json"]).optional(),
+  },
+  async (args) => {
+    const plan = buildPlayableSpaceReviewPlan({
+      project: args.project || "prophunt",
+      spaces: args.spaces || [],
+      includeDefaults: args.include_defaults !== false,
+      format: args.format || "text",
+    });
+    return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatPlayableSpaceReviewPlan(plan));
+  }
+);
+
+server.tool(
+  "validate_playable_space_review",
+  "Validate a Roblox playable-space visual review report. Fails when spaces are missing, player-height quadrant screenshots are missing, required screenshot kinds are skipped, or major/blocker findings remain unresolved.",
+  {
+    report: z.record(z.any()),
+    plan: z.record(z.any()).optional().describe("Optional plan from plan_playable_space_review(format='json')."),
+    format: z.enum(["text", "json"]).optional(),
+  },
+  async (args) => {
+    const result = validatePlayableSpaceReview(args.report, args.plan);
+    return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatPlayableSpaceReviewValidation(result));
   }
 );
 
@@ -387,6 +437,6 @@ server.tool(
 async function main() {
   await store.ready();
   await server.connect(new StdioServerTransport());
-  console.error("asset-search-mcp v0.4 ready (stdio) — shared rejection/claim/inspection/headless memory active");
+  console.error("asset-search-mcp v0.5 ready (stdio) — shared rejection/claim/inspection/headless/visual-review memory active");
 }
 main().catch((err) => { console.error("fatal:", err); process.exit(1); });

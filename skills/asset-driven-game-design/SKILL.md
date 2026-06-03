@@ -34,7 +34,7 @@ placed asset**.
 
 | Server | Role | Key tools |
 |--------|------|-----------|
-| **asset-search-mcp** (this repo, standalone, search-only) | discover + curate + **shared memory** | `plan_game_asset_coverage`, `plan_headless_assembly`, `validate_fragment_manifest`, `search_assets`, `curate_assets`, `claim_assets`, `reject_asset`, `review_asset`, `get_reviews`, `record_inspection`, `record_inspections`, `get_inspection`, `commit_palette`, `get_palette`, `validate_prop_hunt_gate` |
+| **asset-search-mcp** (this repo, standalone, search-only) | discover + curate + **shared memory** | `plan_game_asset_coverage`, `plan_headless_assembly`, `validate_fragment_manifest`, `plan_playable_space_review`, `validate_playable_space_review`, `search_assets`, `curate_assets`, `claim_assets`, `reject_asset`, `review_asset`, `get_reviews`, `record_inspection`, `record_inspections`, `get_inspection`, `commit_palette`, `get_palette`, `validate_prop_hunt_gate` |
 | **StudioMCP** (official, bundled in Roblox Studio) | build + measure | `insert_from_creator_store`, `run_code`/`execute_luau`, playtest tools |
 
 `asset-search-mcp` is the advantage the official MCP lacks: ranked, multi-category
@@ -47,7 +47,10 @@ After measurement, record those facts back into `asset-search-mcp` with
 evidence and the Prop Hunt gate can fail before a live build. When Studio would
 become the bottleneck, call `plan_headless_assembly` and have agents emit
 `.rbxm` fragments plus manifests; the coordinator must run
-`validate_fragment_manifest` before any direct `.rbxl` merge.
+`validate_fragment_manifest` before any direct `.rbxl` merge. After any map
+change, call `plan_playable_space_review` and finish with
+`validate_playable_space_review`; screenshots, quadrants, UI states, and
+unresolved blocker status are part of the game gate, not optional polish.
 
 ## Claude-history operating rules
 
@@ -216,6 +219,18 @@ Wire lobby/session logic before declaring the game playable:
 5. Playtest with StudioMCP and confirm no asset-load errors, no global-round
    leakage, and clean return-to-lobby behavior.
 
+### 6. Visual review gate
+Before declaring the game pretty, playable, polished, or Roblox-standard:
+
+1. Call `plan_playable_space_review(project="prophunt")`.
+2. Capture the returned queue sequentially with StudioMCP `screen_capture`.
+3. Review and fix every player-height blocker, especially sparse lanes,
+   misoriented/floating props, oversized cover, unreadable portals, and UI
+   overlap.
+4. Record the reviewed screenshots, findings, fixes, and verdict.
+5. Run `validate_playable_space_review`. A missing quadrant or unresolved
+   major/blocker finding means **not signed off**.
+
 ## Placement math
 
 After measuring `size = boundingBox.ExtentsSize`:
@@ -258,6 +273,8 @@ A prop hunt is the gate that proves the whole pipeline end to end:
   or cosmetic affordances.
 - At least one capacity-limited room session works end to end; production gates
   should support multiple room definitions even if only one room is active.
+- `validate_playable_space_review` passes for the lobby, portals, every playable
+  room, and major UI states, backed by player-height screenshot ids.
 - 3+ visually distinct room themes or one polished room plus asset coverage for
   the next rooms, each built from real assets (zero placeholder parts for props).
 - Every placed prop was inspected (known size, no rejected issues) and the best

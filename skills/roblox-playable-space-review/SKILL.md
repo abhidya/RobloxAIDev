@@ -32,6 +32,21 @@ Collect or infer:
 - Active UI/HUD states: lobby, queueing, round, role/team, interaction prompt,
   error/empty states, and reward/score states.
 
+When `asset-search-mcp` is available, begin with:
+
+```
+plan_playable_space_review(project="prophunt")
+```
+
+Use the returned capture queue as the minimum screenshot set. After fixes and
+recaptures, submit the report to:
+
+```
+validate_playable_space_review(report={...}, plan={...})
+```
+
+Do not sign off while that validator fails.
+
 ## Quadrant Workflow
 
 For each playable space:

@@ -37,6 +37,9 @@ agents need:
   before a live Studio build/playtest.
 - **`plan_headless_assembly` / `validate_fragment_manifest`** — define and check
   referent-safe `.rbxm` fragment packets for parallel headless place assembly.
+- **`plan_playable_space_review` / `validate_playable_space_review`** — plan
+  and enforce the player-height screenshot gate for lobby, rooms, UI states, and
+  unresolved visual blockers.
 
 State persists as plain JSON under `~/.roblox-asset-brain/` — no native deps, no
 build step.
@@ -65,6 +68,8 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 | `plan_game_asset_coverage(game?, themes?, include_defaults?, include_lobby?, max_themes?, format?)` | Generate lobby/session/room asset search coverage before curation. |
 | `plan_headless_assembly(project?, target_place?, themes?, include_lobby?, max_fragments?, format?)` | Generate parallel headless fragment packets, merge contract, endpoints, Rojo/Lune validation commands, and Studio visual gate. |
 | `validate_fragment_manifest(manifest, format?)` | Reject unsafe or under-specified `.rbxm` fragment manifests before coordinator merge. |
+| `plan_playable_space_review(project?, spaces?, include_defaults?, format?)` | Generate the required Studio screenshot queue for lobby/room quadrant review and UI states. |
+| `validate_playable_space_review(report, plan?, format?)` | Fail visual signoff reports that skip spaces, player-height quadrants, required screenshot kinds, or unresolved major/blocker findings. |
 | `search_assets(query, max_results?, categories?, verified_only?, extensive?, exclude_terms?, exclude_rejected?, exclude_claimed?, exclude_ids?)` | Ranked search; auto-hides rejected/claimed; `exclude_terms` drops off-theme names; results annotated with prior verdicts/claims. |
 | `curate_assets(slots[], per_slot?, verified_only?, extensive?, exclude_terms?, exclude_claimed?)` | Diverse shortlist per slot; excludes rejected + claimed; no asset suggested for two slots. |
 | `claim_assets(project, slot, asset_ids[], reviewer?)` | Reserve assets to a slot so other agents' results hide them — prevents collisions. |
@@ -146,6 +151,19 @@ flags risky script loaders such as `require(assetId)`, `InsertService:LoadAsset`
 The research and proof-of-concept backing this flow live in
 [`../docs/headless-roblox-file-pipeline.md`](../docs/headless-roblox-file-pipeline.md).
 
+## Playable-space review gate
+
+Use `plan_playable_space_review` after building or changing a map. The default
+plan covers the current Prop Hunt gate: lobby, Medieval Market, Sci-Fi Lab, and
+Cozy Cabin. It emits a sequential `screen_capture` queue for overhead, entry,
+player-height quadrant, reverse, and UI-state shots.
+
+After screenshot review and fixes, call `validate_playable_space_review` with a
+report containing `spaces_reviewed`, `screenshots`, `findings`, `fixes`, and
+`verdict`. The validator fails when any playable space is missing, any quadrant
+player-height shot is absent, or a major/blocker finding remains unresolved.
+This deliberately prevents console-green or one-screenshot signoff.
+
 ## Prop Hunt gate
 
 Prop Hunt is this repo's validation gate. Commit palette slots using explicit
@@ -191,6 +209,7 @@ when `~/.roblox-asset-brain/` starts empty.
 src/index.js     MCP server + tool registrations
 src/gameCoverage.js generic Roblox lobby/session/room coverage planner
 src/headlessPipeline.js headless fragment assembly planner + manifest validator
+src/playableSpaceReview.js playable-space screenshot planner + report validator
 src/propHuntGate.js Prop Hunt palette + inspection validation
 fixtures/place1-prop-hunt-gate.json audited Place1 gate fixture
 scripts/import-prop-hunt-gate.mjs imports audited gate fixtures into the store
