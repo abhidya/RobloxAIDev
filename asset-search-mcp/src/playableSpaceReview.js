@@ -299,7 +299,7 @@ export function validatePlayableSpaceReview(report, plan) {
 
   if (!Array.isArray(rawReport.screenshots)) errors.push("screenshots array is required");
   if (!Array.isArray(rawReport.findings)) errors.push("findings array is required, even when empty");
-  if (!Array.isArray(rawReport.fixes)) warnings.push("fixes array is recommended for traceability");
+  if (!Array.isArray(rawReport.fixes)) errors.push("fixes array is required, even when empty");
   if (!rawReport.verdict) errors.push("verdict is required");
 
   const screenshotsBySpace = new Map();

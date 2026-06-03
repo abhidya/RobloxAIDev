@@ -164,6 +164,17 @@ report containing `spaces_reviewed`, `screenshots`, `findings`, `fixes`, and
 player-height shot is absent, or a major/blocker finding remains unresolved.
 This deliberately prevents console-green or one-screenshot signoff.
 
+The same gate is available from the shell for CI or handoff artifacts:
+
+```bash
+npm run gate:playable-space -- --file ../docs/reports/prophunt-visual-review.json
+node scripts/validate-playable-space-review.mjs --file review.json --json
+```
+
+The report file can be either the report object itself or a `{ "report": ...,
+"plan": ... }` wrapper. Omitting the plan uses the default Prop Hunt capture
+queue unless the report provides custom `spaces`.
+
 ## Prop Hunt gate
 
 Prop Hunt is this repo's validation gate. Commit palette slots using explicit

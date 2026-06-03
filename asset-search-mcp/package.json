@@ -14,10 +14,12 @@
     "start": "node src/index.js",
     "seed:prop-hunt-place1": "node scripts/import-prop-hunt-gate.mjs --file fixtures/place1-prop-hunt-gate.json",
     "gate:prop-hunt": "node scripts/validate-prop-hunt-gate.mjs --project prophunt",
-    "test": "npm run test:offline && npm run test:gate && npm run test:fixture && npm run test:smoke",
+    "gate:playable-space": "node scripts/validate-playable-space-review.mjs",
+    "test": "npm run test:offline && npm run test:gate && npm run test:playable-space && npm run test:fixture && npm run test:smoke",
     "test:fixture": "node test/fixture-import.mjs",
     "test:gate": "node test/gate-cli.mjs",
     "test:offline": "node test/offline.mjs",
+    "test:playable-space": "node test/playable-review-cli.mjs",
     "test:smoke": "node test/smoke.mjs"
   },
   "dependencies": {

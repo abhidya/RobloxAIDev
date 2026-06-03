@@ -15,6 +15,13 @@ plan_playable_space_review(project: "prophunt")
 validate_playable_space_review(report: ..., plan: ...)
 ```
 
+The same validation can be run from the shell:
+
+```bash
+cd asset-search-mcp
+npm run gate:playable-space -- --file ../docs/reports/prophunt-visual-review.json
+```
+
 The validator must pass before this document can change to `signed off`; it
 requires every playable space, player-height quadrant screenshots, required
 shot kinds, UI states, and no unresolved major/blocker findings.
