@@ -46,6 +46,10 @@ shot kinds, UI states, and no unresolved major/blocker findings.
 | Sci-Fi after vertical cover | `qa_scifi_after_vertical_cover` | Partial pass |
 | Cozy Cabin after room isolation | `qa_cabin_after_room_isolation_density` | Partial pass |
 | Cozy Cabin after vertical cover | `qa_cabin_after_vertical_cover` | Partial pass |
+| Current lobby after blocker cleanup | `current_lobby_spawn_after_blocker_cleanup` | Partial pass |
+| Current Medieval after name cleanup | `current_medieval_nw_after_name_cleanup` | Partial pass |
+| Current Sci-Fi after blocker cleanup | `current_scifi_nw_after_blocker_cleanup` | Partial pass |
+| Current Cabin after density cleanup | `current_cabin_nw_after_density_cleanup` | Partial pass |
 
 ## Findings
 
@@ -82,6 +86,9 @@ Remaining issues:
 - `qa_lobby_spawn_after_compact_labels` fixed the black-wall blocker and theme
   bleed, but the portal text still appears duplicated and the center composition
   is utilitarian rather than polished.
+- `current_lobby_spawn_after_blocker_cleanup` removes the duplicate/overlapping
+  billboard text. The lobby is readable, but still reads as a blocky prototype
+  frontage rather than a finished Roblox lobby.
 
 Required fix:
 
@@ -118,6 +125,15 @@ Progress:
 - `qa_cabin_after_vertical_cover` is the strongest room pass: cabin, NPCs,
   shrubs, logs, and wooden cover read as a playable camp area, though more
   quadrant coverage is still required.
+- `current_medieval_nw_after_name_cleanup` removes overhead name clutter and a
+  camera-path stall blocker, but the room still has sparse lanes and blocky
+  placeholder cover.
+- `current_scifi_nw_after_blocker_cleanup` makes the reactor shell translucent
+  instead of an opaque cube, but Sci-Fi still has slab-heavy cover and visible
+  tree/theme bleed.
+- `current_cabin_nw_after_density_cleanup` removes the wall/tent blocker from
+  the player-height view and adds low asset-backed foreground dressing, but the
+  room still needs more cover pockets and less visible boundary-wall tint.
 
 Required fix:
 
@@ -188,6 +204,11 @@ Required fix:
   foreground density, and taller cover clusters.
 - Fixed a failed black-wall lobby screenshot by moving room north boundaries
   behind the lobby portal facades.
+- Updated `scripts/studio_apply_working_visual_fixes.luau` to replay the latest
+  working-copy cleanup: hide stale labels/nameplates, move the Cabin north wall,
+  remove a camera-path Cabin tent and Medieval stall blocker, make the Sci-Fi
+  reactor shell translucent, add invisible room/spawn marker folders, and clone
+  additional inspected cabin props.
 
 ## New Validation Evidence
 
@@ -213,6 +234,8 @@ some themed cover. It is not yet a final visual signoff because only one
 player-height angle per room was recaptured after the vertical-cover pass, lobby
 labels still need polish, Sci-Fi still has edge bleed, and the blocky placeholder
 cover should be replaced or supplemented with inspected asset-backed props.
+The latest working-copy cleanup fixed several screenshot blockers, but it did
+not replace the full required quadrant review or two-client multiplayer proof.
 
 ## Signoff Requirements Before Claiming Done
 

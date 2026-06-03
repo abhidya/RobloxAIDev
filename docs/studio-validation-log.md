@@ -281,3 +281,46 @@ Verdict:
   copied place still needs a full quadrant pass, cleaner cabin entry composition,
   less boxy Sci-Fi cover, and a true two-client multiplayer check before
   promoting the working copy back to `Place1.rbxl`.
+
+## 2026-06-03 Working-Copy Blocker Cleanup
+
+Goal: continue the visual gate on the duplicated working place after restarting
+Rojo and Studio MCP, and preserve the fixes as a replayable Studio script.
+
+Runtime state:
+
+- Rojo is serving `default.project.json` on `localhost:34872`.
+- Studio MCP selected `Place1.working.rbxl`.
+- `Workspace.HideableProps` exists with 82 children in the working copy.
+- `Workspace.PropHuntRooms` and `Workspace.RoomSpawns` were missing before this
+  pass; the replay script now creates invisible room bounds and spawn markers.
+
+Live fixes applied and preserved in
+`scripts/studio_apply_working_visual_fixes.luau`:
+
+- Removed duplicate/overlapping lobby billboard text and hid stale portal label
+  plates.
+- Moved the Cabin north wall out of the player-height quadrant camera path.
+- Removed the camera-path Cabin tent and Medieval stall blocker.
+- Made the Sci-Fi reactor shell translucent instead of an opaque cube.
+- Hid NPC/humanoid overhead names.
+- Added invisible edit-time `PropHuntRooms` and `RoomSpawns` folders with room
+  bounds plus hider/seeker/return spawn markers.
+- Cloned additional inspected cabin props into low foreground cover.
+
+Screenshot evidence:
+
+- `current_lobby_spawn_after_blocker_cleanup`: lobby labels no longer overlap,
+  but the frontage is still blocky.
+- `current_medieval_nw_after_name_cleanup`: overhead name clutter is gone; the
+  room still has sparse lanes and placeholder cover.
+- `current_scifi_nw_after_blocker_cleanup`: reactor no longer reads as a solid
+  black cube; slab-heavy cover and tree bleed remain.
+- `current_cabin_nw_after_density_cleanup`: wall/tent blocker is fixed; Cabin
+  still needs more cover pockets and less visible boundary-wall tint.
+
+Verdict:
+
+- **Not signed off.** This pass fixed real screenshot blockers and restored
+  expected room/spawn folders, but it does not replace the full 54-shot
+  playable-space review plan or a two-client multiplayer test.
