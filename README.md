@@ -55,11 +55,14 @@ The repo-side gate can be checked without opening Studio:
 ```bash
 cd asset-search-mcp
 npm ci
+npm run demo:offline
 npm test
 npm run seed:prop-hunt-place1
 npm run gate:prop-hunt
 ```
 
+`npm run demo:offline` summarizes the checked-in `Place1.rbxl` audit fixture and
+Rojo room config so reviewers can see the prop-hunt shape without Studio.
 Studio is still required for live Creator Store insertion, geometry inspection,
 player-height screenshots, and final playable-space signoff.
 
