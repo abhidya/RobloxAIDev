@@ -33,7 +33,7 @@ tracked here (see `.gitignore`); it's referenced as the build/measure server.
 
 ```bash
 # 1. The search MCP
-cd asset-search-mcp && npm install && npm test
+cd asset-search-mcp && npm ci && npm test
 claude mcp add --transport stdio asset-search -- node "$(pwd)/src/index.js"
 
 # 2. Make the skill available
@@ -47,6 +47,21 @@ cp -R "$(pwd)/../skills/asset-driven-game-design" ~/.claude/skills/
 # Optional source sync for the Prop Hunt logic
 rojo serve --address 127.0.0.1 --port 34872
 ```
+
+## Local verification
+
+The repo-side gate can be checked without opening Studio:
+
+```bash
+cd asset-search-mcp
+npm ci
+npm test
+npm run seed:prop-hunt-place1
+npm run gate:prop-hunt
+```
+
+Studio is still required for live Creator Store insertion, geometry inspection,
+player-height screenshots, and final playable-space signoff.
 
 ## Play the prop hunt (the validation gate)
 
