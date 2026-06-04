@@ -116,6 +116,11 @@ The asset search MCP now exposes the headless pipeline as callable tools:
 - `plan_headless_assembly` returns lobby/room fragment packets, endpoint
   boundaries, the manifest contract, coordinator merge steps, validation
   commands, and the Studio screenshot/playtest gate.
+- `plan_headless_assembly` accepts `assembly_profile` so non-Prop-Hunt projects
+  do not receive Prop Hunt room parents. Use `concert_defense` for
+  GroanTubeHero/WorldV2 packets under `Workspace.GTH_WorldV2`, and
+  `metadata_evidence` for non-visible evidence fragments under
+  `ReplicatedStorage.ArtAssets`.
 - `validate_fragment_manifest` rejects fragments that omit merge metadata,
   preserve raw referents, use invalid unique-id policy, declare multiple roots,
   hide external anchors, or contain risky loaders such as `require(assetId)`,

@@ -94,6 +94,20 @@ console.log(JSON.stringify({
   packets: headlessJson.agent_work_packets.map((packet) => packet.fragment_id),
   validation: headlessJson.validation_commands,
 }, null, 2));
+const concertHeadlessJson = JSON.parse(await call("plan_headless_assembly", {
+  project: "groan-tube-hero",
+  target_place: "GroanTubeHero.rbxl",
+  themes: ["volcano concert arena"],
+  include_lobby: true,
+  max_fragments: 2,
+  assembly_profile: "concert_defense",
+  format: "json",
+}));
+assert.equal(concertHeadlessJson.assembly_profile, "concert_defense", "MCP headless plan supports concert profile");
+assert.ok(
+  concertHeadlessJson.agent_work_packets.some((packet) => packet.target_parent === "Workspace.GTH_WorldV2"),
+  "concert profile targets WorldV2"
+);
 
 console.log("\n--- validate_fragment_manifest ---");
 const manifestJson = JSON.parse(await call("validate_fragment_manifest", {
@@ -239,6 +253,14 @@ console.log(await call("record_inspection", {
   source: "smoke",
 }));
 console.log(await call("get_palette", { project: "prophunt-smoke" }));
+const paletteCurate = await call("curate_assets", {
+  project: "prophunt-smoke",
+  include_palette: true,
+  slots: [{ slot: "medieval_market.hideable.barrel", query: "query that should not be needed for committed palette fallback" }],
+  per_slot: 1,
+});
+assert.ok(paletteCurate.includes("PALETTE:medieval_market.hideable.barrel"), "curate can surface committed palette fallback");
+assert.ok(paletteCurate.includes("diagnostics:"), "curate includes diagnostics");
 const gateText = await call("validate_prop_hunt_gate", {
   project: "prophunt-smoke",
   min_areas: 1,

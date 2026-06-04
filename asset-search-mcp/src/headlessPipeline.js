@@ -131,9 +131,88 @@ function coverageForFragment(coverage, group, theme = null) {
     .map((slot) => ({ slot: slot.slot, query: slot.query, purpose: slot.purpose }));
 }
 
-function buildWorkPackets({ project, themes, includeLobby, maxFragments, coverage }) {
+function normalizeAssemblyProfile(value, project) {
+  const raw = String(value || "").trim().toLowerCase().replace(/[-\s]+/g, "_");
+  if (["concert_defense", "concert", "rhythm", "rhythm_rpg", "worldv2"].includes(raw)) {
+    return "concert_defense";
+  }
+  if (["metadata", "metadata_evidence", "evidence"].includes(raw)) {
+    return "metadata_evidence";
+  }
+  const projectKey = String(project || "").toLowerCase();
+  if (projectKey.includes("groan") || projectKey.includes("concert")) return "concert_defense";
+  return "prop_hunt";
+}
+
+function profileSettings(profile) {
+  if (profile === "concert_defense") {
+    return {
+      roomParent: "Workspace.GTH_WorldV2",
+      roomRole: "concert-defense-worldv2",
+      roomOutputPrefix: "worldv2",
+      roomDeliverables: [
+        "One root Model containing WorldV2 ring, stage, horde, vendor, or tour-bus visual affordances only.",
+        "Visible assets must be cloned from committed clean ArtAssets sources; structural gameplay helpers may be generated.",
+        "Manifest declares asset ids, target ring/folder anchors, digest, and coordinator-owned identity policy.",
+      ],
+      lobbyDeliverables: [
+        "One root Model containing lobby/spawn/menu affordances only.",
+        "NPC, kiosk, and signage assets are arranged as editable WorldV2-compatible subtrees.",
+        "Manifest declares asset ids, digest, identity policy, and any external anchors.",
+      ],
+      studioGate: [
+        "Use StudioMCP only after direct file validation passes and the active Studio instance is confirmed as the target place.",
+        "Capture stage, vendor ring, horde ring, and tour-bus spawn from player-height quadrant views.",
+        "Run validate_playable_space_review before claiming player-angle or full visual signoff.",
+      ],
+    };
+  }
+  if (profile === "metadata_evidence") {
+    return {
+      roomParent: "ReplicatedStorage.ArtAssets",
+      roomRole: "asset-metadata-evidence",
+      roomOutputPrefix: "asset_evidence",
+      roomDeliverables: [
+        "One root Model containing metadata/value objects only; no visible world content.",
+        "No scripts or runtime asset loaders.",
+        "Manifest declares every referenced asset id plus the evidence target folder.",
+      ],
+      lobbyDeliverables: [
+        "One root Model containing metadata/value objects only; no visible world content.",
+        "No scripts or runtime asset loaders.",
+        "Manifest declares every referenced asset id plus the evidence target folder.",
+      ],
+      studioGate: [
+        "Open Studio only to verify the target place can load and to collect screenshots for any visible asset changes.",
+      ],
+    };
+  }
+  return {
+    roomParent: "Workspace.PropHuntRooms",
+    roomRole: "themed-room",
+    roomOutputPrefix: "",
+    roomDeliverables: [
+      "One root Model containing room shell, setpieces, hideables, host, portal marker, and ambience references.",
+      "No gameplay authority scripts inside imported asset content unless explicitly reviewed.",
+      "Manifest declaring the room spawn anchor and any references to shared lobby/session folders.",
+    ],
+    lobbyDeliverables: [
+      "One root Model containing lobby visual affordances only.",
+      "Portal/NPC/shop/leaderboard assets arranged as an editable subtree.",
+      "Manifest declaring asset ids, digest, identity policy, and any external anchors.",
+    ],
+    studioGate: [
+      "Use StudioMCP for final insertion checks only when direct file validation passes.",
+      "Capture lobby, portal, and each room from player-height quadrant views.",
+      "Run validate_prop_hunt_gate before claiming the asset palette is ready.",
+    ],
+  };
+}
+
+function buildWorkPackets({ project, themes, includeLobby, maxFragments, coverage, assemblyProfile }) {
   const packets = [];
   let order = 0;
+  const profile = profileSettings(assemblyProfile);
   if (includeLobby) {
     packets.push({
       fragment_id: `${slugify(project)}_lobby_shell`,
@@ -143,31 +222,24 @@ function buildWorkPackets({ project, themes, includeLobby, maxFragments, coverag
       output_model: `fragments/${slugify(project)}_lobby_shell.rbxm`,
       output_manifest: `fragments/${slugify(project)}_lobby_shell.manifest.json`,
       asset_slots: coverageForFragment(coverage, "lobby"),
-      deliverables: [
-        "One root Model containing lobby visual affordances only.",
-        "Portal/NPC/shop/leaderboard assets arranged as an editable subtree.",
-        "Manifest declaring asset ids, digest, identity policy, and any external anchors.",
-      ],
+      deliverables: profile.lobbyDeliverables,
     });
   }
 
   for (const theme of themes) {
     if (packets.length >= maxFragments) break;
     const slug = slugify(theme);
+    const outputName = profile.roomOutputPrefix ? `${profile.roomOutputPrefix}_${slug}` : slug;
     packets.push({
       fragment_id: `${slugify(project)}_${slug}_room`,
-      role: "themed-room",
+      role: profile.roomRole,
       theme,
-      target_parent: "Workspace.PropHuntRooms",
+      target_parent: profile.roomParent,
       order_key: String(order++).padStart(3, "0") + `-${slug}`,
-      output_model: `fragments/${slug}.rbxm`,
-      output_manifest: `fragments/${slug}.manifest.json`,
+      output_model: `fragments/${outputName}.rbxm`,
+      output_manifest: `fragments/${outputName}.manifest.json`,
       asset_slots: coverageForFragment(coverage, "room", theme),
-      deliverables: [
-        "One root Model containing room shell, setpieces, hideables, host, portal marker, and ambience references.",
-        "No gameplay authority scripts inside imported asset content unless explicitly reviewed.",
-        "Manifest declaring the room spawn anchor and any references to shared lobby/session folders.",
-      ],
+      deliverables: profile.roomDeliverables,
     });
   }
 
@@ -180,7 +252,9 @@ export function buildHeadlessAssemblyPlan({
   themes = [],
   includeLobby = true,
   maxFragments = 6,
+  assemblyProfile,
 } = {}) {
+  const normalizedProfile = normalizeAssemblyProfile(assemblyProfile, project);
   const chosenThemes = uniqueThemes(themes).length
     ? uniqueThemes(themes)
     : ["medieval market", "sci-fi lab", "cozy cabin", "underwater reef", "space station"];
@@ -198,7 +272,9 @@ export function buildHeadlessAssemblyPlan({
     includeLobby,
     maxFragments: safeMax,
     coverage,
+    assemblyProfile: normalizedProfile,
   });
+  const profile = profileSettings(normalizedProfile);
 
   return {
     project,
@@ -206,6 +282,7 @@ export function buildHeadlessAssemblyPlan({
     working_copy: `work/rojo-working/${targetPlace.replace(/\.rbxlx?$/i, "")}.working.rbxl`,
     rojo_build_output: "work/rojo-working/Place1.rojo-built.rbxlx",
     mode: "headless-fragment-fanout",
+    assembly_profile: normalizedProfile,
     endpoints: OPEN_CLOUD_ENDPOINTS,
     fragment_contract: FRAGMENT_CONTRACT,
     agent_work_packets: packets,
@@ -220,11 +297,7 @@ export function buildHeadlessAssemblyPlan({
       "Write the merged rbxl, run Rojo/Lune validation, then open in Studio only for visual/player QA.",
     ],
     validation_commands: VALIDATION_COMMANDS,
-    studio_gate: [
-      "Use StudioMCP for final insertion checks only when direct file validation passes.",
-      "Capture lobby, portal, and each room from player-height quadrant views.",
-      "Run validate_prop_hunt_gate before claiming the asset palette is ready.",
-    ],
+    studio_gate: profile.studioGate,
   };
 }
 
@@ -379,6 +452,7 @@ export function validateFragmentManifest(manifest) {
 export function formatHeadlessAssemblyPlan(plan) {
   const lines = [
     `Headless assembly plan for '${plan.project}'`,
+    `Assembly profile: ${plan.assembly_profile}`,
     `Target place: ${plan.target_place}`,
     `Working copy: ${plan.working_copy}`,
     `Rojo build output: ${plan.rojo_build_output}`,

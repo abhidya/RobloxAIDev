@@ -109,10 +109,31 @@ and room fragment packets, then reject every fragment manifest that fails
 `UniqueId`/`HistoryId` stripping, parent assignment, and risky script screening
 owned by the coordinator instead of scattered across agents.
 
+For non-Prop-Hunt games, pass an assembly profile instead of accepting the
+default room target. For GroanTubeHero / WorldV2 concert-defense arenas:
+
+```json
+{
+  "project": "groan-tube-hero",
+  "target_place": "GroanTubeHero.rbxl",
+  "themes": ["volcano concert arena", "brainrot monster horde"],
+  "assembly_profile": "concert_defense",
+  "format": "json"
+}
+```
+
+This emits WorldV2-oriented packets under `Workspace.GTH_WorldV2` and a Studio
+gate that first confirms the active Studio instance is the target place.
+
 For visual signoff, call `plan_playable_space_review`, capture the returned
 Studio screenshot queue, log findings/fixes, then run
 `validate_playable_space_review`. Missing player-height quadrants or unresolved
 major/blocker issues mean the map is not signed off.
+
+If StudioMCP reports a different place than the one you opened, do not capture
+screenshots. See
+[`docs/studio-mcp-troubleshooting.md`](docs/studio-mcp-troubleshooting.md) for
+the active-place recovery checklist.
 
 For the next parallelization step, see
 [`docs/headless-roblox-file-pipeline.md`](docs/headless-roblox-file-pipeline.md):

@@ -64,12 +64,30 @@ const headlessPlan = buildHeadlessAssemblyPlan({
   maxFragments: 3,
 });
 assert.equal(headlessPlan.mode, "headless-fragment-fanout", "headless plan mode");
+assert.equal(headlessPlan.assembly_profile, "prop_hunt", "prop hunt profile remains default");
 assert.ok(headlessPlan.endpoints.some((endpoint) => endpoint.url.includes("toolbox-service/v2/assets:search")), "Creator Store search endpoint documented");
 assert.ok(headlessPlan.endpoints.some((endpoint) => endpoint.url.includes("assetdelivery.roblox.com")), "Asset Delivery endpoint documented");
 assert.ok(headlessPlan.agent_work_packets.some((packet) => packet.fragment_id.includes("lobby_shell")), "lobby fragment packet generated");
 assert.ok(headlessPlan.agent_work_packets.some((packet) => packet.theme === "underwater reef"), "underwater fragment packet generated");
 assert.ok(headlessPlan.fragment_contract.required_fields.includes("source_digest"), "fragment contract requires digest");
 assert.ok(headlessPlan.coordinator_merge_steps.some((step) => step.includes("remap all referents")), "coordinator owns referent remap");
+
+const concertHeadlessPlan = buildHeadlessAssemblyPlan({
+  project: "groan-tube-hero",
+  targetPlace: "GroanTubeHero.rbxl",
+  themes: ["volcano concert arena", "brainrot monster horde"],
+  maxFragments: 3,
+  assemblyProfile: "concert_defense",
+});
+assert.equal(concertHeadlessPlan.assembly_profile, "concert_defense", "concert defense profile recorded");
+assert.ok(
+  concertHeadlessPlan.agent_work_packets.some((packet) => packet.target_parent === "Workspace.GTH_WorldV2"),
+  "concert defense packets target WorldV2 instead of PropHuntRooms"
+);
+assert.ok(
+  concertHeadlessPlan.studio_gate.some((step) => step.includes("active Studio instance")),
+  "concert defense Studio gate requires active-place confirmation"
+);
 
 const goodManifest = validateFragmentManifest({
   version: "roblox-fragment-manifest/v1",

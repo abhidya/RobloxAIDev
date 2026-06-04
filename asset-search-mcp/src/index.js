@@ -73,6 +73,18 @@ function formatAsset(a, index) {
   ].filter(Boolean).join("\n");
 }
 
+function formatPaletteSeed(slot, entry, index) {
+  const annotation = store.annotate(entry.assetId);
+  const bits = [];
+  if (annotation.inspection?.screenshotVerdict) bits.push(`visual=${annotation.inspection.screenshotVerdict}`);
+  if (annotation.inspection?.visualRiskScore != null) bits.push(`risk=${annotation.inspection.visualRiskScore}`);
+  if (annotation.rejected) bits.push("REJECTED");
+  return [
+    `${index + 1}. ${entry.name || "Committed palette asset"} (ID: ${entry.assetId})  «PALETTE:${slot}${bits.length ? "; " + bits.join("; ") : ""}»`,
+    "   source=committed palette; use get_inspection/get_reviews before Studio work",
+  ].join("\n");
+}
+
 const text = (s) => ({ content: [{ type: "text", text: s }] });
 
 const server = new McpServer({ name: "asset-search", version: "0.7.0" });
@@ -314,13 +326,14 @@ server.tool(
 
 server.tool(
   "plan_headless_assembly",
-  "Create the headless fan-out/fan-in assembly plan for parallel Roblox game agents. Returns agent fragment packets, the referent-safe manifest contract, asset/search/download/publish endpoints, coordinator merge steps, Rojo/Lune validation commands, and the Studio visual gate.",
+  "Create the headless fan-out/fan-in assembly plan for parallel Roblox game agents. Returns agent fragment packets, the referent-safe manifest contract, asset/search/download/publish endpoints, coordinator merge steps, Rojo/Lune validation commands, and the Studio visual gate. Use assembly_profile='concert_defense' for GroanTubeHero/WorldV2-style concert arenas instead of Prop Hunt room parents.",
   {
     project: z.string().optional().describe("Project or game name (default: prophunt)."),
     target_place: z.string().optional().describe("Source place file to copy before mutation (default: Place1.rbxl)."),
     themes: z.array(z.string()).optional().describe("Themed room packets to generate, e.g. ['underwater reef','space station']."),
     include_lobby: z.boolean().optional().describe("Include the persistent lobby fragment packet (default true)."),
     max_fragments: z.number().int().min(1).max(12).optional(),
+    assembly_profile: z.enum(["prop_hunt", "concert_defense", "metadata_evidence"]).optional().describe("Fragment target profile. Defaults to prop_hunt, but GroanTubeHero-like project names infer concert_defense."),
     format: z.enum(["text", "json"]).optional(),
   },
   async (args) => {
@@ -330,6 +343,7 @@ server.tool(
       themes: args.themes || [],
       includeLobby: args.include_lobby !== false,
       maxFragments: args.max_fragments ?? 6,
+      assemblyProfile: args.assembly_profile,
     });
     return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatHeadlessAssemblyPlan(plan));
   }
@@ -427,8 +441,10 @@ server.tool(
 
 server.tool(
   "curate_assets",
-  "Turn a storyboard's slots into a diverse, de-duplicated shortlist per slot — the right tool for parallel agents. Auto-excludes rejected + claimed assets, applies per-slot off-theme filters, caps picks per creator, and guarantees NO asset is suggested for two slots in one call. Pair with claim_assets so agents lock in their picks and the next agent's curation skips them.",
+  "Turn a storyboard's slots into a diverse, de-duplicated shortlist per slot — the right tool for parallel agents. Auto-excludes rejected + claimed assets, applies per-slot off-theme filters, caps picks per creator, and guarantees NO asset is suggested for two slots in one call. Pair with claim_assets so agents lock in their picks and the next agent's curation skips them. Pass project + include_palette=true to surface already committed palette assets when live search is sparse or stale.",
   {
+    project: z.string().optional().describe("Optional palette project used when include_palette=true."),
+    include_palette: z.boolean().optional().describe("Include committed palette entries for matching slots as fallback evidence (default false)."),
     slots: z.array(z.object({
       slot: z.string(),
       query: z.string(),
@@ -447,7 +463,7 @@ server.tool(
     for (const s of args.slots) {
       try {
         const ranked = await rankedSearch({ query: s.query, verifiedOnly: args.verified_only, extensive: args.extensive });
-        const { pool } = applyExcludes(ranked, {
+        const { pool, removed } = applyExcludes(ranked, {
           excludeRejected: true,
           excludeClaimed: args.exclude_claimed !== false,
           excludeIds: [...chosen],
@@ -455,8 +471,15 @@ server.tool(
         });
         const curated = diversify(pool, perSlot, 2);
         curated.forEach((a) => chosen.add(a.id));
-        const body = curated.length ? curated.map(formatAsset).join("\n") : "   (no on-theme candidates)";
-        sections.push(`## slot '${s.slot}'  query='${s.query}'\n${body}`);
+        const paletteEntry = args.include_palette && args.project ? store.getPalette(args.project)[s.slot] : null;
+        const lines = curated.length ? curated.map(formatAsset) : [];
+        if (paletteEntry && !chosen.has(Number(paletteEntry.assetId))) {
+          lines.push(formatPaletteSeed(s.slot, paletteEntry, lines.length));
+          chosen.add(Number(paletteEntry.assetId));
+        }
+        const body = lines.length ? lines.join("\n") : "   (no on-theme candidates)";
+        const diagnostics = `   diagnostics: raw=${ranked.length} filtered=${removed} curated=${curated.length}${paletteEntry ? " palette_fallback=1" : ""}`;
+        sections.push(`## slot '${s.slot}'  query='${s.query}'\n${body}\n${diagnostics}`);
       } catch (e) {
         sections.push(`## slot '${s.slot}' — search failed: ${e.message}`);
       }
