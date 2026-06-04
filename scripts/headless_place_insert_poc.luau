@@ -11,6 +11,7 @@
 local fs = require("@lune/fs")
 local process = require("@lune/process")
 local roblox = require("@lune/roblox")
+local serde = require("@lune/serde")
 
 local Instance = roblox.Instance
 local Color3 = roblox.Color3
@@ -22,6 +23,10 @@ local args = process.args
 local inputPlace = args[1] or "work/headless-poc/Place1.headless-working.rbxl"
 local outputModel = args[2] or "work/headless-poc/generated-headless-marker.rbxm"
 local outputPlace = args[3] or "work/headless-poc/Place1.headless-mutated.rbxl"
+local outputManifest = args[4] or string.gsub(outputModel, "%.rbxm$", ".manifest.json")
+if outputManifest == outputModel then
+	outputManifest = outputModel .. ".manifest.json"
+end
 
 local function makePart(name: string, size: Vector3, cframe: CFrame, color: Color3, material)
 	local part = Instance.new("Part")
@@ -93,7 +98,35 @@ fs.writeDir("work")
 fs.writeDir("work/headless-poc")
 
 local model = makeModelSubtree()
-fs.writeFile(outputModel, roblox.serializeModel({ model }))
+local modelBytes = roblox.serializeModel({ model })
+fs.writeFile(outputModel, modelBytes)
+
+fs.writeFile(
+	outputManifest,
+	serde.encode("json", {
+		version = "roblox-fragment-manifest/v1",
+		fragment_id = "headless_generated_marker",
+		target_parent = "Workspace",
+		order_key = "000-poc-marker",
+		model_path = outputModel,
+		root_name = model.Name,
+		single_root = true,
+		source_digest = "sha256:" .. serde.hash("sha256", modelBytes),
+		asset_ids = {},
+		identity_policy = {
+			referents = "coordinator_remap",
+			unique_ids = "strip",
+			history_ids = "strip",
+		},
+		replace_existing = true,
+		scripts = {
+			{
+				path = "HeadlessGeneratedMarker.PlaintextSourceProof",
+				source = "print('[HeadlessGeneratedMarker] Script Source survived file serialization')",
+			},
+		},
+	})
+)
 
 local placeContents = fs.readFile(inputPlace)
 local game = roblox.deserializePlace(placeContents)
@@ -115,15 +148,17 @@ fs.writeFile(outputPlace, roblox.serializePlace(game))
 local summary = {
 	inputPlace = inputPlace,
 	outputModel = outputModel,
+	outputManifest = outputManifest,
 	outputPlace = outputPlace,
 	insertedRoots = #instances,
 	workspaceChildren = #workspace:GetChildren(),
 }
 
 print(string.format(
-	"HEADLESS_POC_OK input=%s model=%s output=%s insertedRoots=%d workspaceChildren=%d",
+	"HEADLESS_POC_OK input=%s model=%s manifest=%s output=%s insertedRoots=%d workspaceChildren=%d",
 	summary.inputPlace,
 	summary.outputModel,
+	summary.outputManifest,
 	summary.outputPlace,
 	summary.insertedRoots,
 	summary.workspaceChildren

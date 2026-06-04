@@ -74,6 +74,10 @@ packets. For each packet:
 5. Merge in coordinator-owned order. The coordinator, not workers, remaps
    referents, assigns parents, strips/regenerates `UniqueId`/`HistoryId`, and
    writes the candidate place.
+   - Prefer `scripts/headless_fragment_merge.luau` for the Lune coordinator
+     path: pass `--place`, `--out`, and one or more `--fragment` manifest
+     sidecars; use `--create-missing-targets` only for intentional folder
+     creation and `--replace-existing` for idempotent reruns.
 6. Validate the output without Studio:
    - Lune deserialize/serialize round trip when available.
    - Rojo build for filesystem-owned source trees.

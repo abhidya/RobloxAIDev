@@ -55,6 +55,7 @@ The repo now contains:
 
 - `scripts/headless_place_insert_poc.luau`
 - `scripts/headless_place_verify_poc.luau`
+- `scripts/headless_fragment_merge.luau`
 
 Scratch binary outputs are intentionally ignored under `work/headless-poc/`.
 Rojo working copies are ignored under `work/rojo-working/`; use that folder for
@@ -73,7 +74,7 @@ lune run scripts/headless_place_verify_poc.luau work/headless-poc/Place1.headles
 Observed output:
 
 ```text
-HEADLESS_POC_OK input=work/headless-poc/Place1.headless-working.rbxl model=work/headless-poc/generated-headless-marker.rbxm output=work/headless-poc/Place1.headless-mutated.rbxl insertedRoots=1 workspaceChildren=8
+HEADLESS_POC_OK input=work/headless-poc/Place1.headless-working.rbxl model=work/headless-poc/generated-headless-marker.rbxm manifest=work/headless-poc/generated-headless-marker.manifest.json output=work/headless-poc/Place1.headless-mutated.rbxl insertedRoots=1 workspaceChildren=8
 HEADLESS_VERIFY_OK place=work/headless-poc/Place1.headless-mutated.rbxl markerChildren=4 scriptSourceBytes=76
 ```
 
@@ -84,6 +85,23 @@ What this proves:
 - The `.rbxm` can be deserialized and inserted into `Workspace`.
 - A new `.rbxl` can be written without Studio.
 - Script `Source` survives as plaintext source through the round trip.
+- Multiple worker-authored fragments can now fan in through a coordinator script
+  before Studio is opened for player-angle screenshots and final validation.
+
+To test the coordinator merge path, use the manifest emitted next to the
+generated `.rbxm` and run:
+
+```bash
+lune run scripts/headless_fragment_merge.luau \
+  --place work/headless-poc/Place1.headless-working.rbxl \
+  --out work/headless-poc/Place1.headless-merged.rbxl \
+  --fragment work/headless-poc/generated-headless-marker.manifest.json \
+  --replace-existing
+```
+
+The coordinator verifies the model hash, rejects risky script loaders, enforces
+one root, inserts fragments in deterministic target/order/id order, writes the
+merged place, and reloads it without Studio before reporting success.
 
 POC caveat:
 
@@ -148,19 +166,21 @@ Each parallel agent emits:
 2. Validate single-root tree shape, acyclic parents, schema support, and
    referent closure.
 3. Sort fragments by `(target_parent, order_key, fragment_id)`.
-4. Allocate coordinator-global referents in deterministic preorder.
-5. Rewrite every object reference through the local-to-global map:
+4. Run `scripts/headless_fragment_merge.luau` for the Lune coordinator path, or
+   the equivalent rbx-dom implementation for production-scale merges.
+5. Allocate coordinator-global referents in deterministic preorder.
+6. Rewrite every object reference through the local-to-global map:
    - `PRNT`
    - `Ref`/`Referent` values
    - object-reference `Content` values
    - `ObjectValue.Value` and similar instance-reference properties
-6. Attach the root to the declared destination parent.
-7. Preserve external asset URI strings verbatim unless an explicit rewrite map
+7. Attach the root to the declared destination parent.
+8. Preserve external asset URI strings verbatim unless an explicit rewrite map
    says otherwise.
-8. Generate deterministic `UniqueId`/`HistoryId` only for final place/package
+9. Generate deterministic `UniqueId`/`HistoryId` only for final place/package
    outputs that require them. Never let insertion-time collision handling decide.
-9. Serialize with deterministic sibling ordering.
-10. Validate by deserialize -> serialize -> deserialize, plus semantic checks.
+10. Serialize with deterministic sibling ordering.
+11. Validate by deserialize -> serialize -> deserialize, plus semantic checks.
 
 ### Collision Rules
 

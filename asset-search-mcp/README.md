@@ -170,6 +170,24 @@ referent remapping and strips or regenerates unique IDs. The validator also
 flags risky script loaders such as `require(assetId)`, `InsertService:LoadAsset`,
 `loadstring`, and `HttpService` requests.
 
+The coordinator entrypoint is:
+
+```bash
+lune run scripts/headless_fragment_merge.luau \
+  --place work/headless-poc/Place1.headless-working.rbxl \
+  --out work/headless-poc/Place1.headless-merged.rbxl \
+  --fragment work/headless-poc/generated-headless-marker.manifest.json \
+  --replace-existing
+```
+
+`headless_fragment_merge.luau` reads one or more manifest sidecars, verifies the
+declared model digest, rejects unsafe script loaders in both manifest source
+summaries and actual `.rbxm` script source, sorts fragments by target/order/id,
+parents each single root into the copied place, stamps merge metadata, writes a
+new `.rbxl`, and reloads the output before reporting success. Use
+`--create-missing-targets` only when the coordinator should create missing
+folder targets under Roblox services.
+
 The research and proof-of-concept backing this flow live in
 [`../docs/headless-roblox-file-pipeline.md`](../docs/headless-roblox-file-pipeline.md).
 

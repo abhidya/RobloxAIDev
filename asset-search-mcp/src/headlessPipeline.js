@@ -67,7 +67,8 @@ export const OPEN_CLOUD_ENDPOINTS = [
 
 export const VALIDATION_COMMANDS = [
   "lune run scripts/headless_place_insert_poc.luau",
-  "lune run scripts/headless_place_verify_poc.luau work/headless-poc/Place1.headless-mutated.rbxl",
+  "lune run scripts/headless_fragment_merge.luau --place work/headless-poc/Place1.headless-working.rbxl --out work/headless-poc/Place1.headless-merged.rbxl --fragment work/headless-poc/generated-headless-marker.manifest.json --replace-existing",
+  "lune run scripts/headless_place_verify_poc.luau work/headless-poc/Place1.headless-merged.rbxl",
   "rojo build default.project.json -o /tmp/RobloxAIDevPropHunt.rbxlx",
   "cd asset-search-mcp && npm run gate:prop-hunt",
 ];
@@ -211,6 +212,7 @@ export function buildHeadlessAssemblyPlan({
     coordinator_merge_steps: [
       "Copy the target place to a scratch rbxl before mutation.",
       "For each packet, validate the manifest before loading the rbxm subtree.",
+      "Run scripts/headless_fragment_merge.luau as the coordinator merge entrypoint.",
       "Deserialize with Lune/rbx-dom and reject fragments with unresolved external references.",
       "Strip or regenerate UniqueId/HistoryId and remap all referents in coordinator-owned memory.",
       "Parent exactly one root model into the declared target_parent in deterministic order_key order.",
