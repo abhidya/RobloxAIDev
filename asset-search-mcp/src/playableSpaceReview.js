@@ -9,6 +9,7 @@ const DEFAULT_RUBRIC = [
   "multiplayer_flow",
   "ui_ux",
   "performance_safety",
+  "legacy_asset_pollution",
 ];
 
 const DEFAULT_SPACES = [
@@ -65,12 +66,23 @@ const REQUIRED_CAPTURE_KINDS = [
   "reverse",
 ];
 
+const PLAYER_ANGLE_CAPTURE_KINDS = [
+  "player_height_quadrant",
+];
+
+const REVIEW_MODES = new Set(["full", "player_angle"]);
+
 function slugify(value) {
   const slug = String(value || "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
   return slug || "space";
+}
+
+function normalizeReviewMode(value) {
+  const mode = slugify(value || "full");
+  return REVIEW_MODES.has(mode) ? mode : "full";
 }
 
 function vec(value, fallback) {
@@ -151,8 +163,14 @@ export function buildPlayableSpaceReviewPlan({
   project = "prophunt",
   spaces = [],
   includeDefaults = true,
+  reviewMode = "full",
+  mode = undefined,
   format = "text",
 } = {}) {
+  const normalizedReviewMode = normalizeReviewMode(mode || reviewMode);
+  const requiredCaptureKinds = normalizedReviewMode === "player_angle"
+    ? PLAYER_ANGLE_CAPTURE_KINDS
+    : REQUIRED_CAPTURE_KINDS;
   const sourceSpaces = spaces.length
     ? spaces
     : includeDefaults
@@ -164,24 +182,27 @@ export function buildPlayableSpaceReviewPlan({
 
   for (const space of normalizedSpaces) {
     requiredBySpace[space.id] = {
-      required_kinds: [...REQUIRED_CAPTURE_KINDS],
+      required_kinds: [...requiredCaptureKinds],
       quadrants: [...space.quadrants],
-      ui_states: [...space.ui_states],
+      ui_states: normalizedReviewMode === "player_angle" ? [] : [...space.ui_states],
+      review_mode: normalizedReviewMode,
     };
-    captures.push(capture(
-      `${project}_${space.id}_overhead`,
-      space.id,
-      "overhead",
-      { x: space.center.x, y: space.center.y + Math.max(55, space.size.y + 35), z: space.center.z },
-      space.center,
-    ));
-    captures.push(capture(
-      `${project}_${space.id}_entry`,
-      space.id,
-      "entry",
-      space.entry,
-      space.look_at,
-    ));
+    if (normalizedReviewMode !== "player_angle") {
+      captures.push(capture(
+        `${project}_${space.id}_overhead`,
+        space.id,
+        "overhead",
+        { x: space.center.x, y: space.center.y + Math.max(55, space.size.y + 35), z: space.center.z },
+        space.center,
+      ));
+      captures.push(capture(
+        `${project}_${space.id}_entry`,
+        space.id,
+        "entry",
+        space.entry,
+        space.look_at,
+      ));
+    }
     for (const quadrant of space.quadrants) {
       const playerView = cameraForQuadrant(space, quadrant);
       captures.push(capture(
@@ -192,29 +213,34 @@ export function buildPlayableSpaceReviewPlan({
         space.center,
         { quadrant },
       ));
-      captures.push(capture(
-        `${project}_${space.id}_${quadrant}_reverse`,
-        space.id,
-        "reverse",
-        reverseFor(space, playerView),
-        playerView,
-        { quadrant },
-      ));
+      if (normalizedReviewMode !== "player_angle") {
+        captures.push(capture(
+          `${project}_${space.id}_${quadrant}_reverse`,
+          space.id,
+          "reverse",
+          reverseFor(space, playerView),
+          playerView,
+          { quadrant },
+        ));
+      }
     }
-    for (const state of space.ui_states) {
-      captures.push(capture(
-        `${project}_${space.id}_${state}_ui`,
-        space.id,
-        "ui_state",
-        space.entry,
-        space.look_at,
-        { ui_state: state },
-      ));
+    if (normalizedReviewMode !== "player_angle") {
+      for (const state of space.ui_states) {
+        captures.push(capture(
+          `${project}_${space.id}_${state}_ui`,
+          space.id,
+          "ui_state",
+          space.entry,
+          space.look_at,
+          { ui_state: state },
+        ));
+      }
     }
   }
 
   return {
     project,
+    review_mode: normalizedReviewMode,
     spaces: normalizedSpaces,
     rubric: DEFAULT_RUBRIC,
     captures,
@@ -228,7 +254,9 @@ export function buildPlayableSpaceReviewPlan({
         "fixes",
         "verdict",
       ],
-      verdicts: ["signed_off", "signed_off_with_risks", "not_signed_off"],
+      verdicts: normalizedReviewMode === "player_angle"
+        ? ["player_angle_signed_off", "signed_off_with_risks", "not_signed_off"]
+        : ["signed_off", "signed_off_with_risks", "not_signed_off"],
       finding_severities: ["info", "minor", "major", "blocker"],
       rule: "Any unresolved major/blocker finding means not_signed_off.",
     },
@@ -236,6 +264,7 @@ export function buildPlayableSpaceReviewPlan({
       "Capture screenshots sequentially with StudioMCP screen_capture.",
       "Review each screenshot against the rubric before the next edit.",
       "Fix blockers and recapture the same capture_id or a *_recap capture.",
+      "Audit for legacy generated filler such as ImportedDressingVisual, ImportedFoodVisual, VisibleRainVolume, and debug placeholders.",
       "Run validate_playable_space_review before calling the game visually signed off.",
     ],
     format,
@@ -276,6 +305,49 @@ function normalizeFinding(finding) {
   };
 }
 
+function inferSpacesFromReport(rawReport) {
+  const reviewed = normalizeIdList(rawReport.spaces_reviewed || rawReport.spacesReviewed);
+  const screenshots = Array.isArray(rawReport.screenshots)
+    ? rawReport.screenshots.map(normalizeScreenshot)
+    : [];
+  const bySpace = new Map();
+  for (const id of reviewed) bySpace.set(id, new Set());
+  for (const shot of screenshots) {
+    if (!shot.space_id) continue;
+    if (!bySpace.has(shot.space_id)) bySpace.set(shot.space_id, new Set());
+    if (shot.kind === "player_height_quadrant" && shot.quadrant) {
+      bySpace.get(shot.space_id).add(shot.quadrant);
+    }
+  }
+  return [...bySpace.entries()].map(([id, quadrants]) => ({
+    id,
+    name: id.replace(/_/g, " "),
+    quadrants: quadrants.size ? [...quadrants] : undefined,
+    ui_states: [],
+  }));
+}
+
+export function buildPlanForReviewReport(report, explicitPlan, {
+  project = "prophunt",
+  reviewMode,
+} = {}) {
+  if (explicitPlan) return explicitPlan;
+  const rawReport = asObject(report) || {};
+  const reportProject = rawReport.project || project;
+  const requestedReviewMode = reviewMode || rawReport.review_mode || rawReport.reviewMode || rawReport.mode;
+  const explicitSpaces = Array.isArray(rawReport.spaces) ? rawReport.spaces : [];
+  const reportSpaces = inferSpacesFromReport(rawReport);
+  const shouldInferSpaces = explicitSpaces.length > 0
+    || (reportSpaces.length > 0 && (requestedReviewMode || reportProject !== "prophunt"));
+  const inferredSpaces = explicitSpaces.length ? explicitSpaces : shouldInferSpaces ? reportSpaces : [];
+  return buildPlayableSpaceReviewPlan({
+    project: reportProject,
+    spaces: inferredSpaces,
+    includeDefaults: inferredSpaces.length === 0,
+    reviewMode: requestedReviewMode || (slugify(rawReport.verdict) === "player_angle_signed_off" ? "player_angle" : "full"),
+  });
+}
+
 export function validatePlayableSpaceReview(report, plan) {
   const errors = [];
   const warnings = [];
@@ -283,11 +355,7 @@ export function validatePlayableSpaceReview(report, plan) {
   if (!rawReport) {
     return { passed: false, errors: ["report must be a JSON object"], warnings, counts: {} };
   }
-  const reviewPlan = plan || buildPlayableSpaceReviewPlan({
-    project: rawReport.project || "prophunt",
-    spaces: rawReport.spaces || [],
-    includeDefaults: !(Array.isArray(rawReport.spaces) && rawReport.spaces.length),
-  });
+  const reviewPlan = buildPlanForReviewReport(rawReport, plan);
   const requiredBySpace = reviewPlan.required_by_space || {};
   const screenshots = Array.isArray(rawReport.screenshots)
     ? rawReport.screenshots.map(normalizeScreenshot)
@@ -340,15 +408,21 @@ export function validatePlayableSpaceReview(report, plan) {
   }
 
   const verdict = slugify(rawReport.verdict);
-  if (!["signed_off", "signed_off_with_risks", "not_signed_off"].includes(verdict)) {
-    errors.push(`verdict must be signed_off, signed_off_with_risks, or not_signed_off`);
+  const allowedVerdicts = Array.isArray(reviewPlan.report_contract?.verdicts)
+    ? reviewPlan.report_contract.verdicts
+    : ["signed_off", "signed_off_with_risks", "not_signed_off"];
+  if (!allowedVerdicts.includes(verdict)) {
+    errors.push(`verdict must be ${allowedVerdicts.join(", ")}`);
   }
-  if (verdict === "signed_off" && errors.length) {
-    errors.push("signed_off verdict is invalid while required evidence/errors are present");
+  if (verdict === "player_angle_signed_off" && reviewPlan.review_mode !== "player_angle") {
+    errors.push("player_angle_signed_off requires a player_angle review plan");
+  }
+  if (["signed_off", "player_angle_signed_off"].includes(verdict) && errors.length) {
+    errors.push(`${verdict} verdict is invalid while required evidence/errors are present`);
   }
   if (verdict === "signed_off_with_risks") {
-    const unresolvedMajor = findings.some((finding) => finding.severity === "blocker" && !["resolved", "accepted_risk"].includes(finding.status));
-    if (unresolvedMajor) errors.push("signed_off_with_risks cannot include unresolved blockers");
+    const unresolvedBlocker = findings.some((finding) => finding.severity === "blocker" && !["resolved", "accepted_risk"].includes(finding.status));
+    if (unresolvedBlocker) errors.push("signed_off_with_risks cannot include unresolved blockers");
   }
 
   return {
@@ -362,12 +436,14 @@ export function validatePlayableSpaceReview(report, plan) {
       findings: findings.length,
     },
     verdict,
+    review_mode: reviewPlan.review_mode || "full",
   };
 }
 
 export function formatPlayableSpaceReviewPlan(plan) {
   const lines = [
     `Playable-space review plan for '${plan.project}'`,
+    `mode=${plan.review_mode || "full"}`,
     "",
     "Rubric:",
   ];
@@ -386,7 +462,7 @@ export function formatPlayableSpaceReviewPlan(plan) {
 
 export function formatPlayableSpaceReviewValidation(result) {
   const lines = [result.passed ? "PASS playable-space review" : "FAIL playable-space review"];
-  lines.push(`spaces=${result.counts.spaces_reviewed || 0}/${result.counts.spaces_required || 0} screenshots=${result.counts.screenshots || 0} findings=${result.counts.findings || 0} verdict=${result.verdict || "unknown"}`);
+  lines.push(`mode=${result.review_mode || "full"} spaces=${result.counts.spaces_reviewed || 0}/${result.counts.spaces_required || 0} screenshots=${result.counts.screenshots || 0} findings=${result.counts.findings || 0} verdict=${result.verdict || "unknown"}`);
   for (const error of result.errors) lines.push(`ERROR: ${error}`);
   for (const warning of result.warnings) lines.push(`WARN: ${warning}`);
   return lines.join("\n");

@@ -34,7 +34,7 @@ placed asset**.
 
 | Server | Role | Key tools |
 |--------|------|-----------|
-| **asset-search-mcp** (this repo, standalone, search-only) | discover + curate + **shared memory** | `plan_game_asset_coverage`, `plan_headless_assembly`, `validate_fragment_manifest`, `plan_playable_space_review`, `validate_playable_space_review`, `search_assets`, `curate_assets`, `claim_assets`, `reject_asset`, `review_asset`, `get_reviews`, `record_inspection`, `record_inspections`, `get_inspection`, `commit_palette`, `get_palette`, `validate_prop_hunt_gate` |
+| **asset-search-mcp** (this repo, standalone, search-only) | discover + curate + **shared memory** | `plan_game_asset_coverage`, `preprocess_storyboard_asset_cache`, `export_asset_brain_snapshot`, `plan_headless_assembly`, `validate_fragment_manifest`, `plan_playable_space_review`, `validate_playable_space_review`, `search_assets`, `curate_assets`, `claim_assets`, `reject_asset`, `review_asset`, `get_reviews`, `record_inspection`, `record_inspections`, `get_inspection`, `commit_palette`, `get_palette`, `validate_prop_hunt_gate` |
 | **StudioMCP** (official, bundled in Roblox Studio) | build + measure | `insert_from_creator_store`, `run_code`/`execute_luau`, playtest tools |
 
 `asset-search-mcp` is the advantage the official MCP lacks: ranked, multi-category
@@ -44,13 +44,20 @@ deliberately decoupled from Studio — geometric measurement (real size,
 orientation) is done through StudioMCP, because that requires loading the asset.
 After measurement, record those facts back into `asset-search-mcp` with
 `record_inspection` or batched `record_inspections` so other agents can reuse the
-evidence and the Prop Hunt gate can fail before a live build. When Studio would
-become the bottleneck, call `plan_headless_assembly` and have agents emit
+evidence and the Prop Hunt gate can fail before a live build. After screenshot
+review, also record `visual_risks`, `visual_risk_score`, and
+`screenshot_verdict` so later agents know which assets need replacement or
+recapture. Before storyboarding, call `preprocess_storyboard_asset_cache` so the
+room beats bend to warmed cache evidence instead of invented assets. When Studio
+would become the bottleneck, call `plan_headless_assembly` and have agents emit
 `.rbxm` fragments plus manifests; the coordinator must run
 `validate_fragment_manifest` before any direct `.rbxl` merge. After any map
 change, call `plan_playable_space_review` and finish with
-`validate_playable_space_review`; screenshots, quadrants, UI states, and
-unresolved blocker status are part of the game gate, not optional polish.
+`validate_playable_space_review`; screenshots from player-height angles,
+quadrants, UI states, and unresolved blocker status are part of the game gate,
+not optional polish. For scoped asset-fix passes, use
+`plan_playable_space_review(review_mode="player_angle", spaces=[...])` and
+`verdict="player_angle_signed_off"` before a later full-map signoff.
 
 ## Claude-history operating rules
 
@@ -60,19 +67,25 @@ This repo exists partly to bottle hard-won lessons from prior Roblox MCP work:
 - Treat Studio actions as serial and leader-owned; do not trust subagent claims
   that a live Studio test passed.
 - Insert Creator Store assets in edit mode, not play mode.
+- If `InsertService:LoadAsset` fails in Studio, retry with `game:GetObjects`
+  before declaring the asset unavailable.
 - Use asset names or snapshot diffs to locate inserted models.
 - Persist measured facts, rejections, claims, and palette choices so parallel
   agents do not redo the same fragile work.
+- Catalog metadata is not enough for final selection: player-angle screenshots
+  can force reject/replace even after geometry looks acceptable.
 
-## The two tiers of metadata
+## Evidence tiers
 
 | Tier | Source | Cost | Examples |
 |------|--------|------|----------|
 | **Catalog** | `asset-search-mcp` (Toolbox API) | cheap, network | votes, creator, verified, script/mesh counts, triangles, category |
 | **Geometric** | `StudioMCP` (load + measure in Studio) | expensive | bounding-box size (studs), orientation, anchored?, missing textures, issues |
+| **Visual** | StudioMCP screenshots at player height | expensive | floating/buried props, sparse lanes, camera occlusion, off-theme or legacy filler |
 
-Size/scale/orientation are **not** in the catalog. Search + curate cheaply to a
-shortlist, then measure only the shortlist in Studio before placing.
+Size/scale/orientation and player-angle quality are **not** in the catalog.
+Search + curate cheaply to a shortlist, then measure and visually review only
+the shortlist in Studio before placing or signing off.
 
 ## Generic Roblox game shell
 
@@ -108,16 +121,18 @@ Before searching individual props, call:
 
 ```
 plan_game_asset_coverage(game="party prop hunt", themes=["underwater reef","space station"])
+preprocess_storyboard_asset_cache(project="prophunt", game="party prop hunt", themes=["underwater reef","space station"], warm_search_cache=true)
 plan_headless_assembly(project="prophunt", target_place="Place1.rbxl", themes=["underwater reef","space station"])
 ```
 
 This returns search slots for the persistent lobby plus each candidate room:
 arena shell, portal, NPC host, setpiece anchor, hideable prop pack, small props,
-avatar/form, and ambience. Feed those slots into `curate_assets`. If the search
-finds a strong "coral reef + fish morph + sea cave" pack, make an underwater
-room where players are fish and hide as coral. If it finds a stronger space
-station pack than an exact "social deduction ship" pack, bend the room toward
-the asset reality.
+avatar/form, and ambience. The preprocessing call can warm the search cache and
+return a Pages-friendly metadata layout. Feed those slots into `curate_assets`.
+If the search finds a strong "coral reef + fish morph + sea cave" pack, make an
+underwater room where players are fish and hide as coral. If it finds a stronger
+space station pack than an exact "social deduction ship" pack, bend the room
+toward the asset reality.
 
 ## Workflow
 
@@ -206,6 +221,10 @@ least one role/form/NPC/ambience cue that makes the theme legible.
    the inserted asset for repeats instead of re-inserting.
 4. Register room metadata in code: portal id, min/max players, teams, spawn
    folder, hideable folder, and palette project.
+5. Before screenshots, run a grounding/legacy audit: assets sit on terrain or
+   floors, no floating or buried props, and no old generated filler such as
+   `ImportedDressingVisual`, `ImportedFoodVisual`, `VisibleRainVolume`, debug
+   placeholders, or hidden training artifacts remain visible.
 
 ### 5. Wire game logic + playtest
 Wire lobby/session logic before declaring the game playable:
@@ -222,13 +241,20 @@ Wire lobby/session logic before declaring the game playable:
 ### 6. Visual review gate
 Before declaring the game pretty, playable, polished, or Roblox-standard:
 
-1. Call `plan_playable_space_review(project="prophunt")`.
+1. Call `plan_playable_space_review(project="prophunt")` for full signoff, or
+   `plan_playable_space_review(project="...", review_mode="player_angle",
+   spaces=[...])` for a scoped asset-fix pass.
 2. Capture the returned queue sequentially with StudioMCP `screen_capture`.
 3. Review and fix every player-height blocker, especially sparse lanes,
    misoriented/floating props, oversized cover, unreadable portals, and UI
    overlap.
-4. Record the reviewed screenshots, findings, fixes, and verdict.
-5. Run `validate_playable_space_review`. A missing quadrant or unresolved
+4. If screenshots prove an asset is bad, reject/replace it through
+   `reject_asset`/`commit_palette`, then recapture. Record screenshot fallout
+   back into `record_inspection(..., visual_risks, visual_risk_score,
+   screenshot_verdict)`.
+5. Record the reviewed screenshots, findings, fixes, and verdict.
+6. Run `validate_playable_space_review`. Pass the exact custom plan used for
+   scoped reviews. A missing quadrant or unresolved
    major/blocker finding means **not signed off**.
 
 ## Placement math

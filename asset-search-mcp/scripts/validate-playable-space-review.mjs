@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 import { readFile } from "node:fs/promises";
 import {
-  buildPlayableSpaceReviewPlan,
+  buildPlanForReviewReport,
   formatPlayableSpaceReviewValidation,
   validatePlayableSpaceReview,
 } from "../src/playableSpaceReview.js";
 
 function parseArgs(argv) {
-  const args = { format: "text", project: "prophunt" };
+  const args = { format: "text", project: "prophunt", reviewMode: undefined };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     const next = argv[i + 1];
@@ -21,6 +21,10 @@ function parseArgs(argv) {
       i += 1;
     } else if (arg === "--json") {
       args.format = "json";
+    } else if (arg === "--review-mode") {
+      if (!next) throw new Error("--review-mode requires full or player_angle");
+      args.reviewMode = next;
+      i += 1;
     } else if (arg === "--help" || arg === "-h") {
       args.help = true;
     } else {
@@ -36,6 +40,7 @@ function usage() {
 Options:
   --file <path>       JSON report or { report, plan } wrapper to validate
   --project <name>    Project name when the report omits one (default: prophunt)
+  --review-mode <mode> full or player_angle when the report omits one
   --json              Print JSON instead of text
 `;
 }
@@ -53,16 +58,6 @@ function unwrapPayload(payload) {
   };
 }
 
-function buildPlanFor(report, explicitPlan, project) {
-  if (explicitPlan) return explicitPlan;
-  const spaces = Array.isArray(report?.spaces) ? report.spaces : [];
-  return buildPlayableSpaceReviewPlan({
-    project: report?.project || project,
-    spaces,
-    includeDefaults: spaces.length === 0,
-  });
-}
-
 try {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
@@ -73,7 +68,10 @@ try {
 
   const payload = JSON.parse(await readFile(args.file, "utf8"));
   const { report, plan } = unwrapPayload(payload);
-  const reviewPlan = buildPlanFor(report, plan, args.project);
+  const reviewPlan = buildPlanForReviewReport(report, plan, {
+    project: args.project,
+    reviewMode: args.reviewMode,
+  });
   const result = validatePlayableSpaceReview(report, reviewPlan);
 
   console.log(args.format === "json" ? JSON.stringify(result, null, 2) : formatPlayableSpaceReviewValidation(result));

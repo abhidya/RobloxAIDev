@@ -18,6 +18,11 @@ been reviewed in play mode.
   illegible, or missing player guidance.
 - Screenshots must include player-height views, not only editor-overview views.
 - If a screenshot exposes a blocker, fix it and recapture the same view.
+- Asset fixes need player-angle screenshots before signoff; catalog metadata,
+  bounds, and console output are not enough.
+- Legacy generated filler (`ImportedDressingVisual`, `ImportedFoodVisual`,
+  `VisibleRainVolume`, debug placeholders) must be removed, hidden, or reported
+  as an explicit risk before visual signoff.
 
 ## Inputs
 
@@ -47,6 +52,17 @@ validate_playable_space_review(report={...}, plan={...})
 
 Do not sign off while that validator fails.
 
+For a scoped asset-fix pass, use:
+
+```
+plan_playable_space_review(project="...", review_mode="player_angle", spaces=[...])
+```
+
+This mode requires player-height quadrant screenshots and supports
+`verdict: "player_angle_signed_off"`. It is not a substitute for final full-map
+signoff, but it is the right gate for fixes such as scale, grounding,
+orientation, density, off-theme assets, and camera occlusion.
+
 ## Quadrant Workflow
 
 For each playable space:
@@ -55,16 +71,21 @@ For each playable space:
    bounding boxes, spawn points, portals, NPCs, and hideable/interactable props.
 2. **Divide the space** into quadrants or smaller cells. Use NW/NE/SW/SE for
    rectangular spaces; split further when an area is large or has separate rooms.
-3. **Capture views** sequentially with StudioMCP `screen_capture`:
+3. **Grounding and legacy audit** before screenshots: visible assets touch their
+   intended floor/terrain, no props float or bury, and old generated filler is
+   absent from player paths.
+4. **Capture views** sequentially with StudioMCP `screen_capture`:
    - one overhead orientation shot,
    - one entry-path shot,
    - one player-height shot per quadrant looking toward the center,
    - one reverse shot looking back toward the entry,
    - play-mode HUD screenshots for every major state.
-4. **Review each screenshot** with the rubric below.
-5. **Fix defects** in Studio/source/asset selection.
-6. **Recapture the same view** after fixing.
-7. **Log signoff** with screenshot ids, findings, fixes, and remaining risks.
+5. **Review each screenshot** with the rubric below.
+6. **Fix defects** in Studio/source/asset selection. If the problem is an asset
+   choice, reject/replace the asset and record the visual risk in the asset
+   search MCP inspection memory.
+7. **Recapture the same view** after fixing.
+8. **Log signoff** with screenshot ids, findings, fixes, and remaining risks.
 
 Do not run screenshots in large parallel batches. Studio capture can time out;
 capture sequentially and keep camera positions clear of nearby geometry.
@@ -92,6 +113,9 @@ Mark each item `pass`, `fix`, or `blocker`.
   states are clear, and UI does not overlap gameplay.
 - **Performance/safety**: excessive part counts, scripts in imported assets,
   unanchored props, and expensive clutter are flagged.
+- **Legacy pollution**: no temporary generated dressing, food markers, rain
+  volumes, debug helper parts, or hidden old visuals are visible from player
+  routes.
 
 ## Fix Guidance
 
@@ -107,6 +131,9 @@ Mark each item `pass`, `fix`, or `blocker`.
   verify at player resolution in play mode.
 - Global-round leakage: fix code so room/session state is scoped to queued
   players only.
+- Bad asset choice: use `reject_asset` for shared memory, commit a replacement,
+  recapture from the same player angle, and update `record_inspection` with
+  `visual_risks`, `visual_risk_score`, and `screenshot_verdict`.
 
 ## Signoff Output
 
@@ -117,6 +144,7 @@ A valid signoff report includes:
 - Findings ordered by severity with exact locations.
 - Fixes applied and recaptured screenshot ids.
 - Remaining risks and why they do not block the current milestone.
-- Clear verdict: `signed off`, `signed off with risks`, or `not signed off`.
+- Clear verdict: `signed off`, `signed off with risks`, `not signed off`, or
+  `player_angle_signed_off` for a scoped player-angle asset-fix pass.
 
 If any P0/P1 visual or playability issue remains, verdict is `not signed off`.

@@ -1,0 +1,3 @@
+display_name: Roblox Asset Inspection Lab
+short_description: Inspect and assemble Roblox assets with cache-first metadata.
+default_prompt: Inspect Roblox assets in a clean lab, enrich the asset-search cache, and build headless Roblox file candidates before Studio validation.

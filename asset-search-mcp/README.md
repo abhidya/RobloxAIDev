@@ -23,6 +23,12 @@ agents need:
   for broader exploration.
 - **`plan_game_asset_coverage`** — turns a Roblox game idea into search slots for
   lobby spawn, NPCs, portals, upgrade/cosmetic surfaces, and themed room packs.
+- **`preprocess_storyboard_asset_cache`** — turns coverage slots into a bounded
+  cache-warming/storyboard input plan, optionally running searches before any
+  Studio work.
+- **`export_asset_brain_snapshot`** — emits a compact GitHub Pages-friendly
+  metadata snapshot with palettes, reviews, inspections, visual risk, and capped
+  query summaries.
 - **Cache + single-flight** — results are cached (24h) and identical concurrent
   searches collapse to one network call, so N parallel agents are cheap.
 - **`curate_assets`** — a storyboard's slots → a diversity-capped shortlist per
@@ -30,7 +36,8 @@ agents need:
 - **`review_asset` / `get_reviews`** — persist an agent's keep/reject verdict so
   other agents reuse it instead of re-vetting.
 - **`record_inspection` / `record_inspections` / `get_inspection`** — persist StudioMCP-measured
-  geometry and safety facts without coupling this server to Studio.
+  geometry, safety facts, and player-angle visual risk without coupling this
+  server to Studio.
 - **`commit_palette` / `get_palette`** — freeze the chosen asset per slot for the
   build phase.
 - **`validate_prop_hunt_gate`** — validate the committed Prop Hunt asset palette
@@ -39,7 +46,7 @@ agents need:
   referent-safe `.rbxm` fragment packets for parallel headless place assembly.
 - **`plan_playable_space_review` / `validate_playable_space_review`** — plan
   and enforce the player-height screenshot gate for lobby, rooms, UI states, and
-  unresolved visual blockers.
+  unresolved visual blockers, including scoped asset-fix passes.
 
 State persists as plain JSON under `~/.roblox-asset-brain/` — no native deps, no
 build step.
@@ -66,17 +73,19 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 | Tool | Purpose |
 |------|---------|
 | `plan_game_asset_coverage(game?, themes?, include_defaults?, include_lobby?, max_themes?, format?)` | Generate lobby/session/room asset search coverage before curation. |
+| `preprocess_storyboard_asset_cache(project?, game?, themes?, include_defaults?, include_lobby?, max_themes?, max_slots?, warm_search_cache?, per_slot?, verified_only?, extensive?, format?)` | Build storyboard-ready coverage slots, optionally warm ranked search cache, and return Pages-friendly metadata layout. |
+| `export_asset_brain_snapshot(project?, include_search_cache?, max_queries?, max_results_per_query?, format?)` | Export small metadata-only snapshot for GitHub Pages or handoff; no binaries/screenshots. |
 | `plan_headless_assembly(project?, target_place?, themes?, include_lobby?, max_fragments?, format?)` | Generate parallel headless fragment packets, merge contract, endpoints, Rojo/Lune validation commands, and Studio visual gate. |
 | `validate_fragment_manifest(manifest, format?)` | Reject unsafe or under-specified `.rbxm` fragment manifests before coordinator merge. |
-| `plan_playable_space_review(project?, spaces?, include_defaults?, format?)` | Generate the required Studio screenshot queue for lobby/room quadrant review and UI states. |
-| `validate_playable_space_review(report, plan?, format?)` | Fail visual signoff reports that skip spaces, player-height quadrants, required screenshot kinds, or unresolved major/blocker findings. |
+| `plan_playable_space_review(project?, review_mode?, spaces?, include_defaults?, format?)` | Generate the required Studio screenshot queue for lobby/room quadrant review and UI states. `review_mode="player_angle"` emits only player-height quadrant shots for scoped asset-fix passes. |
+| `validate_playable_space_review(report, plan?, format?)` | Fail visual signoff reports that skip spaces, player-height quadrants, required screenshot kinds, or unresolved major/blocker findings. A supplied custom plan is authoritative; otherwise custom/scoped reports are inferred before the default Prop Hunt plan is used. |
 | `search_assets(query, max_results?, categories?, verified_only?, extensive?, exclude_terms?, exclude_rejected?, exclude_claimed?, exclude_ids?)` | Ranked search; auto-hides rejected/claimed; `exclude_terms` drops off-theme names; results annotated with prior verdicts/claims. |
 | `curate_assets(slots[], per_slot?, verified_only?, extensive?, exclude_terms?, exclude_claimed?)` | Diverse shortlist per slot; excludes rejected + claimed; no asset suggested for two slots. |
 | `claim_assets(project, slot, asset_ids[], reviewer?)` | Reserve assets to a slot so other agents' results hide them — prevents collisions. |
 | `reject_asset(asset_id, reason, slot?, reviewer?)` | Shared veto: the asset is auto-excluded from every agent's future results. |
 | `review_asset(asset_id, verdict, slot?, rating?, notes?, reviewer?)` | Persist a shared verdict (`reject` auto-excludes). |
 | `get_reviews(asset_id)` | Read all verdicts + claim status for an asset. |
-| `record_inspection(asset_id, slot?, size_studs?, has_scripts?, script_count?, base_part_count?, anchored_capable?, primary_part?, issues?, reviewer?, source?)` | Store the latest StudioMCP-measured facts for an asset. |
+| `record_inspection(asset_id, slot?, size_studs?, has_scripts?, script_count?, base_part_count?, anchored_capable?, primary_part?, issues?, visual_risks?, visual_risk_score?, screenshot_verdict?, reviewer?, source?)` | Store the latest StudioMCP-measured and player-angle visual facts for an asset. |
 | `record_inspections(inspections[])` | Store many StudioMCP inspection records in one call after a live palette audit. |
 | `get_inspection(asset_id)` | Read the latest persisted Studio inspection for an asset. |
 | `commit_palette(project, slot, asset_id, name?)` | Freeze a chosen asset per slot (also claims it). |
@@ -97,11 +106,13 @@ every call reads and writes the same rejection/claim memory, more agents means
 |------|--------|----------|
 | Catalog (this server) | Toolbox v2 API | votes, creator, verified, script/mesh counts, triangles |
 | Geometric (StudioMCP) | load + measure in Studio | bounding-box size, orientation, anchored?, issues |
+| Visual (Studio screenshots) | player-height camera review | floating/buried/misoriented props, sparse lanes, camera occlusion, off-theme or legacy filler |
 
 Catalog search is cheap; narrow to a shortlist here, then measure only the
 shortlist in Studio before placing. Store those measured facts with
-`record_inspection` so future agents can reuse them and so validation can fail
-before a live build.
+`record_inspection`. After screenshot review, include `visual_risks`,
+`visual_risk_score`, and `screenshot_verdict` so future agents can reject,
+replace, or recapture known-bad assets without rediscovering the same problem.
 
 ## Game coverage planning
 
@@ -126,6 +137,17 @@ plan_game_asset_coverage(
 
 Feed the returned slots into `curate_assets(..., extensive=true)`, claim the
 shortlists, inspect in Studio, then commit the best assets to the palette.
+
+For cache-first storyboarding, call `preprocess_storyboard_asset_cache` first.
+Use `warm_search_cache=true` only when you want the MCP to actually run the
+bounded search set; otherwise it returns the slot/cache plan without network
+work. Storyboards should reference cached candidates and committed palette
+assets, not invented placeholders.
+
+Use `export_asset_brain_snapshot(format="json")` to mirror the current asset
+brain into a static metadata tree such as GitHub Pages. Keep only IDs, review
+events, inspections, visual verdicts, hashes, paths, and URLs in that mirror.
+Do not put `.rbxl`, `.rbxm`, screenshots, meshes, or thumbnails there.
 
 ## Headless fragment assembly
 
@@ -158,11 +180,26 @@ plan covers the current Prop Hunt gate: lobby, Medieval Market, Sci-Fi Lab, and
 Cozy Cabin. It emits a sequential `screen_capture` queue for overhead, entry,
 player-height quadrant, reverse, and UI-state shots.
 
+For targeted asset-fix passes, use:
+
+```text
+plan_playable_space_review(project: "eggbreakers", review_mode: "player_angle", spaces: [...])
+```
+
+That scoped mode emits only player-height quadrant captures and accepts
+`verdict: "player_angle_signed_off"`. Use it to verify fixes such as scale,
+grounding, orientation, density, and camera occlusion before a later full map
+signoff.
+
 After screenshot review and fixes, call `validate_playable_space_review` with a
 report containing `spaces_reviewed`, `screenshots`, `findings`, `fixes`, and
 `verdict`. The validator fails when any playable space is missing, any quadrant
 player-height shot is absent, or a major/blocker finding remains unresolved.
 This deliberately prevents console-green or one-screenshot signoff.
+
+When you omit `plan`, the validator infers custom spaces from `spaces_reviewed`
+and screenshots when the report is scoped (`review_mode` is set) or belongs to a
+non-default project. Plain Prop Hunt reports still use the full default plan.
 
 The same gate is available from the shell for CI or handoff artifacts:
 
@@ -172,8 +209,8 @@ node scripts/validate-playable-space-review.mjs --file review.json --json
 ```
 
 The report file can be either the report object itself or a `{ "report": ...,
-"plan": ... }` wrapper. Omitting the plan uses the default Prop Hunt capture
-queue unless the report provides custom `spaces`.
+"plan": ... }` wrapper. Omitting the plan uses custom `spaces` or
+`spaces_reviewed` when present, then defaults to the Prop Hunt capture queue.
 
 ## Prop Hunt gate
 

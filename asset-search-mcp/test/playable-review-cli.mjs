@@ -37,6 +37,28 @@ assert.equal(passResult.passed, true, "complete playable-space review passes");
 assert.equal(passResult.counts.spaces_required, 4);
 assert.equal(passResult.counts.screenshots, plan.captures.length);
 
+const scopedReport = {
+  project: "eggbreakers",
+  review_mode: "player_angle",
+  spaces_reviewed: ["nursery_grove"],
+  screenshots: [
+    { capture_id: "eggbreakers_nursery_grove_spawn_player", space_id: "nursery_grove", kind: "player_height_quadrant", quadrant: "spawn", passed: true },
+    { capture_id: "eggbreakers_nursery_grove_food_player", space_id: "nursery_grove", kind: "player_height_quadrant", quadrant: "food", passed: true },
+  ],
+  findings: [],
+  fixes: [],
+  verdict: "player_angle_signed_off",
+};
+const scopedFile = path.join(tempDir, "scoped-review.json");
+await fs.writeFile(scopedFile, JSON.stringify(scopedReport, null, 2));
+
+const scopedPass = spawnSync("node", [reviewScript, "--file", scopedFile, "--json"], { cwd: root, encoding: "utf8" });
+assert.equal(scopedPass.status, 0, scopedPass.stderr || scopedPass.stdout);
+const scopedResult = JSON.parse(scopedPass.stdout);
+assert.equal(scopedResult.passed, true, "scoped player-angle review passes without default Prop Hunt rooms");
+assert.equal(scopedResult.review_mode, "player_angle");
+assert.equal(scopedResult.counts.spaces_required, 1);
+
 const badReport = {
   project: "prophunt",
   spaces_reviewed: ["lobby"],

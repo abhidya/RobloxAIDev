@@ -27,6 +27,8 @@ const toolNames = tools.tools.map((t) => t.name);
 console.log("TOOLS:", toolNames.join(", "));
 for (const requiredTool of [
   "plan_game_asset_coverage",
+  "preprocess_storyboard_asset_cache",
+  "export_asset_brain_snapshot",
   "plan_headless_assembly",
   "validate_fragment_manifest",
   "plan_playable_space_review",
@@ -56,6 +58,25 @@ const coverageText = await call("plan_game_asset_coverage", {
 assert.ok(coverageText.includes("lobby.portal.room_queue"), "coverage includes lobby portal");
 assert.ok(coverageText.includes("underwater_reef.hideable.prop_pack"), "coverage includes underwater room props");
 console.log(coverageText.slice(0, 900));
+
+console.log("\n--- preprocess_storyboard_asset_cache ---");
+const cachePlan = JSON.parse(await call("preprocess_storyboard_asset_cache", {
+  project: "prophunt-smoke",
+  game: "party prop hunt",
+  themes: ["underwater reef"],
+  include_defaults: false,
+  warm_search_cache: false,
+  max_slots: 8,
+  format: "json",
+}));
+assert.equal(cachePlan.schema, "roblox-storyboard-cache-preprocess/v1", "cache preprocess schema");
+assert.ok(cachePlan.slots.some((slot) => slot.slot === "lobby.portal.room_queue"), "cache preprocess includes lobby slots");
+assert.ok(cachePlan.pagesLayout.manifest.includes("asset-brain/v1/manifest.json"), "cache preprocess returns Pages layout");
+console.log(JSON.stringify({
+  slots: cachePlan.slots.length,
+  warmed: cachePlan.warmed.length,
+  pages: cachePlan.pagesLayout.manifest,
+}, null, 2));
 
 console.log("\n--- plan_headless_assembly ---");
 const headlessJson = JSON.parse(await call("plan_headless_assembly", {
@@ -121,6 +142,15 @@ console.log(JSON.stringify({
   spaces: reviewPlan.spaces.map((space) => space.id),
   captures: reviewPlan.captures.length,
 }, null, 2));
+const playerAnglePlan = JSON.parse(await call("plan_playable_space_review", {
+  project: "eggbreakers",
+  review_mode: "player_angle",
+  include_defaults: false,
+  spaces: [{ id: "nursery_grove", quadrants: ["spawn", "food"] }],
+  format: "json",
+}));
+assert.equal(playerAnglePlan.review_mode, "player_angle", "MCP plan supports scoped player-angle mode");
+assert.ok(playerAnglePlan.captures.every((shot) => shot.kind === "player_height_quadrant"), "scoped MCP plan only emits player-height shots");
 
 console.log("\n--- validate_playable_space_review ---");
 const reviewReport = {
@@ -178,6 +208,9 @@ console.log(await call("record_inspection", {
   base_part_count: 1,
   anchored_capable: true,
   primary_part: true,
+  visual_risks: ["needs player-angle recapture after scale fix"],
+  visual_risk_score: 4,
+  screenshot_verdict: "fix",
   source: "smoke",
 }));
 console.log(await call("record_inspections", {
@@ -223,6 +256,21 @@ const gateJson = JSON.parse(await call("validate_prop_hunt_gate", {
 }));
 assert.equal(gateJson.passed, true, "json gate passes");
 assert.equal(gateJson.counts.hideable_total, 1, "json gate returns counts");
+
+console.log("\n--- export_asset_brain_snapshot ---");
+const snapshot = JSON.parse(await call("export_asset_brain_snapshot", {
+  project: "prophunt-smoke",
+  include_search_cache: false,
+  format: "json",
+}));
+assert.equal(snapshot.schema, "roblox-asset-brain-snapshot/v1", "snapshot schema");
+assert.ok(snapshot.assets.some((asset) => asset.assetId === 12345), "snapshot includes inspected asset");
+assert.equal(snapshot.assets.find((asset) => asset.assetId === 12345).visual.screenshotVerdict, "fix", "snapshot includes visual metadata");
+console.log(JSON.stringify({
+  assets: snapshot.counts.assets,
+  paletteAssets: snapshot.counts.paletteAssets,
+  pages: snapshot.pagesLayout.manifest,
+}, null, 2));
 
 await client.close();
 await fs.rm(brainDir, { recursive: true, force: true });

@@ -136,6 +136,48 @@ const goodVisual = validatePlayableSpaceReview(goodVisualReport, visualPlan);
 assert.equal(goodVisual.passed, true, goodVisual.errors.join("; "));
 assert.equal(goodVisual.counts.spaces_required, 4, "visual review requires all default spaces");
 
+const playerAnglePlan = buildPlayableSpaceReviewPlan({
+  project: "eggbreakers",
+  reviewMode: "player_angle",
+  includeDefaults: false,
+  spaces: [{ id: "nursery_grove", name: "Nursery Grove", quadrants: ["spawn", "food", "water"] }],
+});
+assert.equal(playerAnglePlan.review_mode, "player_angle", "player-angle review mode recorded");
+assert.ok(playerAnglePlan.captures.every((shot) => shot.kind === "player_height_quadrant"), "player-angle mode only requires player-height screenshots");
+assert.equal(playerAnglePlan.captures.length, 3, "player-angle mode emits one shot per requested quadrant");
+const playerAngleReport = {
+  project: "eggbreakers",
+  spaces_reviewed: ["nursery_grove"],
+  screenshots: playerAnglePlan.captures.map((shot) => ({
+    capture_id: shot.capture_id,
+    space_id: shot.space_id,
+    kind: shot.kind,
+    quadrant: shot.quadrant,
+    passed: true,
+  })),
+  findings: [],
+  fixes: [],
+  verdict: "player_angle_signed_off",
+};
+const scopedVisual = validatePlayableSpaceReview(playerAngleReport, playerAnglePlan);
+assert.equal(scopedVisual.passed, true, scopedVisual.errors.join("; "));
+assert.equal(scopedVisual.review_mode, "player_angle", "scoped signoff keeps player-angle mode");
+
+const inferredCustomVisual = validatePlayableSpaceReview({
+  project: "eggbreakers",
+  review_mode: "player_angle",
+  spaces_reviewed: ["nursery_grove"],
+  screenshots: [
+    { capture_id: "eggbreakers_nursery_grove_spawn_player", space_id: "nursery_grove", kind: "player_height_quadrant", quadrant: "spawn", passed: true },
+    { capture_id: "eggbreakers_nursery_grove_food_player", space_id: "nursery_grove", kind: "player_height_quadrant", quadrant: "food", passed: true },
+  ],
+  findings: [],
+  fixes: [],
+  verdict: "player_angle_signed_off",
+});
+assert.equal(inferredCustomVisual.passed, true, inferredCustomVisual.errors.join("; "));
+assert.equal(inferredCustomVisual.counts.spaces_required, 1, "custom no-plan report does not fall back to default Prop Hunt spaces");
+
 const badVisual = validatePlayableSpaceReview({
   project: "prophunt",
   spaces_reviewed: ["lobby"],
@@ -185,9 +227,14 @@ await store.recordInspection(555, {
   anchoredCapable: true,
   primaryPart: true,
   issues: [],
+  visualRisks: ["needs player-angle recapture after scale fix"],
+  visualRiskScore: 4,
+  screenshotVerdict: "fix",
   source: "offline",
 });
 assert.equal(store.getInspection(555).sizeStuds.x, 10, "inspection stored");
+assert.equal(store.getInspection(555).screenshotVerdict, "fix", "visual inspection verdict stored");
+assert.equal(store.getInspection(555).visualRiskScore, 4, "visual risk score stored");
 await store.recordInspection(556, {
   slot: "batch-a",
   sizeStuds: { x: 2, y: 2, z: 2 },
