@@ -1,6 +1,6 @@
 {
   "name": "asset-search-mcp",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "type": "module",
   "description": "Standalone, search-only MCP for asset-driven Roblox game design: ranked Creator Store discovery, search cache preprocessing, per-slot curation, shared asset reviews, committed palettes, Prop Hunt validation, headless fragment assembly planning, scoped player-angle screenshot review, and playable-space visual gating. Decoupled from the Roblox Studio MCP.",

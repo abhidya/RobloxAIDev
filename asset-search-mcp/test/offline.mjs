@@ -265,11 +265,49 @@ await store.recordInspection(556, {
 });
 assert.equal(store.getInspection(556).primaryPart, true, "second inspection stored");
 
+// publish permissions: strict release palettes require explicit target access proof.
+await store.recordPublishPermission(555, {
+  access: "grantable",
+  grantableByUs: true,
+  experienceHasAccess: true,
+  publishPolicy: "allow",
+  studioInsertProbe: "pass",
+  saveReopenProbe: "pass",
+  dependencies: [
+    { assetId: 55501, type: "Mesh", access: "open_use", experienceHasAccess: true, status: "pass" },
+  ],
+  evidence: ["offline-dashboard-export", "offline-studio-probe"],
+  source: "offline",
+});
+assert.equal(store.evaluatePublishPermission(555, { mode: "grantable_only", requireStudioProbe: true, requireSaveReopen: true }).passed, true, "grantable asset passes strict publish gate");
+
+await store.recordPublishPermission(556, {
+  access: "open_use",
+  grantableByUs: false,
+  experienceHasAccess: true,
+  publishPolicy: "allow_external_open_use",
+  studioInsertProbe: "pass",
+  dependencies: [],
+  source: "offline",
+});
+assert.equal(store.evaluatePublishPermission(556, { mode: "grantable_or_open_use", requireStudioProbe: true }).passed, true, "open-use asset can pass dependency mode");
+assert.equal(store.evaluatePublishPermission(556, { mode: "grantable_only" }).passed, false, "open-use asset fails grantable-only mode");
+assert.equal(store.evaluatePublishPermission(557).passed, false, "missing permission record fails publish gate");
+
 // persistence: a fresh Store sees the same state
 const store2 = new Store();
 await store2.ready();
 assert.ok(store2.isRejected(111) && store2.isClaimed(333) === "barrel", "state persisted across instances");
 assert.equal(store2.getInspection(555).basePartCount, 4, "inspection persisted");
+assert.equal(store2.getPublishPermission(555).access, "grantable", "publish permission persisted");
+
+const publishGate = store.validatePalettePublishPermissions("game", { mode: "grantable_only", requireStudioProbe: true, requireSaveReopen: true });
+assert.equal(publishGate.passed, true, publishGate.errors.join("; "));
+
+await store.commitPalette("permission-fail", "bad.unknown", 557, "Unknown Permission Asset");
+const failedPublishGate = store.validatePalettePublishPermissions("permission-fail", { mode: "grantable_only" });
+assert.equal(failedPublishGate.passed, false, "missing publish proof fails palette permission gate");
+assert.ok(failedPublishGate.errors.some((error) => error.includes("missing publish permission record")), "publish gate explains missing permission proof");
 
 // ---- Prop Hunt asset gate: palette + StudioMCP inspection facts ----
 const areas = ["medieval_market", "sci_fi_lab", "cozy_cabin"];
@@ -352,4 +390,4 @@ assert.equal(unclassifiedGate.counts.areas, 0, "unclassified slots do not satisf
 assert.equal(unclassifiedGate.passed, false, "unclassified-only palette fails area gate");
 
 await fs.rm(dir, { recursive: true, force: true });
-console.log("OFFLINE OK — parsing, ranking, curation, game/headless/visual coverage, off-theme filter, rejections, claims, inspections, Prop Hunt gate, persistence");
+console.log("OFFLINE OK — parsing, ranking, curation, game/headless/visual coverage, off-theme filter, rejections, claims, inspections, publish permissions, Prop Hunt gate, persistence");

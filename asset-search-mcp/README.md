@@ -38,8 +38,11 @@ agents need:
 - **`record_inspection` / `record_inspections` / `get_inspection`** — persist StudioMCP-measured
   geometry, safety facts, and player-angle visual risk without coupling this
   server to Studio.
+- **`record_asset_permission` / `validate_publish_permissions`** — persist
+  Creator Dashboard/Studio permission proof so release palettes can require
+  target-grantable assets or explicitly allowed Open Use dependencies.
 - **`commit_palette` / `get_palette`** — freeze the chosen asset per slot for the
-  build phase.
+  build phase, optionally refusing assets without publish-permission proof.
 - **`validate_prop_hunt_gate`** — validate the committed Prop Hunt asset palette
   before a live Studio build/playtest.
 - **`plan_headless_assembly` / `validate_fragment_manifest`** — define and check
@@ -49,7 +52,8 @@ agents need:
   unresolved visual blockers, including scoped asset-fix passes.
 
 State persists as plain JSON under `~/.roblox-asset-brain/` — no native deps, no
-build step.
+build step. The cache stores metadata only: IDs, reviews, inspections, visual
+verdicts, permission proof, and palette choices.
 
 ## Install & run (on your Mac)
 
@@ -79,8 +83,8 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 | `validate_fragment_manifest(manifest, format?)` | Reject unsafe or under-specified `.rbxm` fragment manifests before coordinator merge. |
 | `plan_playable_space_review(project?, review_mode?, spaces?, include_defaults?, format?)` | Generate the required Studio screenshot queue for lobby/room quadrant review and UI states. `review_mode="player_angle"` emits only player-height quadrant shots for scoped asset-fix passes. |
 | `validate_playable_space_review(report, plan?, format?)` | Fail visual signoff reports that skip spaces, player-height quadrants, required screenshot kinds, or unresolved major/blocker findings. A supplied custom plan is authoritative; otherwise custom/scoped reports are inferred before the default Prop Hunt plan is used. |
-| `search_assets(query, max_results?, categories?, verified_only?, extensive?, exclude_terms?, exclude_rejected?, exclude_claimed?, exclude_ids?)` | Ranked search; auto-hides rejected/claimed; `exclude_terms` drops off-theme names; results annotated with prior verdicts/claims. |
-| `curate_assets(slots[], per_slot?, verified_only?, extensive?, exclude_terms?, exclude_claimed?)` | Diverse shortlist per slot; excludes rejected + claimed; no asset suggested for two slots. |
+| `search_assets(query, max_results?, categories?, verified_only?, extensive?, exclude_terms?, exclude_rejected?, exclude_claimed?, exclude_ids?, exclude_unpublishable?, publish_permission_mode?, require_studio_probe?, require_save_reopen?)` | Ranked search; auto-hides rejected/claimed; `exclude_terms` drops off-theme names; optional release-mode permission filtering uses recorded proof. |
+| `curate_assets(slots[], per_slot?, verified_only?, extensive?, exclude_terms?, exclude_claimed?, exclude_unpublishable?, publish_permission_mode?, require_studio_probe?, require_save_reopen?)` | Diverse shortlist per slot; excludes rejected + claimed; no asset suggested for two slots; optional permission filtering for release palette curation. |
 | `claim_assets(project, slot, asset_ids[], reviewer?)` | Reserve assets to a slot so other agents' results hide them — prevents collisions. |
 | `reject_asset(asset_id, reason, slot?, reviewer?)` | Shared veto: the asset is auto-excluded from every agent's future results. |
 | `review_asset(asset_id, verdict, slot?, rating?, notes?, reviewer?)` | Persist a shared verdict (`reject` auto-excludes). |
@@ -88,8 +92,12 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 | `record_inspection(asset_id, slot?, size_studs?, has_scripts?, script_count?, base_part_count?, anchored_capable?, primary_part?, issues?, visual_risks?, visual_risk_score?, screenshot_verdict?, reviewer?, source?)` | Store the latest StudioMCP-measured and player-angle visual facts for an asset. |
 | `record_inspections(inspections[])` | Store many StudioMCP inspection records in one call after a live palette audit. |
 | `get_inspection(asset_id)` | Read the latest persisted Studio inspection for an asset. |
-| `commit_palette(project, slot, asset_id, name?)` | Freeze a chosen asset per slot (also claims it). |
-| `get_palette(project)` | Read the committed palette for the build phase. |
+| `record_asset_permission(asset_id, target_publisher?, target_experience_id?, access, grantable_by_us?, experience_has_access?, publish_policy?, studio_insert_probe?, save_reopen_probe?, dependencies?, evidence?, notes?, reviewer?, source?)` | Store permission proof for one asset and its dependencies. |
+| `record_asset_permissions(permissions[])` | Store many permission records from a dashboard export or Studio audit. |
+| `get_asset_permission(asset_id, publish_permission_mode?, require_studio_probe?, require_save_reopen?)` | Read permission proof plus evaluated release readiness. |
+| `validate_publish_permissions(project?, publish_permission_mode?, require_studio_probe?, require_save_reopen?, format?)` | Fail a palette when any committed asset lacks publish permission proof. |
+| `commit_palette(project, slot, asset_id, name?, require_publish_permission?, publish_permission_mode?, require_studio_probe?, require_save_reopen?)` | Freeze a chosen asset per slot (also claims it); strict mode refuses assets without publish proof. |
+| `get_palette(project)` | Read the committed palette for the build phase, including publish-readiness status. |
 | `validate_prop_hunt_gate(project?, min_areas?, min_hideable_total?, min_setpiece_total?, min_hideable_per_area?, min_setpiece_per_area?, min_hideable_studs?, max_hideable_studs?, require_inspections?, require_primary_part?, format?)` | Check the committed Prop Hunt palette before Studio build. |
 
 ### How it prevents multi-agent collisions
@@ -113,6 +121,67 @@ shortlist in Studio before placing. Store those measured facts with
 `record_inspection`. After screenshot review, include `visual_risks`,
 `visual_risk_score`, and `screenshot_verdict` so future agents can reject,
 replace, or recapture known-bad assets without rediscovering the same problem.
+
+## Publish-permission gate
+
+Use permission proof before a palette becomes release input. The MCP supports two
+release modes:
+
+- `grantable_only` — every committed palette asset must be owned/grantable by
+  the target publisher, with the target experience's access proven.
+- `grantable_or_open_use` — committed assets may be target-grantable or Open
+  Use; dependencies must still be grantable or Open Use and not
+  quarantined/rejected.
+
+Record proof after a Creator Dashboard permissions export or a Studio permission
+probe:
+
+```text
+record_asset_permission(
+  asset_id: 12345,
+  target_publisher: { type: "group", id: "123" },
+  target_experience_id: "987654321",
+  access: "grantable",
+  grantable_by_us: true,
+  experience_has_access: true,
+  publish_policy: "allow",
+  studio_insert_probe: "pass",
+  save_reopen_probe: "pass",
+  dependencies: [
+    { asset_id: 55501, type: "Mesh", access: "open_use", experience_has_access: true, status: "pass" }
+  ],
+  evidence: ["dashboard-permissions-export", "studio-save-reopen"]
+)
+```
+
+Then make palette commits strict:
+
+```text
+commit_palette(
+  project: "eggbreakers",
+  slot: "swamp_delta.lily_safe_node",
+  asset_id: 12345,
+  require_publish_permission: true,
+  publish_permission_mode: "grantable_only",
+  require_studio_probe: true,
+  require_save_reopen: true
+)
+```
+
+Before headless assembly, Studio insertion, or release, run:
+
+```text
+validate_publish_permissions(
+  project: "eggbreakers",
+  publish_permission_mode: "grantable_only",
+  require_studio_probe: true,
+  require_save_reopen: true
+)
+```
+
+`search_assets` and `curate_assets` also accept `exclude_unpublishable=true` for
+release-palette curation after permission records exist. Leave it false during
+early dreaming so agents can discover candidates before permission audit.
 
 ## Game coverage planning
 
@@ -146,8 +215,9 @@ assets, not invented placeholders.
 
 Use `export_asset_brain_snapshot(format="json")` to mirror the current asset
 brain into a static metadata tree such as GitHub Pages. Keep only IDs, review
-events, inspections, visual verdicts, hashes, paths, and URLs in that mirror.
-Do not put `.rbxl`, `.rbxm`, screenshots, meshes, or thumbnails there.
+events, inspections, permission proof, visual verdicts, hashes, paths, and URLs
+in that mirror. Do not put `.rbxl`, `.rbxm`, screenshots, meshes, or thumbnails
+there.
 
 ## Headless fragment assembly
 

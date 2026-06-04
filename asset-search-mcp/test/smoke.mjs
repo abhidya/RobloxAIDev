@@ -36,6 +36,10 @@ for (const requiredTool of [
   "record_inspection",
   "record_inspections",
   "get_inspection",
+  "record_asset_permission",
+  "record_asset_permissions",
+  "get_asset_permission",
+  "validate_publish_permissions",
   "validate_prop_hunt_gate",
 ]) {
   assert.ok(toolNames.includes(requiredTool), `${requiredTool} is listed`);
@@ -212,7 +216,6 @@ console.log(
 
 console.log("\n--- review_asset + palette ---");
 console.log(await call("review_asset", { asset_id: 12345, verdict: "keep", notes: "smoke test", slot: "barrel" }));
-console.log(await call("commit_palette", { project: "prophunt-smoke", slot: "medieval_market.hideable.barrel", asset_id: 12345, name: "Barrel" }));
 console.log(await call("record_inspection", {
   asset_id: 12345,
   slot: "medieval_market.hideable.barrel",
@@ -227,6 +230,28 @@ console.log(await call("record_inspection", {
   screenshot_verdict: "fix",
   source: "smoke",
 }));
+console.log(await call("record_asset_permission", {
+  asset_id: 12345,
+  access: "grantable",
+  grantable_by_us: true,
+  experience_has_access: true,
+  publish_policy: "allow",
+  studio_insert_probe: "pass",
+  save_reopen_probe: "pass",
+  dependencies: [{ asset_id: 1234501, type: "Mesh", access: "open_use", experience_has_access: true, status: "pass" }],
+  evidence: ["smoke-dashboard-export", "smoke-save-reopen"],
+  source: "smoke",
+}));
+console.log(await call("commit_palette", {
+  project: "prophunt-smoke",
+  slot: "medieval_market.hideable.barrel",
+  asset_id: 12345,
+  name: "Barrel",
+  require_publish_permission: true,
+  publish_permission_mode: "grantable_only",
+  require_studio_probe: true,
+  require_save_reopen: true,
+}));
 console.log(await call("record_inspections", {
   inspections: [{
     asset_id: 34567,
@@ -240,7 +265,36 @@ console.log(await call("record_inspections", {
     source: "smoke-bulk",
   }],
 }));
-console.log(await call("commit_palette", { project: "prophunt-smoke", slot: "medieval_market.setpiece.market_stall", asset_id: 23456, name: "Market Stall" }));
+console.log(await call("record_asset_permissions", {
+  permissions: [{
+    asset_id: 23456,
+    access: "open_use",
+    grantable_by_us: false,
+    experience_has_access: true,
+    publish_policy: "allow_external_open_use",
+    studio_insert_probe: "pass",
+    dependencies: [],
+    source: "smoke-bulk-permission",
+  }],
+}));
+console.log(await call("commit_palette", {
+  project: "prophunt-smoke",
+  slot: "medieval_market.setpiece.market_stall",
+  asset_id: 23456,
+  name: "Market Stall",
+  require_publish_permission: true,
+  publish_permission_mode: "grantable_or_open_use",
+  require_studio_probe: true,
+}));
+const refusedCommit = await call("commit_palette", {
+  project: "prophunt-smoke",
+  slot: "medieval_market.hideable.bad_permission",
+  asset_id: 99999,
+  name: "No Permission",
+  require_publish_permission: true,
+  publish_permission_mode: "grantable_only",
+});
+assert.ok(refusedCommit.startsWith("Refused to commit"), "strict palette commit refuses missing permission proof");
 console.log(await call("record_inspection", {
   asset_id: 23456,
   slot: "medieval_market.setpiece.market_stall",
@@ -253,6 +307,20 @@ console.log(await call("record_inspection", {
   source: "smoke",
 }));
 console.log(await call("get_palette", { project: "prophunt-smoke" }));
+const permissionJson = JSON.parse(await call("get_asset_permission", {
+  asset_id: 12345,
+  publish_permission_mode: "grantable_only",
+  require_studio_probe: true,
+  require_save_reopen: true,
+}));
+assert.equal(permissionJson.evaluation.passed, true, "asset permission evaluates as publish-ready");
+const publishGateJson = JSON.parse(await call("validate_publish_permissions", {
+  project: "prophunt-smoke",
+  publish_permission_mode: "grantable_or_open_use",
+  require_studio_probe: true,
+  format: "json",
+}));
+assert.equal(publishGateJson.passed, true, "palette publish permission gate passes");
 const paletteCurate = await call("curate_assets", {
   project: "prophunt-smoke",
   include_palette: true,
@@ -288,9 +356,11 @@ const snapshot = JSON.parse(await call("export_asset_brain_snapshot", {
 assert.equal(snapshot.schema, "roblox-asset-brain-snapshot/v1", "snapshot schema");
 assert.ok(snapshot.assets.some((asset) => asset.assetId === 12345), "snapshot includes inspected asset");
 assert.equal(snapshot.assets.find((asset) => asset.assetId === 12345).visual.screenshotVerdict, "fix", "snapshot includes visual metadata");
+assert.equal(snapshot.assets.find((asset) => asset.assetId === 12345).publishReadiness.passed, true, "snapshot includes publish readiness");
 console.log(JSON.stringify({
   assets: snapshot.counts.assets,
   paletteAssets: snapshot.counts.paletteAssets,
+  publishPermissions: snapshot.counts.publishPermissions,
   pages: snapshot.pagesLayout.manifest,
 }, null, 2));
 

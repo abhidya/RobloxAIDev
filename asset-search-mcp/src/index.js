@@ -52,10 +52,22 @@ function applyExcludes(ranked, o) {
   return { pool, removed: ranked.length - pool.length };
 }
 
+function applyPublishPermissionFilter(pool, o) {
+  if (!o.excludeUnpublishable) return { pool, removed: 0 };
+  const options = {
+    mode: o.publishPermissionMode || "grantable_or_open_use",
+    requireStudioProbe: !!o.requireStudioProbe,
+    requireSaveReopen: !!o.requireSaveReopen,
+  };
+  const filtered = pool.filter((asset) => store.evaluatePublishPermission(asset.id, options).passed);
+  return { pool: filtered, removed: pool.length - filtered.length };
+}
+
 function annotationSuffix(id) {
   const a = store.annotate(id);
   const bits = [];
   if (a.claimedBy) bits.push(`CLAIMED:${a.claimedBy}`);
+  if (a.publishPermission?.status) bits.push(`PERM:${a.publishPermission.status}`);
   for (const r of a.reviews) bits.push(`${r.verdict}${r.notes ? `(${r.notes})` : ""}`);
   return bits.length ? `  «${bits.join("; ")}»` : "";
 }
@@ -87,7 +99,7 @@ function formatPaletteSeed(slot, entry, index) {
 
 const text = (s) => ({ content: [{ type: "text", text: s }] });
 
-const server = new McpServer({ name: "asset-search", version: "0.7.0" });
+const server = new McpServer({ name: "asset-search", version: "0.8.0" });
 
 function shardForAssetId(assetId) {
   return String(assetId).replace(/\D/g, "").slice(0, 3) || "unknown";
@@ -100,11 +112,13 @@ function pagesLayout(project) {
     asset: `${root}/assets/by-id/{shard}/{assetId}.json`,
     enrichment_events: `${root}/enrichments/by-asset/{shard}/{assetId}.ndjson`,
     reviews: `${root}/reviews/by-asset/{shard}/{assetId}.ndjson`,
+    permissions: `${root}/permissions/by-asset/{shard}/{assetId}.json`,
     palette: `${root}/palettes/${project}.json`,
     indexes: [
       `${root}/indexes/assets-lite.ndjson`,
       `${root}/indexes/queries-lite.ndjson`,
       `${root}/indexes/rejected-assets.ndjson`,
+      `${root}/indexes/publish-readiness.ndjson`,
     ],
   };
 }
@@ -114,6 +128,7 @@ function collectAssetIdsForSnapshot(project) {
   for (const id of Object.keys(store.reviews || {})) ids.add(Number(id));
   for (const id of Object.keys(store.claims || {})) ids.add(Number(id));
   for (const id of Object.keys(store.inspections || {})) ids.add(Number(id));
+  for (const id of Object.keys(store.permissions || {})) ids.add(Number(id));
   for (const entry of Object.values(store.getPalette(project) || {})) {
     if (entry?.assetId != null) ids.add(Number(entry.assetId));
   }
@@ -130,6 +145,8 @@ function buildAssetBrainSnapshot({
   const assets = assetIds.map((assetId) => {
     const annotation = store.annotate(assetId);
     const inspection = annotation.inspection || {};
+    const publishPermission = store.getPublishPermission(assetId);
+    const publishEvaluation = store.evaluatePublishPermission(assetId);
     return {
       assetId,
       shard: shardForAssetId(assetId),
@@ -142,6 +159,8 @@ function buildAssetBrainSnapshot({
         visualRiskScore: inspection.visualRiskScore ?? null,
         visualRisks: inspection.visualRisks || [],
       },
+      publishPermission,
+      publishReadiness: publishEvaluation,
     };
   });
 
@@ -174,6 +193,7 @@ function buildAssetBrainSnapshot({
       searchQueries: searchQueries.length,
       reviews: Object.values(store.reviews || {}).reduce((sum, reviews) => sum + (Array.isArray(reviews) ? reviews.length : 0), 0),
       inspections: Object.keys(store.inspections || {}).length,
+      publishPermissions: Object.keys(store.permissions || {}).length,
       claims: Object.keys(store.claims || {}).length,
       paletteAssets: Object.keys(store.getPalette(project) || {}).length,
     },
@@ -191,7 +211,7 @@ function formatAssetBrainSnapshot(snapshot) {
     `pages=${snapshot.pagesLayout.manifest}`,
     "",
     "Asset shards:",
-    ...snapshot.assets.slice(0, 20).map((asset) => `- ${asset.assetId} shard=${asset.shard} rejected=${asset.rejected} visual=${asset.visual.screenshotVerdict}`),
+    ...snapshot.assets.slice(0, 20).map((asset) => `- ${asset.assetId} shard=${asset.shard} rejected=${asset.rejected} visual=${asset.visual.screenshotVerdict} publish=${asset.publishReadiness.passed ? "pass" : "fail"}`),
   ].join("\n");
 }
 
@@ -421,20 +441,30 @@ server.tool(
     exclude_rejected: z.boolean().optional().describe("Hide assets already rejected by any agent (default true)"),
     exclude_claimed: z.boolean().optional().describe("Hide assets already claimed/committed by another slot (default false)"),
     exclude_ids: z.array(z.number()).optional(),
+    exclude_unpublishable: z.boolean().optional().describe("Hide assets without passing publish-permission proof (default false, because search is usually exploratory)."),
+    publish_permission_mode: z.enum(["grantable_only", "grantable_or_open_use"]).optional(),
+    require_studio_probe: z.boolean().optional(),
+    require_save_reopen: z.boolean().optional(),
   },
   async (args) => {
     const query = (args.query || "").trim();
     if (!query) return text("query must not be empty");
     const ranked = await rankedSearch({ query, categories: args.categories, verifiedOnly: args.verified_only, extensive: args.extensive });
-    const { pool, removed } = applyExcludes(ranked, {
+    const { pool: excludedPool, removed } = applyExcludes(ranked, {
       excludeRejected: args.exclude_rejected !== false,
       excludeClaimed: !!args.exclude_claimed,
       excludeIds: args.exclude_ids,
       excludeTerms: args.exclude_terms,
     });
+    const { pool, removed: permissionRemoved } = applyPublishPermissionFilter(excludedPool, {
+      excludeUnpublishable: !!args.exclude_unpublishable,
+      publishPermissionMode: args.publish_permission_mode,
+      requireStudioProbe: args.require_studio_probe,
+      requireSaveReopen: args.require_save_reopen,
+    });
     const shown = pool.slice(0, args.max_results ?? 10);
-    if (!shown.length) return text(`No on-theme, unclaimed Creator Store assets for '${query}' (filtered ${removed}).`);
-    const head = `Found ${shown.length} assets for '${query}'${args.extensive ? " (extensive)" : ""} — ${removed} filtered (rejected/claimed/off-theme):`;
+    if (!shown.length) return text(`No on-theme, unclaimed Creator Store assets for '${query}' (filtered ${removed}, publish-filtered ${permissionRemoved}).`);
+    const head = `Found ${shown.length} assets for '${query}'${args.extensive ? " (extensive)" : ""} — ${removed} filtered (rejected/claimed/off-theme), ${permissionRemoved} publish-filtered:`;
     return text(`${head}\n${shown.map(formatAsset).join("\n")}\n\nMeasure geometry in Studio (StudioMCP) before placing.`);
   }
 );
@@ -455,6 +485,10 @@ server.tool(
     extensive: z.boolean().optional(),
     exclude_terms: z.array(z.string()).optional().describe("Global off-theme terms applied to every slot"),
     exclude_claimed: z.boolean().optional().describe("Skip assets already claimed by other slots (default true)"),
+    exclude_unpublishable: z.boolean().optional().describe("Hide assets without passing publish-permission proof (default false for exploratory curation)."),
+    publish_permission_mode: z.enum(["grantable_only", "grantable_or_open_use"]).optional(),
+    require_studio_probe: z.boolean().optional(),
+    require_save_reopen: z.boolean().optional(),
   },
   async (args) => {
     const perSlot = args.per_slot ?? 5;
@@ -463,11 +497,17 @@ server.tool(
     for (const s of args.slots) {
       try {
         const ranked = await rankedSearch({ query: s.query, verifiedOnly: args.verified_only, extensive: args.extensive });
-        const { pool, removed } = applyExcludes(ranked, {
+        const { pool: excludedPool, removed } = applyExcludes(ranked, {
           excludeRejected: true,
           excludeClaimed: args.exclude_claimed !== false,
           excludeIds: [...chosen],
           excludeTerms: [...(args.exclude_terms || []), ...(s.exclude_terms || [])],
+        });
+        const { pool, removed: permissionRemoved } = applyPublishPermissionFilter(excludedPool, {
+          excludeUnpublishable: !!args.exclude_unpublishable,
+          publishPermissionMode: args.publish_permission_mode,
+          requireStudioProbe: args.require_studio_probe,
+          requireSaveReopen: args.require_save_reopen,
         });
         const curated = diversify(pool, perSlot, 2);
         curated.forEach((a) => chosen.add(a.id));
@@ -478,7 +518,7 @@ server.tool(
           chosen.add(Number(paletteEntry.assetId));
         }
         const body = lines.length ? lines.join("\n") : "   (no on-theme candidates)";
-        const diagnostics = `   diagnostics: raw=${ranked.length} filtered=${removed} curated=${curated.length}${paletteEntry ? " palette_fallback=1" : ""}`;
+        const diagnostics = `   diagnostics: raw=${ranked.length} filtered=${removed} publish_filtered=${permissionRemoved} curated=${curated.length}${paletteEntry ? " palette_fallback=1" : ""}`;
         sections.push(`## slot '${s.slot}'  query='${s.query}'\n${body}\n${diagnostics}`);
       } catch (e) {
         sections.push(`## slot '${s.slot}' — search failed: ${e.message}`);
@@ -604,6 +644,78 @@ function normalizeInspection(args) {
   };
 }
 
+const publishAccessSchema = z.enum(["grantable", "open_use", "open_use_dependency", "restricted_denied", "unknown"]);
+const publishPolicySchema = z.enum(["allow", "allow_external_open_use", "quarantine", "reject"]);
+const probeSchema = z.enum(["not_run", "pass", "fail"]);
+const publishPermissionDependencySchema = z.object({
+  asset_id: z.number().optional(),
+  assetId: z.number().optional(),
+  type: z.string().optional(),
+  access: publishAccessSchema.optional(),
+  grantable_by_us: z.boolean().optional(),
+  grantableByUs: z.boolean().optional(),
+  experience_has_access: z.boolean().optional(),
+  experienceHasAccess: z.boolean().optional(),
+  status: z.enum(["pass", "quarantine", "reject", "unknown"]).optional(),
+  evidence: z.array(z.string()).optional(),
+  notes: z.string().optional(),
+});
+const publishPermissionSchema = z.object({
+  asset_id: z.number(),
+  target_publisher: z.record(z.any()).optional().describe("Publisher proof target, e.g. {type:'group', id:'123'}"),
+  target_experience_id: z.string().optional(),
+  access: publishAccessSchema.describe("grantable = owned by target publisher; open_use/open_use_dependency = usable but not grantable; restricted_denied/unknown block release."),
+  grantable_by_us: z.boolean().optional(),
+  experience_has_access: z.boolean().optional(),
+  publish_policy: publishPolicySchema.optional(),
+  studio_insert_probe: probeSchema.optional(),
+  save_reopen_probe: probeSchema.optional(),
+  dependencies: z.array(publishPermissionDependencySchema).optional(),
+  evidence: z.array(z.string()).optional(),
+  notes: z.string().optional(),
+  reviewer: z.string().optional(),
+  source: z.string().optional(),
+});
+
+function normalizePermissionArgs(args) {
+  return {
+    targetPublisher: args.target_publisher ?? null,
+    targetExperienceId: args.target_experience_id ?? null,
+    access: args.access,
+    grantableByUs: args.grantable_by_us ?? null,
+    experienceHasAccess: args.experience_has_access ?? null,
+    publishPolicy: args.publish_policy ?? null,
+    studioInsertProbe: args.studio_insert_probe ?? "not_run",
+    saveReopenProbe: args.save_reopen_probe ?? "not_run",
+    dependencies: args.dependencies ?? [],
+    evidence: args.evidence ?? [],
+    notes: args.notes ?? null,
+    reviewer: args.reviewer ?? null,
+    source: args.source ?? "permission-audit",
+  };
+}
+
+function publishValidationOptions(args) {
+  return {
+    mode: args.publish_permission_mode || args.mode || "grantable_or_open_use",
+    requireStudioProbe: !!args.require_studio_probe,
+    requireSaveReopen: !!args.require_save_reopen,
+  };
+}
+
+function formatPublishPermissionValidation(result) {
+  const head = `${result.passed ? "PASS" : "FAIL"} publish permissions for '${result.project}' mode=${result.mode}`;
+  const counts = `palette=${result.counts.paletteAssets} passed=${result.counts.passed} failed=${result.counts.failed} missing=${result.counts.missing}`;
+  const lines = [head, counts];
+  if (result.errors.length) {
+    lines.push("", "Errors:", ...result.errors.map((error) => `- ${error}`));
+  }
+  if (result.warnings.length) {
+    lines.push("", "Warnings:", ...result.warnings.map((warning) => `- ${warning}`));
+  }
+  return lines.join("\n");
+}
+
 server.tool(
   "record_inspections",
   "Record many StudioMCP inspection records in one call. Use this after a live Studio audit of a full Prop Hunt palette so the search MCP has reusable geometry/safety evidence without dozens of individual tool calls.",
@@ -619,6 +731,61 @@ server.tool(
 );
 
 server.tool(
+  "record_asset_permission",
+  "Record publish-permission proof for one asset: whether the target user/group can grant it, whether the target experience can load it, dependency access, and Studio/save-reopen probes. Use this before strict palette commits or release cache snapshots.",
+  publishPermissionSchema.shape,
+  async (args) => {
+    await store.recordPublishPermission(args.asset_id, normalizePermissionArgs(args));
+    const evaluation = store.evaluatePublishPermission(args.asset_id);
+    return text(`Recorded publish permission for ${args.asset_id}: ${evaluation.passed ? "publish-ready" : "not publish-ready"} (${evaluation.errors.join("; ") || "ok"}).`);
+  }
+);
+
+server.tool(
+  "record_asset_permissions",
+  "Record many asset publish-permission proofs in one call after a Creator Dashboard export or Studio permission audit.",
+  { permissions: z.array(publishPermissionSchema).min(1).max(500) },
+  async (args) => {
+    for (const permission of args.permissions) {
+      await store.recordPublishPermission(permission.asset_id, normalizePermissionArgs(permission));
+    }
+    return text(`Recorded ${args.permissions.length} publish permission record(s).`);
+  }
+);
+
+server.tool(
+  "get_asset_permission",
+  "Get the latest publish-permission proof and evaluated release readiness for an asset id.",
+  {
+    asset_id: z.number(),
+    publish_permission_mode: z.enum(["grantable_only", "grantable_or_open_use"]).optional(),
+    require_studio_probe: z.boolean().optional(),
+    require_save_reopen: z.boolean().optional(),
+  },
+  async (args) => {
+    const permission = store.getPublishPermission(args.asset_id);
+    const evaluation = store.evaluatePublishPermission(args.asset_id, publishValidationOptions(args));
+    return text(JSON.stringify({ permission, evaluation }, null, 2));
+  }
+);
+
+server.tool(
+  "validate_publish_permissions",
+  "Validate that every asset in a committed palette has publish-permission proof before headless build, Studio insertion, save/reopen, or release. Use mode='grantable_only' when the palette must contain only assets the target publisher can grant, and mode='grantable_or_open_use' when Open Use external dependencies are allowed.",
+  {
+    project: z.string().optional().describe("Palette project name (default: prophunt)."),
+    publish_permission_mode: z.enum(["grantable_only", "grantable_or_open_use"]).optional(),
+    require_studio_probe: z.boolean().optional(),
+    require_save_reopen: z.boolean().optional(),
+    format: z.enum(["text", "json"]).optional(),
+  },
+  async (args) => {
+    const result = store.validatePalettePublishPermissions(args.project || "prophunt", publishValidationOptions(args));
+    return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatPublishPermissionValidation(result));
+  }
+);
+
+server.tool(
   "get_inspection",
   "Get the latest persisted StudioMCP inspection for an asset id.",
   { asset_id: z.number() },
@@ -630,9 +797,24 @@ server.tool(
 
 server.tool(
   "commit_palette",
-  "Freeze the chosen asset for a slot into the project palette (also claims it). The build phase reads this.",
-  { project: z.string(), slot: z.string(), asset_id: z.number(), name: z.string().optional() },
+  "Freeze the chosen asset for a slot into the project palette (also claims it). Pass require_publish_permission=true to block assets without publish-permission proof before they can enter a release palette.",
+  {
+    project: z.string(),
+    slot: z.string(),
+    asset_id: z.number(),
+    name: z.string().optional(),
+    require_publish_permission: z.boolean().optional(),
+    publish_permission_mode: z.enum(["grantable_only", "grantable_or_open_use"]).optional(),
+    require_studio_probe: z.boolean().optional(),
+    require_save_reopen: z.boolean().optional(),
+  },
   async (args) => {
+    if (args.require_publish_permission) {
+      const evaluation = store.evaluatePublishPermission(args.asset_id, publishValidationOptions(args));
+      if (!evaluation.passed) {
+        return text(`Refused to commit ${args.slot} -> ${args.asset_id}: publish permission gate failed (${evaluation.errors.join("; ")}).`);
+      }
+    }
     await store.commitPalette(args.project, args.slot, args.asset_id, args.name);
     return text(`Committed ${args.slot} -> ${args.asset_id} in '${args.project}' (and claimed it).`);
   }
@@ -646,7 +828,11 @@ server.tool(
     const pal = store.getPalette(args.project);
     const entries = Object.entries(pal);
     if (!entries.length) return text(`Palette '${args.project}' is empty.`);
-    return text(`Palette '${args.project}':\n${entries.map(([slot, v]) => `${slot}: ${v.assetId}${v.name ? ` (${v.name})` : ""}`).join("\n")}`);
+    return text(`Palette '${args.project}':\n${entries.map(([slot, v]) => {
+      const evaluation = store.evaluatePublishPermission(v.assetId);
+      const publish = evaluation.passed ? "publish=pass" : `publish=fail:${evaluation.errors[0] || "unknown"}`;
+      return `${slot}: ${v.assetId}${v.name ? ` (${v.name})` : ""} [${publish}]`;
+    }).join("\n")}`);
   }
 );
 
@@ -683,6 +869,6 @@ server.tool(
 async function main() {
   await store.ready();
   await server.connect(new StdioServerTransport());
-  console.error("asset-search-mcp v0.7 ready (stdio) - shared rejection/claim/inspection/cache-preprocess/headless/player-angle visual-review memory active");
+  console.error("asset-search-mcp v0.8 ready (stdio) - shared rejection/claim/inspection/publish-permission/cache-preprocess/headless/player-angle visual-review memory active");
 }
 main().catch((err) => { console.error("fatal:", err); process.exit(1); });
