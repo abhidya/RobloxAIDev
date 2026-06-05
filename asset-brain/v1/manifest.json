@@ -1,0 +1,411 @@
+{
+  "schema": "robloxaidev-cross-project-asset-brain/v1",
+  "project": "RobloxAIDev",
+  "generatedAt": "2026-06-05T22:38:13.134Z",
+  "purpose": "Canonical merged metadata brain for asset-driven Roblox AI game development across RobloxAIDev, EggBreakers, GroanTubeHero, and the shared local MCP store.",
+  "policy": {
+    "trackedData": "metadata only: asset ids, slots, statuses, inspections, queues, risks, and learnings",
+    "excludedData": "no .rbxl/.rbxm binaries, screenshots, meshes, thumbnails, cookies, or Roblox auth state",
+    "sourceOfTruth": "RobloxAIDev owns the cross-project merge; individual projects can keep richer local proof artifacts",
+    "validationRule": "Search metadata and offline file validation do not sign off visible game content without player-height screenshots from the correct active Studio place."
+  },
+  "counts": {
+    "sourceAreas": 6,
+    "assetRecords": 527,
+    "uniqueAssetIds": 463,
+    "visualNotReviewed": 425,
+    "scriptRisk": 86,
+    "queues": 9
+  },
+  "rollups": {
+    "byProject": {
+      "eggbreakers": 466,
+      "groan-tube-hero": 37,
+      "prophunt": 24
+    },
+    "byStatus": {
+      "catalog_candidate": 425,
+      "dream_seed": 41,
+      "committed_palette": 36,
+      "audited_artassets_source": 16,
+      "family_inspection_queue": 12,
+      "pump_readiness": 12,
+      "claim": 11,
+      "studio_inspection": 11,
+      "fragment_palette_candidate": 8,
+      "rejected_visual_audit": 1
+    },
+    "bySourceArea": {
+      "eggbreakers_asset_brain": 466,
+      "groantubehero_docs": 29,
+      "shared_mcp_brain": 24,
+      "groantubehero_fragments": 8
+    }
+  },
+  "sources": [
+    {
+      "id": "robloxaidev_installed_repo",
+      "path": "~/.codex/mcp/RobloxAIDev",
+      "role": "Canonical installed MCP and implementation target.",
+      "available": true,
+      "counts": {
+        "hasHeadlessDoc": true,
+        "hasAssetSearchMcp": true,
+        "hasPocPlace": true
+      }
+    },
+    {
+      "id": "robloxaigamedev_claude_project",
+      "path": "~/Documents/Claude/Projects/RobloxAIGameDev",
+      "role": "Prior/parallel copy used for history comparison.",
+      "available": true,
+      "counts": {
+        "hasHeadlessDoc": true,
+        "hasAssetSearchMcp": true,
+        "hasPocPlace": true
+      }
+    },
+    {
+      "id": "robloxaidev_public_clone",
+      "path": "~/abhidya-public-repos/RobloxAIDev",
+      "role": "Prior/parallel copy used for history comparison.",
+      "available": true,
+      "counts": {
+        "hasHeadlessDoc": true,
+        "hasAssetSearchMcp": true,
+        "hasPocPlace": true
+      }
+    },
+    {
+      "id": "shared_mcp_brain",
+      "path": "~/.roblox-asset-brain",
+      "role": "Live local asset-search MCP memory shared across projects.",
+      "available": true,
+      "counts": {
+        "claims": 11,
+        "inspections": 11,
+        "paletteProjects": 1,
+        "reviews": 0,
+        "publishPermissions": 0
+      }
+    },
+    {
+      "id": "eggbreakers_asset_brain",
+      "path": "~/PycharmProjects/eggBreakers/asset-brain/v1",
+      "role": "Egg Breakers world asset inventory, dream queue, and family inspection queue.",
+      "available": true,
+      "counts": {
+        "assetEntries": 425,
+        "queryRecords": 69,
+        "pumpReadinessRecords": 12,
+        "queueItems": 12,
+        "projectManifestCatalogedSourceIds": 500
+      },
+      "warnings": [
+        "Catalog/storyboard cache only; final palette requires Studio geometry, script audit, and player-angle screenshots.",
+        "2026-06-05 asset pump added focused inventory/dream artifacts; no search-only candidate is release-ready.",
+        "No .rbxl, .rbxm, screenshots, meshes, or thumbnails are stored in this tree."
+      ]
+    },
+    {
+      "id": "groantubehero_project",
+      "path": "~/PycharmProjects/GroanTubeHero",
+      "role": "Concert-defense WorldV2 asset audit, headless run, room dreamboard, and committed-palette fragments.",
+      "available": true,
+      "counts": {
+        "committedPaletteLines": 12,
+        "fragmentManifests": 4,
+        "creatorStoreMentions": 21
+      }
+    }
+  ],
+  "queues": [
+    {
+      "project": "eggbreakers",
+      "id": "fern_orientation_repair",
+      "priority": 1,
+      "kind": "dream_group",
+      "seedAssetIds": [
+        7979002756,
+        434184732,
+        2915526744,
+        12630982706,
+        11611657675
+      ],
+      "why": "The user reported ferns on their side; herbivore starter food and Fern Plains dressing need immediate family-level orientation proof.",
+      "acceptanceChecks": [
+        "single family clean-spot clone captured from front/back/left/right/overhead/player height",
+        "fronds upright from player height",
+        "bottom geometry grounded with no sideways pivot",
+        "edible metadata preserved or stamped only on accepted food roots",
+        "all live clones using the same family updated before temp clone cleanup"
+      ]
+    },
+    {
+      "project": "eggbreakers",
+      "id": "dinosaur_orientation_repair",
+      "priority": 2,
+      "kind": "dream_group",
+      "seedAssetIds": [
+        18759347676,
+        129426942556570,
+        248223518,
+        281912567,
+        1320554267,
+        2167783289,
+        6185104172,
+        2989814926
+      ],
+      "why": "The user reported face-down dinosaurs; staged species and imported dino candidates need canonical up/forward before player/NPC use.",
+      "acceptanceChecks": [
+        "model feet/down axis visible from clean-spot player-height view",
+        "forward axis faces movement/combat/action path rather than ground",
+        "helper roots and hitboxes hidden/non-colliding where appropriate",
+        "scripted imported dino models quarantined or rejected until reviewed",
+        "canonical fix propagated to player, NPC, and staged clone uses"
+      ]
+    },
+    {
+      "project": "eggbreakers",
+      "id": "hatch_nest_upgrade",
+      "priority": 3,
+      "kind": "dream_group",
+      "seedAssetIds": [
+        463710364,
+        463709089,
+        104497410410577,
+        240666886,
+        708850786
+      ],
+      "why": "Beat 0 needs a readable egg/nest object that is not generic filler.",
+      "acceptanceChecks": [
+        "egg/nest reads from the spawn path, not only overhead",
+        "scale fits hatchling/player camera",
+        "no uncontrolled scripts",
+        "grounded on nursery floor",
+        "safe to mark as required playable visual only after screenshot proof"
+      ]
+    },
+    {
+      "project": "eggbreakers",
+      "id": "carnivore_food_upgrade",
+      "priority": 4,
+      "kind": "dream_group",
+      "seedAssetIds": [
+        3414358748,
+        6934081776,
+        1894867381,
+        2915304314,
+        15679580048
+      ],
+      "why": "Carnivore survival needs food that reads as carrion/meat, not an abstract marker or museum fossil.",
+      "acceptanceChecks": [
+        "reads as edible carnivore target from player height",
+        "not too large for first food interaction",
+        "does not imply non-edible museum-only fossil unless used as dressing",
+        "script-free or scripts removed",
+        "depletion/restore visual policy documented if used as food"
+      ]
+    },
+    {
+      "project": "eggbreakers",
+      "id": "swamp_delta_density",
+      "priority": 5,
+      "kind": "dream_group",
+      "seedAssetIds": [
+        543827347,
+        18986634714,
+        432559636,
+        708797531,
+        1725227984
+      ],
+      "why": "Swamp Delta needs water-surface and shoreline families that are easy to orient and ground.",
+      "acceptanceChecks": [
+        "lily pads sit on water plane",
+        "trees/logs are grounded or intentionally waterline-placed",
+        "fish remain inside valid water volumes",
+        "spino sightline and camera clearance remain playable",
+        "family fixes recorded before broad scatter"
+      ]
+    },
+    {
+      "project": "eggbreakers",
+      "id": "redstone_canyon_landmarks",
+      "priority": 6,
+      "kind": "dream_group",
+      "seedAssetIds": [
+        70617428,
+        94940698,
+        577078767,
+        6566037175,
+        70417873353617,
+        11239705094
+      ],
+      "why": "Canyon needs route-framing rocks, cliffs, fossils, and bones that do not block traversal.",
+      "acceptanceChecks": [
+        "grounded on canyon terrain",
+        "does not create stuck spots",
+        "fossil display reads as landmark or food according to slot",
+        "scale does not occlude the camera on core route",
+        "accepted family has orientation metadata before repeated placement"
+      ]
+    },
+    {
+      "project": "eggbreakers",
+      "id": "apocalyptic_city_readability",
+      "priority": 7,
+      "kind": "dream_group",
+      "seedAssetIds": [
+        108178603114720,
+        9213511042,
+        250378973,
+        368743404,
+        404475960,
+        536859534,
+        9709196113
+      ],
+      "why": "City assets are plentiful but script risk is high; use smaller script-free families first.",
+      "acceptanceChecks": [
+        "script-free or imported scripts quarantined",
+        "sign/lamp/car forward direction useful from player path",
+        "wrecks and barriers do not trap players",
+        "ruins do not block camera or hide core landmarks",
+        "family propagation count recorded after placement"
+      ]
+    },
+    {
+      "project": "eggbreakers",
+      "id": "navigation_and_scent_ui",
+      "priority": 8,
+      "kind": "dream_group",
+      "seedAssetIds": [],
+      "why": "Search is still weak for waypoint/scent assets; keep this as a dream lane until a safe UI/particle candidate exists.",
+      "acceptanceChecks": [
+        "no false-direction arrows",
+        "no gameplay authority scripts from imported UI without review",
+        "readable on mobile and desktop",
+        "does not occlude hatch/action UI",
+        "kept separate from world placement asset signoff"
+      ]
+    },
+    {
+      "project": "groan-tube-hero",
+      "id": "launch_expansion_shortlist",
+      "kind": "room_dreamboard",
+      "priority": 1,
+      "rooms": [
+        {
+          "room": "Cyber Arcade Overclock",
+          "difficulty": "Level 3, Standard to Extreme",
+          "multiplayerHook": "Players split between cabinet defense, battery carry, and combo terminal repairs."
+        },
+        {
+          "room": "Subway Meme Tunnel",
+          "difficulty": "Level 5, Standard to Brainrot",
+          "multiplayerHook": "Hold platforms while waves arrive from track lanes; teammates rotate signal switches."
+        },
+        {
+          "room": "Haunted Karaoke Theater",
+          "difficulty": "Level 7, Sweaty to Brainrot",
+          "multiplayerHook": "One player performs callouts while others protect stage speakers and curtain levers."
+        },
+        {
+          "room": "Aquarium Bass Drop",
+          "difficulty": "Level 9, Chill to Extreme",
+          "multiplayerHook": "Team keeps bubble generators alive while rhythm zones flood and drain."
+        },
+        {
+          "room": "Moonbase Echo Dome",
+          "difficulty": "Level 12, Sweaty to Brainrot",
+          "multiplayerHook": "Low-gravity note lanes and shared oxygen relays; players must sync pressure doors."
+        },
+        {
+          "room": "Neon Food Court Freestyle",
+          "difficulty": "Level 14, Standard to Extreme",
+          "multiplayerHook": "Players defend order counters and deliver beat tokens under crowd pressure."
+        },
+        {
+          "room": "Junkyard Auto-Tune Pit",
+          "difficulty": "Level 16, Sweaty to Brainrot",
+          "multiplayerHook": "Scrap lanes spawn hazards; players rebuild broken speakers from collected parts."
+        },
+        {
+          "room": "Pirate Radio Shipyard",
+          "difficulty": "Level 18, Standard to Brainrot",
+          "multiplayerHook": "Crew controls broadcast towers while moving across docks and cargo stacks."
+        },
+        {
+          "room": "Cloudback Idol Arena",
+          "difficulty": "Level 20, Chill to Extreme",
+          "multiplayerHook": "Floating platforms drift; players vote rotating chorus lanes and protect idol plinths."
+        },
+        {
+          "room": "Doomscroll Data Center",
+          "difficulty": "Level 22, Sweaty to Brainrot",
+          "multiplayerHook": "Players cool server racks and purge viral panels before heat overloads the room."
+        },
+        {
+          "room": "Backrooms Boiler Rave",
+          "difficulty": "Level 24, Extreme to Brainrot",
+          "multiplayerHook": "Maze-like pressure valves; players must regroup at safe beats or lose combo heat."
+        },
+        {
+          "room": "Ancient Meme Temple",
+          "difficulty": "Level 26, Sweaty to Brainrot",
+          "multiplayerHook": "Teams activate relic drums in sequence while traps scramble note lanes."
+        }
+      ],
+      "why": "Prior GroanTubeHero work translated room dreams into asset-search-ready multiplayer expansion lanes."
+    }
+  ],
+  "hardLearnings": [
+    {
+      "id": "headless_first_studio_later",
+      "confidence": "high",
+      "lesson": "Generate and merge Roblox files headlessly for speed; reserve Studio for load, runtime, screenshot, and visual/player proof.",
+      "evidence": [
+        "RobloxAIDev docs/headless-roblox-file-pipeline.md POC",
+        "GroanTubeHero headless run validated manifest merge and Rojo build before Studio"
+      ]
+    },
+    {
+      "id": "studio_is_serial_and_active_place_gated",
+      "confidence": "high",
+      "lesson": "A single Studio MCP/plugin must be leader-gated; batch tools should verify the active place before running screenshots or tests.",
+      "evidence": [
+        "GroanTubeHero headless run saw Studio MCP report old eggBreakers3.rbxl",
+        "EggBreakers swarm handoff documents one shared Studio plugin/port and leader-only Studio use"
+      ]
+    },
+    {
+      "id": "asset_family_not_single_clone",
+      "confidence": "high",
+      "lesson": "Orientation/scale fixes must be applied at asset-family scope and proven with clean-spot plus in-world player-height captures.",
+      "evidence": [
+        "EggBreakers family inspection queue blocks ferns/dinos on clean-spot screenshots, propagation counts, and live player-angle proof"
+      ]
+    },
+    {
+      "id": "sanitize_before_palette",
+      "confidence": "high",
+      "lesson": "Creator Store assets enter quarantine/inbox, scripts are stripped or quarantined, clean ArtAssets sources are promoted, and only those sources are cloned into active worlds.",
+      "evidence": [
+        "GroanTubeHero asset_manifest_real.md records script quarantine and clean ReplicatedStorage.ArtAssets promotion"
+      ]
+    },
+    {
+      "id": "permission_proof_remains_gap",
+      "confidence": "medium",
+      "lesson": "Committed palette fragments can be structurally valid while publish permission remains missing; release gates must keep permission proof separate from visual proof.",
+      "evidence": [
+        "GroanTubeHero committed-palette fragment manifests mark publish_permission_status=missing"
+      ]
+    }
+  ],
+  "outputs": {
+    "manifest": "asset-brain/v1/manifest.json",
+    "merged": "asset-brain/v1/merged/cross-project-asset-brain.json",
+    "assetsIndex": "asset-brain/v1/indexes/merged-project-assets.ndjson",
+    "docs": "docs/cross-project-asset-brain.md"
+  }
+}

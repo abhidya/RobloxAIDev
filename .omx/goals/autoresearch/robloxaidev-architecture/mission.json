@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "workflow": "autoresearch-goal",
+  "slug": "robloxaidev-architecture",
+  "topic": "Distill the Roblox AI game development process into a proper RobloxAIDev architecture with agent prompts, design docs, tradeoff analysis, alternatives, and runnable POC validation.",
+  "rubric": "Must produce repo-native docs that define the end-to-end AI Roblox game-dev process; must define agent prompt lanes and responsibilities; must compare alternatives with pros/cons; must run POCs or tests that validate headless generation, asset-brain merging, and batch visual-gate contracts; must record evidence and keep Studio as a gated validator rather than a default construction surface; must avoid binaries/screenshots/auth state in the asset brain.",
+  "critic_command": "npm --prefix asset-search-mcp test",
+  "status": "passed",
+  "created_at": "2026-06-05T22:28:16.577Z",
+  "updated_at": "2026-06-05T22:39:33.217Z",
+  "mission_path": ".omx/goals/autoresearch/robloxaidev-architecture/mission.json",
+  "rubric_path": ".omx/goals/autoresearch/robloxaidev-architecture/rubric.md",
+  "ledger_path": ".omx/goals/autoresearch/robloxaidev-architecture/ledger.jsonl",
+  "completion_path": ".omx/goals/autoresearch/robloxaidev-architecture/completion.json"
+}

@@ -1,0 +1,183 @@
+{
+  "schema": "roblox-ai-game-dev-poc-report/v1",
+  "generated_at": "2026-06-05T22:38:17.165Z",
+  "repo_root": "/Users/abdulrehmanbhidya/.codex/mcp/RobloxAIDev",
+  "scratch_dir": "work/headless-poc",
+  "scratch_policy": "ignored Roblox binaries and screenshots stay outside source control",
+  "verdict": "passed",
+  "commands": [
+    {
+      "id": "asset_brain_merge",
+      "command": "node",
+      "args": [
+        "scripts/merge_asset_brain_sources.mjs"
+      ],
+      "cwd": "/Users/abdulrehmanbhidya/.codex/mcp/RobloxAIDev",
+      "required": true,
+      "status": "passed",
+      "started_at": "2026-06-05T22:38:12.960Z",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 197,
+      "stdout_tail": "MERGED_ASSET_BRAIN_OK records=527 unique=463 sources=6\n",
+      "stderr_tail": ""
+    },
+    {
+      "id": "asset_brain_contract",
+      "command": "npm",
+      "args": [
+        "--prefix",
+        "asset-search-mcp",
+        "run",
+        "test:asset-brain"
+      ],
+      "cwd": "/Users/abdulrehmanbhidya/.codex/mcp/RobloxAIDev",
+      "required": true,
+      "status": "passed",
+      "started_at": "2026-06-05T22:38:13.158Z",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 489,
+      "stdout_tail": "\n> asset-search-mcp@0.8.0 test:asset-brain\n> node test/asset-brain-merge-artifacts.mjs\n\nASSET BRAIN MERGE ARTIFACTS OK\n",
+      "stderr_tail": ""
+    },
+    {
+      "id": "batch_visual_gate_contract",
+      "command": "npm",
+      "args": [
+        "--prefix",
+        "asset-search-mcp",
+        "run",
+        "test:offline"
+      ],
+      "cwd": "/Users/abdulrehmanbhidya/.codex/mcp/RobloxAIDev",
+      "required": true,
+      "status": "passed",
+      "started_at": "2026-06-05T22:38:13.647Z",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 584,
+      "stdout_tail": "\n> asset-search-mcp@0.8.0 test:offline\n> node test/offline.mjs\n\nOFFLINE OK — parsing, ranking, curation, game/headless/visual coverage, off-theme filter, rejections, claims, inspections, publish permissions, Prop Hunt gate, persistence\n",
+      "stderr_tail": ""
+    },
+    {
+      "id": "prompt_doc_contract",
+      "command": "npm",
+      "args": [
+        "--prefix",
+        "asset-search-mcp",
+        "run",
+        "test:prompt-contracts"
+      ],
+      "cwd": "/Users/abdulrehmanbhidya/.codex/mcp/RobloxAIDev",
+      "required": true,
+      "status": "passed",
+      "started_at": "2026-06-05T22:38:14.231Z",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 485,
+      "stdout_tail": "\n> asset-search-mcp@0.8.0 test:prompt-contracts\n> node test/prompt-contracts.mjs\n\nPROMPT_CONTRACTS_OK prompts=10\n",
+      "stderr_tail": ""
+    },
+    {
+      "id": "lune_version",
+      "command": "lune",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/Users/abdulrehmanbhidya/.codex/mcp/RobloxAIDev",
+      "required": false,
+      "status": "passed",
+      "started_at": "2026-06-05T22:38:14.716Z",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 21,
+      "stdout_tail": "lune 0.10.4\n",
+      "stderr_tail": ""
+    },
+    {
+      "id": "headless_place_insert",
+      "command": "lune",
+      "args": [
+        "run",
+        "scripts/headless_place_insert_poc.luau"
+      ],
+      "cwd": "/Users/abdulrehmanbhidya/.codex/mcp/RobloxAIDev",
+      "required": true,
+      "status": "passed",
+      "started_at": "2026-06-05T22:38:14.745Z",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 733,
+      "stdout_tail": "HEADLESS_POC_OK input=work/headless-poc/Place1.headless-working.rbxl model=work/headless-poc/generated-headless-marker.rbxm manifest=work/headless-poc/generated-headless-marker.manifest.json output=work/headless-poc/Place1.headless-mutated.rbxl insertedRoots=1 workspaceChildren=8\n",
+      "stderr_tail": ""
+    },
+    {
+      "id": "headless_place_verify",
+      "command": "lune",
+      "args": [
+        "run",
+        "scripts/headless_place_verify_poc.luau",
+        "work/headless-poc/Place1.headless-mutated.rbxl"
+      ],
+      "cwd": "/Users/abdulrehmanbhidya/.codex/mcp/RobloxAIDev",
+      "required": true,
+      "status": "passed",
+      "started_at": "2026-06-05T22:38:15.478Z",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 356,
+      "stdout_tail": "HEADLESS_VERIFY_OK place=work/headless-poc/Place1.headless-mutated.rbxl markerChildren=4 scriptSourceBytes=76\n",
+      "stderr_tail": ""
+    },
+    {
+      "id": "headless_fragment_merge",
+      "command": "lune",
+      "args": [
+        "run",
+        "scripts/headless_fragment_merge.luau",
+        "--place",
+        "work/headless-poc/Place1.headless-working.rbxl",
+        "--out",
+        "work/headless-poc/Place1.headless-merged.rbxl",
+        "--fragment",
+        "work/headless-poc/generated-headless-marker.manifest.json",
+        "--replace-existing"
+      ],
+      "cwd": "/Users/abdulrehmanbhidya/.codex/mcp/RobloxAIDev",
+      "required": true,
+      "status": "passed",
+      "started_at": "2026-06-05T22:38:15.834Z",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 1044,
+      "stdout_tail": "HEADLESS_FRAGMENT_MERGE_OK input=work/headless-poc/Place1.headless-working.rbxl output=work/headless-poc/Place1.headless-merged.rbxl fragments=1 warnings=0\n- headless_generated_marker -> Workspace/HeadlessGeneratedMarker (000-poc-marker)\n",
+      "stderr_tail": ""
+    },
+    {
+      "id": "headless_fragment_verify",
+      "command": "lune",
+      "args": [
+        "run",
+        "scripts/headless_place_verify_poc.luau",
+        "work/headless-poc/Place1.headless-merged.rbxl"
+      ],
+      "cwd": "/Users/abdulrehmanbhidya/.codex/mcp/RobloxAIDev",
+      "required": true,
+      "status": "passed",
+      "started_at": "2026-06-05T22:38:16.878Z",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 287,
+      "stdout_tail": "HEADLESS_VERIFY_OK place=work/headless-poc/Place1.headless-merged.rbxl markerChildren=4 scriptSourceBytes=76\n",
+      "stderr_tail": ""
+    }
+  ],
+  "assertions": {
+    "asset_brain_merge": true,
+    "asset_brain_contract": true,
+    "batch_visual_gate_contract": true,
+    "prompt_doc_contract": true,
+    "headless_generation": true
+  }
+}

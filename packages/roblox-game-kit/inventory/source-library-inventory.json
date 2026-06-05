@@ -1,0 +1,5146 @@
+{
+  "schema": "roblox-game-kit-source-library-inventory/v1",
+  "purpose": "Deterministic source inventory for converting EggBreakers, GroanTubeHero, and RobloxAIDev Prop Hunt libraries into reusable Roblox GameKit modules.",
+  "sourceProjects": [
+    {
+      "id": "eggbreakers",
+      "name": "EggBreakers",
+      "rootLabel": "~/PycharmProjects/eggBreakers",
+      "available": true,
+      "scanRoots": [
+        "src/ReplicatedStorage/Shared",
+        "src/ServerScriptService/Services",
+        "src/StarterPlayer/StarterPlayerScripts",
+        "src/ServerScriptService/Tests"
+      ],
+      "files": 150
+    },
+    {
+      "id": "groantubehero",
+      "name": "GroanTubeHero",
+      "rootLabel": "~/PycharmProjects/GroanTubeHero",
+      "available": true,
+      "scanRoots": [
+        "ReplicatedStorage/Shared",
+        "ServerScriptService/Services",
+        "StarterPlayer/StarterPlayerScripts"
+      ],
+      "files": 96
+    },
+    {
+      "id": "robloxaidev-prophunt",
+      "name": "RobloxAIDev Prop Hunt",
+      "rootLabel": "~/.codex/mcp/RobloxAIDev",
+      "available": true,
+      "scanRoots": [
+        "src/shared",
+        "src/server",
+        "src/client",
+        "asset-search-mcp/src",
+        "scripts"
+      ],
+      "files": 19
+    }
+  ],
+  "counts": {
+    "files": 265,
+    "byProject": {
+      "eggbreakers": 150,
+      "groantubehero": 96,
+      "robloxaidev-prophunt": 19
+    },
+    "byFamily": {
+      "test-harness": 89,
+      "score-and-timing": 49,
+      "life-sim": 23,
+      "world-layout": 19,
+      "asset-audit": 18,
+      "client-ui": 17,
+      "service-lifecycle": 17,
+      "config-registry": 8,
+      "economy-wallet": 8,
+      "room-session": 8,
+      "profile-store": 3,
+      "remote-contracts": 3,
+      "remote-security": 3
+    }
+  },
+  "records": [
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/AssetManifest.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "asset-audit",
+      "bytes": 165339,
+      "lines": 763,
+      "exportedFunctions": [
+        "pad3",
+        "creatorStoreUrl",
+        "containsAny",
+        "classifySource",
+        "add",
+        "AssetManifest.GetById",
+        "AssetManifest.GetBySourceAssetId",
+        "AssetManifest.Validate"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 6
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/StagedMeshLibrary.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "asset-audit",
+      "bytes": 7504,
+      "lines": 221,
+      "exportedFunctions": [
+        "StagedMeshLibrary:StagingRoot",
+        "StagedMeshLibrary:ResolveModel",
+        "StagedMeshLibrary:HasMesh",
+        "normalizeName",
+        "dietForFolder",
+        "StagedMeshLibrary:BuildFullRoster",
+        "StagedMeshLibrary:RefreshRoster",
+        "getRoster",
+        "StagedMeshLibrary:ResolveAny",
+        "StagedMeshLibrary:HasAnyMesh"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/UniqueImportPilotReport.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "asset-audit",
+      "bytes": 19028,
+      "lines": 182,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/AssetAuditService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "asset-audit",
+      "bytes": 11908,
+      "lines": 274,
+      "exportedFunctions": [
+        "AssetAuditService:IsVisibleInstance",
+        "AssetAuditService:IsInvisibleHelper",
+        "AssetAuditService:IsStudioTestFixture",
+        "AssetAuditService:CleanupStudioTestFixtures",
+        "AssetAuditService:IsCreatorStoreDerived",
+        "AssetAuditService:IsAllowedProceduralGameplayVisual",
+        "AssetAuditService:IsVisibleGeneratedPart",
+        "AssetAuditService:ValidateVisibleGeneratedPartRelease",
+        "AssetAuditService:IsPotentialFoodCandidate",
+        "AssetAuditService:ValidatePotentialFoodCandidate",
+        "AssetAuditService:HasForbiddenVisibleName",
+        "AssetAuditService:ValidateManifest",
+        "AssetAuditService:ValidateManifestReference",
+        "AssetAuditService:GetAssetStateCounts",
+        "AssetAuditService:ValidateReleaseImportReadiness",
+        "AssetAuditService:ScanWorkspace"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/AssetImportAuditService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "asset-audit",
+      "bytes": 21966,
+      "lines": 535,
+      "exportedFunctions": [
+        "isA",
+        "isPartShape",
+        "nameLooksLowQuality",
+        "looksLowQualityGeneratedFoodOrVegetation",
+        "instanceNameContains",
+        "isGlowingBallPart",
+        "looksLikeRectangleBallTree",
+        "visit",
+        "containsMeshPart",
+        "isScriptInstance",
+        "isExecutableScript",
+        "addUnique",
+        "countSet",
+        "normalizeQualityExclusionKind",
+        "getChildByPath",
+        "getOrCreateFolder",
+        "AssetImportAuditService:GetImportedRoots",
+        "AssetImportAuditService:IsImportedCandidate",
+        "AssetImportAuditService:IsVisibleImportedAsset",
+        "AssetImportAuditService:GetQualityExclusionKind"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 4
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/PerformanceAuditService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "asset-audit",
+      "bytes": 4852,
+      "lines": 120,
+      "exportedFunctions": [
+        "PerformanceAuditService:_isDecorative",
+        "PerformanceAuditService:_isImportedAssetDescendant",
+        "PerformanceAuditService:_isRuntimeScript",
+        "PerformanceAuditService:_worldScanRoot",
+        "PerformanceAuditService:_scriptScanRoots",
+        "PerformanceAuditService:_zoneKeyFor",
+        "PerformanceAuditService:Scan"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/SecurityAuditService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "asset-audit",
+      "bytes": 3658,
+      "lines": 109,
+      "exportedFunctions": [
+        "SecurityAuditService:GetImportedAssetStateCounts",
+        "SecurityAuditService:ValidateImportedAssetReleaseGate",
+        "SecurityAuditService:AssertRejected",
+        "SecurityAuditService:ExploitResult",
+        "SecurityAuditService:_isImportedRoot",
+        "SecurityAuditService:_isImportedDescendant",
+        "SecurityAuditService:_isScriptContainer",
+        "SecurityAuditService:_scanRoots",
+        "SecurityAuditService:ScanImportedScripts"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/ClientBootstrap.client.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "client-ui",
+      "bytes": 19757,
+      "lines": 477,
+      "exportedFunctions": [
+        "getTargetPosition",
+        "distanceToRoot",
+        "ClientBootstrap:DescribeTarget",
+        "ClientBootstrap:IsFoodAllowedForDiet",
+        "ClientBootstrap:FindNearestEatDrinkTarget",
+        "consider",
+        "ClientBootstrap:FindNearestTagged",
+        "ClientBootstrap:GetPrimaryAttack",
+        "ClientBootstrap:GetHumanoid",
+        "ClientBootstrap:SetButtonText",
+        "ClientBootstrap:ShowActionFeedback",
+        "ClientBootstrap:UpdateActionGuidance",
+        "ClientBootstrap:CreateLocalCallPulse",
+        "ClientBootstrap:ApplyHiddenVisual",
+        "ClientBootstrap:FaceActionTarget",
+        "ClientBootstrap:PlayActionMotion",
+        "getHumanoid",
+        "getCharacterRoot",
+        "showFeedback",
+        "markButtonPressed"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/ClientControllers/ActionGuidanceController.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "client-ui",
+      "bytes": 4676,
+      "lines": 96,
+      "exportedFunctions": [
+        "dietForTarget",
+        "ActionGuidanceController:Update"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/ClientControllers/HatchUIController.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "client-ui",
+      "bytes": 1885,
+      "lines": 52,
+      "exportedFunctions": [
+        "HatchUIController:Show",
+        "HatchUIController:SetProgress"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/ClientControllers/HUDController.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "client-ui",
+      "bytes": 16312,
+      "lines": 346,
+      "exportedFunctions": [
+        "round",
+        "HUDController:GetSpeciesDisplayName",
+        "HUDController:BuildGrowthBadge",
+        "HUDController:BuildRoleCard",
+        "HUDController:BuildDietGuidance",
+        "HUDController:BuildDeltaText",
+        "appendDelta",
+        "HUDController:EnsureGui",
+        "HUDController:SetBar",
+        "setOxygenRowVisible",
+        "HUDController:ApplyStatUpdate"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/ClientControllers/InputController.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "client-ui",
+      "bytes": 1170,
+      "lines": 18,
+      "exportedFunctions": [
+        "InputController:RequestHatch",
+        "InputController:RequestEat",
+        "InputController:RequestDrink",
+        "InputController:RequestSwim",
+        "InputController:RequestFlight",
+        "InputController:RequestSprint",
+        "InputController:RequestAttack",
+        "InputController:RequestCall",
+        "InputController:RequestNestAction",
+        "InputController:RequestCollectFossil"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/ClientControllers/MobileControlsController.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "client-ui",
+      "bytes": 19033,
+      "lines": 378,
+      "exportedFunctions": [
+        "MobileControlsController:BuildTargetIcon",
+        "MobileControlsController:BuildWaypointText",
+        "MobileControlsController:BuildFoodWaterLegend",
+        "MobileControlsController:SetButtonEffect",
+        "MobileControlsController:FlashButtonEffect",
+        "MobileControlsController:WireVisibleButtonEffects",
+        "MobileControlsController:ShowOptionalButton",
+        "MobileControlsController:HideOptionalButton",
+        "MobileControlsController:SetActionAvailable",
+        "MobileControlsController:SetButtonContext",
+        "MobileControlsController:UpdateWaypoint",
+        "MobileControlsController:ShowActionFeedback",
+        "MobileControlsController:CreateControls"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/ClientControllers/SenseGuideController.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "client-ui",
+      "bytes": 10098,
+      "lines": 264,
+      "exportedFunctions": [
+        "iconForTarget",
+        "SenseGuideController.ShouldGuide",
+        "SenseGuideController.PreferredMode",
+        "Finder",
+        "GetStats",
+        "SenseGuideController:Bind",
+        "targetPart",
+        "targetPosition",
+        "SenseGuideController:_ensureVisuals",
+        "SenseGuideController:_startPulse",
+        "SenseGuideController:_stopPulse",
+        "SenseGuideController:Hide",
+        "SenseGuideController:Update"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/ClientControllers/SfxController.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "client-ui",
+      "bytes": 4633,
+      "lines": 132,
+      "exportedFunctions": [
+        "toVector3",
+        "SfxController:Play",
+        "onPlayActionSound",
+        "SfxController:Init"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/ClientControllers/UIFactory.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "client-ui",
+      "bytes": 5524,
+      "lines": 142,
+      "exportedFunctions": [
+        "UIFactory:RoundCorners",
+        "UIFactory:AddStroke",
+        "UIFactory:CreateBar",
+        "UIFactory:CreateButton",
+        "UIFactory:CreateRootGui",
+        "UIFactory:CreatePanel"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/Constants.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "config-registry",
+      "bytes": 1685,
+      "lines": 53,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/EcosystemRoster.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "config-registry",
+      "bytes": 4807,
+      "lines": 127,
+      "exportedFunctions": [
+        "EcosystemRoster:StagingRoot",
+        "hasVisiblePart",
+        "toSpeciesId",
+        "EcosystemRoster:GetRoster",
+        "EcosystemRoster:ResolveByName",
+        "EcosystemRoster:Count"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/SoundLibrary.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "config-registry",
+      "bytes": 3392,
+      "lines": 96,
+      "exportedFunctions": [
+        "SoundLibrary:HasCategory",
+        "SoundLibrary:Resolve",
+        "SoundLibrary:GetDefaults"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/EconomyConfig.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "economy-wallet",
+      "bytes": 812,
+      "lines": 41,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/SpeciesConfig.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "life-sim",
+      "bytes": 19841,
+      "lines": 277,
+      "exportedFunctions": [
+        "stats"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/SpeciesRoster.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "life-sim",
+      "bytes": 14526,
+      "lines": 457,
+      "exportedFunctions": [
+        "normalize",
+        "toSpeciesId",
+        "dietFromFolder",
+        "statBlock",
+        "adultDefaults",
+        "roundUpPositive",
+        "makeBaseStats",
+        "creatureCategory",
+        "roleFor",
+        "dnaCostFor",
+        "spawnBiomesFor",
+        "modelPathsFor",
+        "buildEntry",
+        "ensureBuilt",
+        "SpeciesRoster:AllSpecies",
+        "SpeciesRoster:Get",
+        "SpeciesRoster:ListIds",
+        "SpeciesRoster:Count",
+        "SpeciesRoster:BuildFromWorkspace"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/CharacterVisualService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 26260,
+      "lines": 675,
+      "exportedFunctions": [
+        "getRoot",
+        "resolvePath",
+        "isGameVisualDescendant",
+        "hasVisiblePart",
+        "isRigHelperPart",
+        "setDescendantCollisionSafe",
+        "removeExecutableCode",
+        "CharacterVisualService:HideDefaultAvatar",
+        "CharacterVisualService:_visualFolder",
+        "CharacterVisualService:ClearVisual",
+        "CharacterVisualService:_weldToRoot",
+        "axisMax",
+        "getVisibleParts",
+        "boundsFromParts",
+        "nameContains",
+        "averagePartPosition",
+        "namedPartGroups",
+        "horizontalUnit",
+        "signedYawBetween",
+        "transformLooseVisualAroundPivot"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 13
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/CombatService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 14284,
+      "lines": 312,
+      "exportedFunctions": [
+        "getStatRepl",
+        "getRemotes",
+        "CombatService:AttackAllowedForSpecies",
+        "CombatService:StampDamageAttributes",
+        "CombatService:ResolvePosition",
+        "getTelegraphRemote",
+        "CombatService:FireAttackTelegraph",
+        "CombatService:FireCombatFeedback",
+        "CombatService:ApplyDamage",
+        "CombatService:IsPredatorDiet",
+        "CombatService:GetPlayerFromCharacter",
+        "CombatService:HandlePlayerPredation",
+        "CombatService:RequestAttack"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/FishService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 3139,
+      "lines": 76,
+      "exportedFunctions": [
+        "FishService:GetFolder",
+        "FishService:CreateFishSource",
+        "FishService:MoveWithinWater"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/FlightService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 3106,
+      "lines": 66,
+      "exportedFunctions": [
+        "FlightService:IsFlightCapableSpecies",
+        "FlightService:GrantFlightIfEligible",
+        "FlightService:IsFlightUnlocked",
+        "FlightService:RequestFlight"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/FoodWaterService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 14046,
+      "lines": 285,
+      "exportedFunctions": [
+        "FoodWaterService:GetFoliageVisual",
+        "FoodWaterService:GetFoliageVisuals",
+        "FoodWaterService:SetDepletedVisual",
+        "FoodWaterService:RefreshDepletion",
+        "FoodWaterService:StartDepletionLoop",
+        "FoodWaterService:StopDepletionLoop",
+        "isFoliageFoodSource",
+        "FoodWaterService:IsFoodSource",
+        "FoodWaterService:NormaliseFoliageMetadata",
+        "FoodWaterService:NormaliseAllFoliageMetadata",
+        "FoodWaterService:RequestEat",
+        "FoodWaterService:RequestDrink"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/FossilService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 1101,
+      "lines": 23,
+      "exportedFunctions": [
+        "FossilService:RequestCollect"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/NestService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 3174,
+      "lines": 72,
+      "exportedFunctions": [
+        "NestService:RequestNestAction",
+        "NestService:GetNest",
+        "NestService:RequestHatchFromNest"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/NPCAnimationService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 9576,
+      "lines": 212,
+      "exportedFunctions": [
+        "loadTracksForNPC",
+        "applyKey",
+        "NPCAnimationService:Register",
+        "NPCAnimationService:Unregister",
+        "NPCAnimationService:UpdateRecord",
+        "NPCAnimationService:StartHeartbeatLoop",
+        "NPCAnimationService:StopHeartbeatLoop"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/NPCService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 51275,
+      "lines": 1129,
+      "exportedFunctions": [
+        "NPCService:GetKindProfile",
+        "NPCService:IsPreyKind",
+        "NPCService:GetCarnivoreFoodKind",
+        "NPCService:IsCarnivoreFoodCandidate",
+        "NPCService:GetRecordDiet",
+        "NPCService:CanEatDiet",
+        "NPCService:CanSpawn",
+        "NPCService:Register",
+        "NPCService:PlayDeathSettle",
+        "NPCService:ScheduleCarcassDespawn",
+        "NPCService:Transition",
+        "NPCService:FindRecordForInstance",
+        "NPCService:GetRecordPosition",
+        "NPCService:GetInstancePosition",
+        "NPCService:PruneStaleRecords",
+        "NPCService:FormatVector3",
+        "NPCService:ResolveLocomotionRoot",
+        "NPCService:StampLocomotion",
+        "NPCService:OrientToward",
+        "NPCService:GetFlightTarget"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/NPCSpawnService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 32784,
+      "lines": 748,
+      "exportedFunctions": [
+        "resolvePath",
+        "hasVisiblePart",
+        "isHelperVisualPart",
+        "NPCSpawnService:ResolveImportedNPCModel",
+        "NPCSpawnService:IsLiveCarnivoreFoodKind",
+        "NPCSpawnService:GetCarnivoreFoodKind",
+        "NPCSpawnService:PrepareNPCModel",
+        "NPCSpawnService:GetSpawnFolder",
+        "NPCSpawnService:IsSpawnPositionAllowed",
+        "NPCSpawnService:CreateNPCRecord",
+        "NPCSpawnService:EnsureNPCFolder",
+        "NPCSpawnService:IsCarcassFoodSource",
+        "NPCSpawnService:IsNPCModel",
+        "NPCSpawnService:CountMeshParts",
+        "NPCSpawnService:HasStagedMeshForKind",
+        "NPCSpawnService:PruneStaleNPCRecords",
+        "NPCSpawnService:CleanupStaleNPCs",
+        "NPCSpawnService:MaintainMinimumActive",
+        "NPCSpawnService:IsFlyerEntry",
+        "NPCSpawnService:BiomeForEntry"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 3
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/OxygenService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 3801,
+      "lines": 84,
+      "exportedFunctions": [
+        "clamp",
+        "OxygenService:GetMaxOxygen",
+        "OxygenService:EnsureOxygen",
+        "OxygenService:ApplyOxygenTick"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 4
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/SmallPreyService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 3350,
+      "lines": 82,
+      "exportedFunctions": [
+        "SmallPreyService:GetPosition",
+        "SmallPreyService:Register",
+        "SmallPreyService:FleeFrom",
+        "SmallPreyService:CreateCarcass",
+        "SmallPreyService:ApplyDamage"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/SpeciesModelService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 1820,
+      "lines": 49,
+      "exportedFunctions": [
+        "resolvePath",
+        "SpeciesModelService:ResolveModel",
+        "SpeciesModelService:ValidateConfiguredModels"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/StarterSpeciesService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 3434,
+      "lines": 92,
+      "exportedFunctions": [
+        "StarterSpeciesService:GetUnlockedStarterSpecies",
+        "StarterSpeciesService:ChooseStarterSpecies",
+        "StarterSpeciesService:GetSelectableSpecies",
+        "StarterSpeciesService:GetHatchPool",
+        "StarterSpeciesService:HasCarnivoreAndHerbivore"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/SurvivalService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 16740,
+      "lines": 388,
+      "exportedFunctions": [
+        "clamp",
+        "SurvivalService:CreateState",
+        "SurvivalService:GetState",
+        "SurvivalService:RequestHatch",
+        "SurvivalService:ApplyNeedsTick",
+        "SurvivalService:SetSprinting",
+        "SurvivalService:ApplyDamage",
+        "SurvivalService:AddGrowth",
+        "SurvivalService:_applyAlphaBuff",
+        "SurvivalService:PromoteToAlpha",
+        "SurvivalService:GetEffectiveDamage",
+        "SurvivalService:ConsumeStamina",
+        "SurvivalService:GetSpeciesProfile",
+        "SurvivalService:ApplySwimOxygenTick",
+        "SurvivalService:ConsumeFlightStamina",
+        "SurvivalService:OnDeath",
+        "SurvivalService:OnPlayerKilledByCarnivore",
+        "SurvivalService:IsInSafeZone",
+        "SurvivalService:ComputePredationGrowthReward",
+        "SurvivalService:StartNeedsLoop"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/SwimService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 2924,
+      "lines": 62,
+      "exportedFunctions": [
+        "SwimService:IsSwimCapableSpecies",
+        "SwimService:RequestSwim",
+        "SwimService:StopSwimming"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/WaterService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "life-sim",
+      "bytes": 5787,
+      "lines": 128,
+      "exportedFunctions": [
+        "WaterService:IsWaterSource",
+        "WaterService:GetBounds",
+        "WaterService:ClassifyDepth",
+        "WaterService:ContainsPoint",
+        "WaterService:MarkFishHabitat",
+        "WaterService:IsValidDrinkableWater",
+        "WaterService:MarkShallowDrinkable",
+        "WaterService:ValidateAllWaterSources"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/CharacterVisualBootstrap.client.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "life-sim",
+      "bytes": 6877,
+      "lines": 189,
+      "exportedFunctions": [
+        "rootFor",
+        "isGameVisualDescendant",
+        "hideDefaultAvatar",
+        "clearVisual",
+        "safePart",
+        "weld",
+        "makePart",
+        "showEgg",
+        "showDinosaur",
+        "applyVisual",
+        "hopEgg",
+        "bindCharacter"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 5
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/ClientControllers/CombatFeedbackController.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "life-sim",
+      "bytes": 16112,
+      "lines": 441,
+      "exportedFunctions": [
+        "getModelRoot",
+        "aboveTarget",
+        "spawnDamageNumber",
+        "spawnHitParticles",
+        "flashTarget",
+        "collect",
+        "ensureHealthBar",
+        "updateHealthBar",
+        "ensureThreatGui",
+        "showThreat",
+        "scanForThreats",
+        "onHeartbeat",
+        "onCombatFeedback",
+        "CombatFeedbackController:Init"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/ClientControllers/NpcHealthThreatController.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "life-sim",
+      "bytes": 16110,
+      "lines": 411,
+      "exportedFunctions": [
+        "getModelRoot",
+        "isNpc",
+        "readHealth",
+        "healthColor",
+        "destroyBar",
+        "refreshBarValues",
+        "ensureBar",
+        "bumpBar",
+        "playTelegraphTick",
+        "ensureVignette",
+        "setThreat",
+        "scanForApex",
+        "onHeartbeat",
+        "findModelByName",
+        "onCombatFeedback",
+        "onTelegraph",
+        "NpcHealthThreatController:Init"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 3
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/PlayerDataService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "profile-store",
+      "bytes": 3130,
+      "lines": 110,
+      "exportedFunctions": [
+        "PlayerDataService:GetStore",
+        "PlayerDataService.DefaultData",
+        "PlayerDataService:Load",
+        "PlayerDataService:Save",
+        "PlayerDataService:GrantDNA",
+        "PlayerDataService:GrantFossils",
+        "PlayerDataService:Get",
+        "PlayerDataService:UnlockSpecies",
+        "PlayerDataService:Clear"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 3
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/RemoteContracts.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "remote-contracts",
+      "bytes": 2395,
+      "lines": 23,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/RemoteValidationService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "remote-contracts",
+      "bytes": 1875,
+      "lines": 45,
+      "exportedFunctions": [
+        "RemoteValidationService:CheckRate",
+        "RemoteValidationService:IsAlive",
+        "RemoteValidationService:IsHatched",
+        "RemoteValidationService:IsClose",
+        "RemoteValidationService:HasTag",
+        "RemoteValidationService:ValidateFoodTarget"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/PlacementValidationService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "remote-security",
+      "bytes": 17816,
+      "lines": 377,
+      "exportedFunctions": [
+        "abs",
+        "PlacementValidationService:_zoneForBiome",
+        "PlacementValidationService:_insideRect",
+        "PlacementValidationService:_insideBiome",
+        "PlacementValidationService:_nearBiomeEdge",
+        "PlacementValidationService:_keepsRoutesClear",
+        "PlacementValidationService:_categoryAllowed",
+        "PlacementValidationService:_hasNaturalSpacing",
+        "PlacementValidationService:ValidatePlan",
+        "PlacementValidationService:_boundsForRect",
+        "PlacementValidationService:ValidateGeometryCoverage",
+        "PlacementValidationService:ValidateUniqueSourceAssets",
+        "PlacementValidationService:ValidateFoodSourceInstance",
+        "PlacementValidationService:ValidateNoFloatingVisibleAssets",
+        "PlacementValidationService:GetReferencePlan"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/RateLimitService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "remote-security",
+      "bytes": 542,
+      "lines": 21,
+      "exportedFunctions": [
+        "RateLimitService:Check",
+        "RateLimitService:ClearPlayer"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/SwampDeltaStoryboard.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "service-lifecycle",
+      "bytes": 3421,
+      "lines": 97,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/CallService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "service-lifecycle",
+      "bytes": 2136,
+      "lines": 53,
+      "exportedFunctions": [
+        "CallService:GetEffectFolder",
+        "CallService:CreateDebugMarker",
+        "CallService:RequestCall"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/CityDiscoveryService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "service-lifecycle",
+      "bytes": 2904,
+      "lines": 78,
+      "exportedFunctions": [
+        "CityDiscoveryService:Discover",
+        "CityDiscoveryService:GetTriggerFolder",
+        "CityDiscoveryService:HandleTriggerTouched",
+        "CityDiscoveryService:BindTrigger",
+        "CityDiscoveryService:EnsureCityTrigger",
+        "CityDiscoveryService:EnsureCityDiscoveryTriggers",
+        "CityDiscoveryService:Clear"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/GroupService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "service-lifecycle",
+      "bytes": 2219,
+      "lines": 51,
+      "exportedFunctions": [
+        "GroupService:RequestInvite",
+        "GroupService:AcceptInvite",
+        "GroupService:CreateOrJoin",
+        "GroupService:AcceptInvite",
+        "GroupService:Leave"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/MovementLockService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "service-lifecycle",
+      "bytes": 531,
+      "lines": 18,
+      "exportedFunctions": [
+        "MovementLockService:SetHatchedMovement"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/ProgressionService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "service-lifecycle",
+      "bytes": 1937,
+      "lines": 50,
+      "exportedFunctions": [
+        "ProgressionService:_bucket",
+        "ProgressionService:GrantOnce",
+        "ProgressionService:OnHatched",
+        "ProgressionService:OnGrowthStage",
+        "ProgressionService:OnBiomeDiscovered",
+        "ProgressionService:Clear"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/StatReplicationService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "service-lifecycle",
+      "bytes": 2154,
+      "lines": 63,
+      "exportedFunctions": [
+        "StatReplicationService:BuildPayload",
+        "StatReplicationService:Send",
+        "StatReplicationService:Notify"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/TestFramework/Assert.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "test-harness",
+      "bytes": 850,
+      "lines": 32,
+      "exportedFunctions": [
+        "fail",
+        "Assert.truthy",
+        "Assert.falsy",
+        "Assert.equals",
+        "Assert.notNil",
+        "Assert.between"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/TestFramework/MockInstanceFactory.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "test-harness",
+      "bytes": 1116,
+      "lines": 50,
+      "exportedFunctions": [
+        "Mock:IsA",
+        "Mock:IsDescendantOf",
+        "Mock:GetAttribute",
+        "Mock:SetAttribute",
+        "Mock:GetPivot",
+        "Mock:GetDebugId",
+        "MockInstanceFactory.create"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/TestFramework/MockPlayer.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "test-harness",
+      "bytes": 396,
+      "lines": 17,
+      "exportedFunctions": [
+        "MockPlayer.new",
+        "MockPlayer:IsA"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/TestFramework/TestRunner.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "test-harness",
+      "bytes": 8573,
+      "lines": 230,
+      "exportedFunctions": [
+        "TestRunner:_cleanupStudioFixtures",
+        "TestRunner.registerSuite",
+        "TestRunner.clearSuites",
+        "TestRunner:_matchesCategory",
+        "TestRunner:_runSuite",
+        "TestRunner:LoadSuitesFrom",
+        "TestRunner:CoverageSummary",
+        "TestRunner:_appendCoverageFailures",
+        "TestRunner:_collectModules",
+        "TestRunner:discover",
+        "run",
+        "TestRunner.runRegistered"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 3
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/TestFramework/TestUtils.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "test-harness",
+      "bytes": 530,
+      "lines": 26,
+      "exportedFunctions": [
+        "TestUtils.safeRequire",
+        "TestUtils.countKeys",
+        "TestUtils.hasValue",
+        "TestUtils.timestamp"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/E2E/E2E_CarnivoreSurvival.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 4113,
+      "lines": 37,
+      "exportedFunctions": [
+        "setup",
+        "food",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/E2E/E2E_CityDiscovery.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1897,
+      "lines": 14,
+      "exportedFunctions": [
+        "rootFor",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/E2E/E2E_DeathAndRespawn.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1339,
+      "lines": 10,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/E2E/E2E_GroupAndCall.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2016,
+      "lines": 14,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/E2E/E2E_GrowthToJuvenile.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1208,
+      "lines": 10,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/E2E/E2E_HatchToFirstFood.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1998,
+      "lines": 29,
+      "exportedFunctions": [
+        "rootFor",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/E2E/E2E_HerbivoreSurvival.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2029,
+      "lines": 14,
+      "exportedFunctions": [
+        "setup",
+        "food",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/E2E/E2E_NestingFlow.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1641,
+      "lines": 13,
+      "exportedFunctions": [
+        "setup",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/E2E/E2E_PlayableLoopClosure.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 6849,
+      "lines": 146,
+      "exportedFunctions": [
+        "ensureCarcassAsset",
+        "rootFor",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/E2E/G013FinalGate.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 7656,
+      "lines": 161,
+      "exportedFunctions": [
+        "makeCharacter",
+        "makePlayer",
+        "destroyPlayerCharacter",
+        "trackedMaterializedUniqueCount",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 4
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/E2E/G013FinalGate.server.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 585,
+      "lines": 14,
+      "exportedFunctions": [],
+      "hasReturn": false,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G014/G014FinalGate.server.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 590,
+      "lines": 14,
+      "exportedFunctions": [],
+      "hasReturn": false,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G014/G014FinalGateSuite.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 6165,
+      "lines": 121,
+      "exportedFunctions": [
+        "makeCharacter",
+        "makePlayer",
+        "cleanupPlayer",
+        "materializedCount",
+        "hasRequiredTestFiles",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 3
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G015/G015FinalGate.server.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 768,
+      "lines": 20,
+      "exportedFunctions": [],
+      "hasReturn": false,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G015/G015FinalGateSuite.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 5119,
+      "lines": 95,
+      "exportedFunctions": [
+        "proofFolder",
+        "proofAttribute",
+        "failMissingProof",
+        "requireProofTrue",
+        "formatCounts",
+        "childNamed",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G016/G016FinalGate.server.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 768,
+      "lines": 20,
+      "exportedFunctions": [],
+      "hasReturn": false,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G016/G016FinalGateSuite.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 5770,
+      "lines": 88,
+      "exportedFunctions": [
+        "childNamed",
+        "formatCounts",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G016/G016LiveProofHarness.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 23284,
+      "lines": 409,
+      "exportedFunctions": [
+        "loadServices",
+        "ensureProofFolder",
+        "ensureClientProofFolder",
+        "setStoryProof",
+        "makeCharacter",
+        "visiblePartCount",
+        "assertTrue",
+        "G016LiveProofHarness:Run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G016/StoryAssertions.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2676,
+      "lines": 55,
+      "exportedFunctions": [
+        "StoryAssertions.proofFolder",
+        "StoryAssertions.proofAttribute",
+        "StoryAssertions.requireProofTrue",
+        "StoryAssertions.assertRegistryEnumeratesAllStories",
+        "assertNonEmptyString",
+        "StoryAssertions.assertStoryHasLivePass"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G016/UserStoryTestRegistry.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 3020,
+      "lines": 35,
+      "exportedFunctions": [
+        "UserStoryTestRegistry.all",
+        "UserStoryTestRegistry.byId"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G018/G018EcosystemProfileTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 4356,
+      "lines": 76,
+      "exportedFunctions": [
+        "resetPlayer",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G018/G018FinalGate.server.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 768,
+      "lines": 20,
+      "exportedFunctions": [],
+      "hasReturn": false,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G018/G018FinalGateSuite.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 8112,
+      "lines": 138,
+      "exportedFunctions": [
+        "proofAttribute",
+        "requireProofTrue",
+        "requireNonEmptyString",
+        "childNamed",
+        "formatCounts",
+        "manifestContainsSourceAssetId",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G018/G018UserStoryTestRegistry.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2444,
+      "lines": 31,
+      "exportedFunctions": [
+        "G018UserStoryTestRegistry.all",
+        "G018UserStoryTestRegistry.byId"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G018/StoryAssertions.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2644,
+      "lines": 51,
+      "exportedFunctions": [
+        "StoryAssertions.proofFolder",
+        "StoryAssertions.proofAttribute",
+        "StoryAssertions.requireProofTrue",
+        "StoryAssertions.assertRegistryEnumeratesAllStories",
+        "assertNonEmptyString",
+        "StoryAssertions.assertStoryHasLivePass"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/G018/UserStoryTestRegistry.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2307,
+      "lines": 30,
+      "exportedFunctions": [
+        "UserStoryTestRegistry.all",
+        "UserStoryTestRegistry.byId"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Integration/CharacterVisualServiceTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 21723,
+      "lines": 466,
+      "exportedFunctions": [
+        "axisMax",
+        "ensureFolder",
+        "ensureModelPath",
+        "setupImportedVisuals",
+        "makeCharacter",
+        "cleanup",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 5
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Integration/CombatServiceTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 5128,
+      "lines": 104,
+      "exportedFunctions": [
+        "ensureCarcassAsset",
+        "makeNPC",
+        "setup",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Integration/FlightSwimOxygenServiceTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 4100,
+      "lines": 84,
+      "exportedFunctions": [
+        "makePlayer",
+        "makeWater",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Integration/FoodServiceTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 10245,
+      "lines": 202,
+      "exportedFunctions": [
+        "setup",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Integration/GroupServiceTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1650,
+      "lines": 34,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Integration/GrowthServiceTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 3312,
+      "lines": 56,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Integration/HatchServiceTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 3635,
+      "lines": 80,
+      "exportedFunctions": [
+        "player",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Integration/NestServiceTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2432,
+      "lines": 46,
+      "exportedFunctions": [
+        "setup",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Integration/NPCServiceTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 21547,
+      "lines": 447,
+      "exportedFunctions": [
+        "makeNPC",
+        "makeStagedRootRig",
+        "makeTaggedPart",
+        "ensureCarcassAsset",
+        "resetNPCs",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Integration/ProgressionServiceTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1631,
+      "lines": 30,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Integration/RemoteValidationTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 3165,
+      "lines": 65,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Integration/SmallPreyFishWaterServiceTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 4489,
+      "lines": 84,
+      "exportedFunctions": [
+        "makeWater",
+        "carnivorePlayer",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Integration/WaterServiceTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 4274,
+      "lines": 77,
+      "exportedFunctions": [
+        "setup",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Integration/WeatherBiomeServiceTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2375,
+      "lines": 38,
+      "exportedFunctions": [
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Performance/AssetCollisionBudgetTest.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1039,
+      "lines": 19,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Performance/LoopBudgetTest.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1247,
+      "lines": 22,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Performance/NPCCountBudgetTest.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1116,
+      "lines": 24,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Performance/ParticleBudgetTest.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1874,
+      "lines": 32,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Placement/AssetManifestValidation.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2152,
+      "lines": 35,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Placement/BiomePlacementValidation.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 13869,
+      "lines": 275,
+      "exportedFunctions": [
+        "isOversizedBlockFallbackCanopy",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 5
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Placement/CityPlacementValidation.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2347,
+      "lines": 43,
+      "exportedFunctions": [
+        "contains",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Placement/CollisionValidation.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 4033,
+      "lines": 65,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Placement/FoodSourceAndFloatingValidation.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 6925,
+      "lines": 145,
+      "exportedFunctions": [
+        "makeFood",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Placement/FoodWaterPlacementValidation.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 22066,
+      "lines": 358,
+      "exportedFunctions": [
+        "countVisibleFoodAffordances",
+        "makeImportedFoodTemplate",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 5
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Placement/InvisiblePartNamingValidation.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1657,
+      "lines": 36,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Placement/NaturalPlacementValidation.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 3802,
+      "lines": 66,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Placement/NoVisibleGenericAssets.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2257,
+      "lines": 46,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Placement/NPCSpawnValidation.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 19399,
+      "lines": 391,
+      "exportedFunctions": [
+        "hasVisiblePart",
+        "run",
+        "run",
+        "run",
+        "CreateNPCRecord",
+        "run",
+        "CreateNPCRecord",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Placement/SpawnPlacementValidation.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 6476,
+      "lines": 122,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run",
+        "assertNoOverlap",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Placement/StoryboardBeatValidation.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 16765,
+      "lines": 321,
+      "exportedFunctions": [
+        "getOrCreateFolder",
+        "countVisibleParts",
+        "countVisibleMeshParts",
+        "countVisibleHelperParts",
+        "makeStagedDinosaur",
+        "makeSpawnMarker",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 12
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Placement/SwampDeltaStoryboardValidation.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 6096,
+      "lines": 94,
+      "exportedFunctions": [
+        "ensureBuilt",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Security/AssetImportAuditStateTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 12494,
+      "lines": 245,
+      "exportedFunctions": [
+        "makeImportedVisual",
+        "withImportedFixture",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Security/ExploitCurrencyGrantTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2329,
+      "lines": 39,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Security/ExploitDistanceValidationTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1607,
+      "lines": 36,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Security/ExploitGrowthGrantTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2124,
+      "lines": 39,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Security/ExploitRemoteSpamTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1968,
+      "lines": 33,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Security/ExploitSafeZoneAttackTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 947,
+      "lines": 19,
+      "exportedFunctions": [
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Security/ImportedScriptPolicyTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2612,
+      "lines": 64,
+      "exportedFunctions": [
+        "withImportedLibrary",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/TestRunner.server.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1288,
+      "lines": 29,
+      "exportedFunctions": [],
+      "hasReturn": false,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Unit/CombatFormulaTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1405,
+      "lines": 28,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Unit/DataSchemaTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1045,
+      "lines": 23,
+      "exportedFunctions": [
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Unit/DietLogicTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1394,
+      "lines": 29,
+      "exportedFunctions": [
+        "canEat",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Unit/EconomyRewardTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1582,
+      "lines": 29,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Unit/GrowthLogicTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2756,
+      "lines": 57,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Unit/HungerThirstTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 1515,
+      "lines": 34,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Unit/SpeciesConfigTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 4016,
+      "lines": 62,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Unit/StagedMeshMatrixTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 10990,
+      "lines": 227,
+      "exportedFunctions": [
+        "playableSpeciesIds",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Tests/Unit/StarterSpeciesSelectionTests.lua",
+      "scanRoot": "src/ServerScriptService/Tests",
+      "family": "test-harness",
+      "bytes": 2446,
+      "lines": 56,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/Tests/ActionGuidanceTests.client.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "test-harness",
+      "bytes": 6801,
+      "lines": 154,
+      "exportedFunctions": [
+        "createLabel",
+        "makeGuidanceGui",
+        "run",
+        "FindNearestEatDrinkTarget",
+        "DescribeTarget",
+        "run",
+        "FindNearestEatDrinkTarget",
+        "DescribeTarget",
+        "run",
+        "FindNearestEatDrinkTarget",
+        "DescribeTarget",
+        "run",
+        "FindNearestEatDrinkTarget"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/Tests/ClientHUDTests.client.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "test-harness",
+      "bytes": 6306,
+      "lines": 110,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/Tests/ClientInputTests.client.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "test-harness",
+      "bytes": 1704,
+      "lines": 36,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/Tests/FlightSwimOxygenClientTests.client.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "test-harness",
+      "bytes": 1592,
+      "lines": 25,
+      "exportedFunctions": [
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/Tests/G016ClientStoryProofTests.client.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "test-harness",
+      "bytes": 1546,
+      "lines": 33,
+      "exportedFunctions": [
+        "proofAttribute",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/Tests/HatchUITests.client.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "test-harness",
+      "bytes": 2533,
+      "lines": 50,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/Tests/MobileControlsTests.client.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "test-harness",
+      "bytes": 12471,
+      "lines": 187,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "verticalRect",
+        "verticallySeparated"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/StarterPlayer/StarterPlayerScripts/Tests/SenseGuideTests.client.lua",
+      "scanRoot": "src/StarterPlayer/StarterPlayerScripts",
+      "family": "test-harness",
+      "bytes": 1838,
+      "lines": 42,
+      "exportedFunctions": [
+        "run",
+        "run",
+        "Finder",
+        "GetStats"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/MapLayout.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "world-layout",
+      "bytes": 413,
+      "lines": 9,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/StoryAssetPlacements.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "world-layout",
+      "bytes": 11456,
+      "lines": 278,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 15
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ReplicatedStorage/Shared/ZoneConfig.lua",
+      "scanRoot": "src/ReplicatedStorage/Shared",
+      "family": "world-layout",
+      "bytes": 1250,
+      "lines": 12,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/AtmosphereService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "world-layout",
+      "bytes": 10998,
+      "lines": 343,
+      "exportedFunctions": [
+        "safeSet",
+        "ensureChild",
+        "AtmosphereService:Apply",
+        "pick",
+        "face",
+        "AtmosphereService:SetBiomeMood",
+        "AtmosphereService:Clear"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 11
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/MapLayoutService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "world-layout",
+      "bytes": 99587,
+      "lines": 1958,
+      "exportedFunctions": [
+        "MapLayoutService:GetFoodMetadata",
+        "MapLayoutService:ApplyFoodMetadata",
+        "MapLayoutService:IsVegetationBrowseSpec",
+        "MapLayoutService:ApplyReleaseHiddenQueryPart",
+        "configureFoodAffordance",
+        "getReadableFallbackCanopySize",
+        "MapLayoutService:GetOrCreateFoodAffordancePart",
+        "hasVisibleBasePart",
+        "isOversizedThinPanel",
+        "MapLayoutService:HasOversizedFlatPanelFoodVisual",
+        "lowerContains",
+        "MapLayoutService:IsFoodVisualTemplateCandidate",
+        "MapLayoutService:ResolveImportedFoodVisualTemplate",
+        "MapLayoutService:RemoveImportedFoodVisual",
+        "MapLayoutService:RemoveProceduralFoodAffordances",
+        "MapLayoutService:SanitizeImportedFoodVisualClone",
+        "MapLayoutService:AttachImportedFoodVisual",
+        "MapLayoutService:EnsureVisibleFoliageVisual",
+        "MapLayoutService:ApplyBrowseFoodAttributes",
+        "MapLayoutService:CompactPosition"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 18
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/WeatherBiomeService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "world-layout",
+      "bytes": 6066,
+      "lines": 161,
+      "exportedFunctions": [
+        "WeatherBiomeService:GetFolder",
+        "WeatherBiomeService:_configureWeatherPart",
+        "WeatherBiomeService:_ensureRainTiles",
+        "WeatherBiomeService:ClearVisibleRain",
+        "WeatherBiomeService:ApplyWeather",
+        "WeatherBiomeService:Init",
+        "WeatherBiomeService:StartLoop",
+        "WeatherBiomeService:StopLoop"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/WorldBuilderService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "world-layout",
+      "bytes": 23644,
+      "lines": 471,
+      "exportedFunctions": [
+        "WorldBuilderService.BiomeCenters",
+        "WorldBuilderService.GroundPlace",
+        "WorldBuilderService.ScatterCluster",
+        "WorldBuilderService.BuildBoundaryRing",
+        "WorldBuilderService.BiomeElevation",
+        "WorldBuilderService.SculptBiomeMound",
+        "WorldBuilderService.SculptShoreline",
+        "WorldBuilderService.RegroundPart",
+        "WorldBuilderService.EnsureSkyAndAtmosphere"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 6
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/WorldDressingService.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "world-layout",
+      "bytes": 19569,
+      "lines": 472,
+      "exportedFunctions": [
+        "makeRng",
+        "tryRequireMapLayout",
+        "getBiomeCenter",
+        "getMapFolder",
+        "getOrCreateFolder",
+        "stripScripts",
+        "getPivot",
+        "setPivot",
+        "groundY",
+        "stampEdible",
+        "placeClone",
+        "WorldDressingService:DressBiome",
+        "WorldDressingService:DressBiomeVaried",
+        "pickIndex",
+        "WorldDressingService:ClearBiome"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 13
+    },
+    {
+      "project": "eggbreakers",
+      "projectName": "EggBreakers",
+      "relativePath": "src/ServerScriptService/Services/WorldTerrainBuilder.lua",
+      "scanRoot": "src/ServerScriptService/Services",
+      "family": "world-layout",
+      "bytes": 11895,
+      "lines": 347,
+      "exportedFunctions": [
+        "getTerrain",
+        "num",
+        "isVector3",
+        "fillWaterCylinder",
+        "WorldTerrainBuilder:SetSeaLevel",
+        "WorldTerrainBuilder:Lake",
+        "WorldTerrainBuilder:Pond",
+        "WorldTerrainBuilder:River",
+        "WorldTerrainBuilder:Beach",
+        "WorldTerrainBuilder:PaintBiome",
+        "WorldTerrainBuilder:PaintAllBiomes"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 9
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/WorldV2/AssetAuditService.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "asset-audit",
+      "bytes": 1498,
+      "lines": 59,
+      "exportedFunctions": [
+        "AssetAuditService.Audit",
+        "AssetAuditService.QuarantineScripts"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/WorldV2/AssetRegistry.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "asset-audit",
+      "bytes": 17239,
+      "lines": 377,
+      "exportedFunctions": [
+        "resolvePath",
+        "AssetRegistry.Resolve",
+        "AssetRegistry.MissingRequired",
+        "AssetRegistry.GetSearchCandidates",
+        "AssetRegistry.GetInspectedRoomAssets",
+        "AssetRegistry.GetRoomPaletteCommitments",
+        "AssetRegistry.GetRoomAssetReadiness"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 18
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/AssetAuditService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "asset-audit",
+      "bytes": 2400,
+      "lines": 64,
+      "exportedFunctions": [
+        "ensureFolder",
+        "AssetAuditService.EnsureRoots",
+        "AssetAuditService.Audit",
+        "AssetAuditService.QuarantineScripts"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/ClientState.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "client-ui",
+      "bytes": 523,
+      "lines": 32,
+      "exportedFunctions": [
+        "ClientState.SetSnapshot",
+        "ClientState.GetSnapshot",
+        "ClientState.SetSession",
+        "ClientState.GetSession",
+        "ClientState.SetUi",
+        "ClientState.GetUi"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/WorldV2/UIUXValidation.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "client-ui",
+      "bytes": 14351,
+      "lines": 279,
+      "exportedFunctions": [
+        "rectInside",
+        "simulatedModalRect",
+        "simulatedCloseInside",
+        "simulatedHighwayFits",
+        "findButton",
+        "visible",
+        "findVisiblePanel",
+        "countOpenModals",
+        "requiredPromptExists",
+        "isAuditedStudioAsset",
+        "imagePropertyHasAsset",
+        "collectUnauditedUiVisualAssets",
+        "UIUXValidation.GetAuditedUiVisualAssetContract",
+        "UIUXValidation.ValidateAuditedUiVisualAssets",
+        "UIUXValidation.Run",
+        "expect",
+        "Controller.openMenu",
+        "Controller.closeAllMenus"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "StarterPlayer/StarterPlayerScripts/AudienceClient.client.lua",
+      "scanRoot": "StarterPlayer/StarterPlayerScripts",
+      "family": "client-ui",
+      "bytes": 6674,
+      "lines": 202,
+      "exportedFunctions": [
+        "corner",
+        "button",
+        "setPanelVisible",
+        "inAudienceZone",
+        "findRhythmScreenGui",
+        "refreshSongActiveState",
+        "bindRhythmGui"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "StarterPlayer/StarterPlayerScripts/EngagementClient.client.lua",
+      "scanRoot": "StarterPlayer/StarterPlayerScripts",
+      "family": "client-ui",
+      "bytes": 3764,
+      "lines": 99,
+      "exportedFunctions": [
+        "show"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "StarterPlayer/StarterPlayerScripts/InputController.client.lua",
+      "scanRoot": "StarterPlayer/StarterPlayerScripts",
+      "family": "client-ui",
+      "bytes": 11003,
+      "lines": 316,
+      "exportedFunctions": [
+        "rhythmGui",
+        "isSongActive",
+        "isAcceptInput",
+        "fireLane",
+        "bindLane",
+        "setButtonsVisible",
+        "createMobileButtons",
+        "updateResponsive",
+        "watchRhythmGui"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 3
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "StarterPlayer/StarterPlayerScripts/StageFeedbackClient.client.lua",
+      "scanRoot": "StarterPlayer/StarterPlayerScripts",
+      "family": "client-ui",
+      "bytes": 10455,
+      "lines": 246,
+      "exportedFunctions": [
+        "pulseColor",
+        "flashLighting",
+        "hapticPulse",
+        "cameraShake",
+        "pulseWorldLights",
+        "lightningMode",
+        "showCinematicText",
+        "updateStageColor",
+        "pulseFeedbackParts",
+        "playGroan"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "StarterPlayer/StarterPlayerScripts/UIUXMenuController.client.lua",
+      "scanRoot": "StarterPlayer/StarterPlayerScripts",
+      "family": "client-ui",
+      "bytes": 8542,
+      "lines": 218,
+      "exportedFunctions": [
+        "rhythmRoot",
+        "setNavigationVisible",
+        "setRhythmHudVisible",
+        "setSongSelect",
+        "setResults",
+        "focusMessageFor",
+        "storeTabFor",
+        "openStoreLike",
+        "openAudience",
+        "requestGuiClose",
+        "closeExternal",
+        "Controller.closeMenu",
+        "Controller.closeAllMenus",
+        "Controller.openMenu",
+        "Controller.closeTopMenu",
+        "Controller.back",
+        "Controller.isMenuOpen",
+        "Controller.setGameMode",
+        "Controller.showNavigation",
+        "Controller.hideNavigation"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Config.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "config-registry",
+      "bytes": 5463,
+      "lines": 205,
+      "exportedFunctions": [
+        "Config.Clamp",
+        "Config.DeepCopy"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/CosmeticConfig.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "config-registry",
+      "bytes": 5258,
+      "lines": 84,
+      "exportedFunctions": [
+        "CosmeticConfig.Get",
+        "CosmeticConfig.GetDefaultOwned",
+        "CosmeticConfig.GetVisualProfile"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/ProjectReadme.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "config-registry",
+      "bytes": 377,
+      "lines": 11,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Types.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "config-registry",
+      "bytes": 1083,
+      "lines": 24,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/EconomyConfig.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "economy-wallet",
+      "bytes": 1284,
+      "lines": 43,
+      "exportedFunctions": [
+        "Config.GetXPForLevel",
+        "Config.GetDifficultyProfile"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UpgradeConfig.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "economy-wallet",
+      "bytes": 1036,
+      "lines": 23,
+      "exportedFunctions": [
+        "Config.GetCost"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/EconomyService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "economy-wallet",
+      "bytes": 15441,
+      "lines": 367,
+      "exportedFunctions": [
+        "EconomyService:Init",
+        "EconomyService:LevelFromXP",
+        "ensureMap",
+        "addUnique",
+        "ensureRoomProgress",
+        "EconomyService:_applyRoomProgress",
+        "EconomyService:FinalizeSong"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/StoreService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "economy-wallet",
+      "bytes": 3677,
+      "lines": 112,
+      "exportedFunctions": [
+        "StoreService:Init",
+        "StoreService:IsDebounced",
+        "StoreService:GetPrice",
+        "StoreService:PurchaseItem",
+        "StoreService:EquipItem",
+        "StoreService:GetCatalog"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/UpgradeService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "economy-wallet",
+      "bytes": 2800,
+      "lines": 95,
+      "exportedFunctions": [
+        "UpgradeService:Init",
+        "UpgradeService:GetUpgradeLevel",
+        "UpgradeService:GetCost",
+        "UpgradeService:PurchaseUpgrade",
+        "UpgradeService:GetSessionBonus"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "StarterPlayer/StarterPlayerScripts/StoreClient.client.lua",
+      "scanRoot": "StarterPlayer/StarterPlayerScripts",
+      "family": "economy-wallet",
+      "bytes": 16386,
+      "lines": 222,
+      "exportedFunctions": [
+        "ensureScreenGui",
+        "corner",
+        "stroke",
+        "label",
+        "button",
+        "updateScale",
+        "owned",
+        "equipped",
+        "canAfford",
+        "clearList",
+        "setOutcome",
+        "card",
+        "renderOutcomeCards",
+        "renderMissions",
+        "render",
+        "closePanel",
+        "watchRhythmGui",
+        "update"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "StarterPlayer/StarterPlayerScripts/NPCDialogueClient.client.lua",
+      "scanRoot": "StarterPlayer/StarterPlayerScripts",
+      "family": "life-sim",
+      "bytes": 4615,
+      "lines": 133,
+      "exportedFunctions": [
+        "menuColor",
+        "activeSong",
+        "show"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/DataService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "profile-store",
+      "bytes": 8217,
+      "lines": 260,
+      "exportedFunctions": [
+        "cloneDefaults",
+        "ensureDataShape",
+        "snapshot",
+        "ensureLeaderstats",
+        "setValue",
+        "syncLeaderstats",
+        "DataService:Init",
+        "DataService:GetProfile",
+        "DataService:SetProfile",
+        "DataService:UpdateProfile",
+        "DataService:LoadPlayer",
+        "DataService:SavePlayer",
+        "DataService:PlayerAdded",
+        "DataService:PlayerRemoving",
+        "DataService:Award",
+        "DataService:SpendCurrency",
+        "DataService:EnsureOwned",
+        "DataService:HasOwned",
+        "DataService:GetSnapshot",
+        "DataService:StartAutosave"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 7
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "StarterPlayer/StarterPlayerScripts/DataClient.client.lua",
+      "scanRoot": "StarterPlayer/StarterPlayerScripts",
+      "family": "profile-store",
+      "bytes": 11194,
+      "lines": 316,
+      "exportedFunctions": [
+        "ensureScreenGui",
+        "corner",
+        "stroke",
+        "makeButton",
+        "actionButton",
+        "openStoreTab",
+        "openSongs",
+        "findRhythmScreenGui",
+        "refreshSongActiveChrome",
+        "bindRhythmGui",
+        "update"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/AntiExploitService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "remote-security",
+      "bytes": 6749,
+      "lines": 174,
+      "exportedFunctions": [
+        "now",
+        "getBucket",
+        "AntiExploitService:Init",
+        "AntiExploitService:Clear",
+        "AntiExploitService:CheckRate",
+        "AntiExploitService:ValidateNoteHit",
+        "AntiExploitService:ValidatePurchase",
+        "AntiExploitService:ValidateEquip",
+        "AntiExploitService:ValidateBuffUse",
+        "AntiExploitService:ValidateAttack"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/MissionConfig.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "room-session",
+      "bytes": 3171,
+      "lines": 36,
+      "exportedFunctions": [
+        "MissionConfig.GetAll"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/VenueConfig.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "room-session",
+      "bytes": 1412,
+      "lines": 24,
+      "exportedFunctions": [
+        "VenueConfig.Get",
+        "VenueConfig.ListIds"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/WorldV2/RoomConfig.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "room-session",
+      "bytes": 22240,
+      "lines": 618,
+      "exportedFunctions": [
+        "copyArray",
+        "RoomConfig.GetRooms",
+        "RoomConfig.GetRoom",
+        "RoomConfig.GetDefaultRoom",
+        "RoomConfig.IsDifficultyAllowed",
+        "RoomConfig.GetDifficulty",
+        "RoomConfig.BuildRewardSummary",
+        "cframeFromPad",
+        "RoomConfig.GetRoomSpace",
+        "RoomConfig.GetLaunchCFrame",
+        "RoomConfig.GetReturnCFrame",
+        "RoomConfig.GetAssetSearchSlots",
+        "RoomConfig.GetReviewSpaces"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/MissionService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "room-session",
+      "bytes": 4673,
+      "lines": 132,
+      "exportedFunctions": [
+        "MissionService:Init",
+        "ensureProgress",
+        "MissionService:EnsureProfile",
+        "MissionService:ResetIfNeeded",
+        "MissionService:RecordEvent",
+        "process",
+        "findMission",
+        "MissionService:ClaimMission",
+        "MissionService:GetSnapshot"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/RoomService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "room-session",
+      "bytes": 37364,
+      "lines": 996,
+      "exportedFunctions": [
+        "profileLevel",
+        "objectiveSector",
+        "participantUserIds",
+        "RoomService:Init",
+        "cloneRoomSummary",
+        "RoomService:_queue",
+        "RoomService:_publicRoomSession",
+        "RoomService:_roomObjectiveSnapshot",
+        "RoomService:_roomSnapshot",
+        "RoomService:_refreshQueueState",
+        "RoomService:_buildSessionId",
+        "RoomService:_buildParticipants",
+        "RoomService:_teleportPlayer",
+        "RoomService:_teleportRoomSession",
+        "RoomService:_ensureRoomSession",
+        "RoomService:GetPlayerRoomSession",
+        "RoomService:_markParticipantStatus",
+        "RoomService:_roomSessionHasActivePlayers",
+        "RoomService:_closeRoomSession",
+        "RoomService:FinishPlayerRoomSession"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/TourBusService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "room-session",
+      "bytes": 3912,
+      "lines": 108,
+      "exportedFunctions": [
+        "TourBusService:Init",
+        "TourBusService:GetProfile",
+        "TourBusService:GetModifiers",
+        "TourBusService:GetCost",
+        "TourBusService:PurchaseUpgrade",
+        "TourBusService:ApplyRewardModifiers"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/VenueService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "room-session",
+      "bytes": 1028,
+      "lines": 36,
+      "exportedFunctions": [
+        "VenueService:Init",
+        "VenueService:GetVenue",
+        "VenueService:GetRewardModifiers",
+        "VenueService:GetFeeMultiplier",
+        "VenueService:GetVenueName"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "StarterPlayer/StarterPlayerScripts/RoomClient.client.lua",
+      "scanRoot": "StarterPlayer/StarterPlayerScripts",
+      "family": "room-session",
+      "bytes": 18105,
+      "lines": 488,
+      "exportedFunctions": [
+        "refreshPanelScale",
+        "roomOrder",
+        "findSelectedRoom",
+        "describeReward",
+        "describeObjectiveProgress",
+        "describeQueue",
+        "refreshSongChip",
+        "findRhythmScreenGui",
+        "refreshSongActiveState",
+        "bindRhythmGui",
+        "describeArtReadiness",
+        "roomStatusColor",
+        "makeLabel",
+        "updateCanvas",
+        "fireJoin",
+        "buildRoomCard",
+        "clearCards",
+        "renderRoomCards",
+        "applySnapshot",
+        "toast"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/AttackConfig.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 1312,
+      "lines": 19,
+      "exportedFunctions": [
+        "AttackConfig.Get"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/BuffConfig.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 1856,
+      "lines": 26,
+      "exportedFunctions": [
+        "BuffConfig.Get"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_CarryOkie_yt_WHayJZ3eMcE.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 18000,
+      "lines": 512,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong001.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11962,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong005.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11981,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong008.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11945,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong009.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12007,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong011.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11969,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong015.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12025,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong016.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12071,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong017.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11962,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong018.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12045,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong021.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12077,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong022.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11936,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong024.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11960,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong026.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12080,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong027.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11990,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong028.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12024,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong032.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12046,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong033.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11930,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong036.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11974,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong037.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11910,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong038.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11913,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Chart_LocalAudioSong039.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12037,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/ChartService.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 7072,
+      "lines": 187,
+      "exportedFunctions": [
+        "copyNote",
+        "cloneSong",
+        "ChartService.GetDifficultyConfig",
+        "ChartService.GetSegmentConfig",
+        "addTransformedNote",
+        "ChartService.BuildDifficultyChart",
+        "resolveSegmentStart",
+        "ChartService.BuildPlayableChart"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/Scoring.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 3540,
+      "lines": 110,
+      "exportedFunctions": [
+        "clamp",
+        "Scoring.ResolveJudgement",
+        "Scoring.GetScoreValue",
+        "Scoring.GetMultiplier",
+        "Scoring.GetGrade",
+        "Scoring.GetAccuracyPercent",
+        "Scoring.GetHypeTier",
+        "Scoring.GetNoteWindowState",
+        "Scoring.BuildSummary"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/SongCatalog.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 7741,
+      "lines": 234,
+      "exportedFunctions": [
+        "trim",
+        "titleCase",
+        "cleanRawTitle",
+        "validSong",
+        "addSong",
+        "SongCatalog.Get",
+        "SongCatalog.List",
+        "SongCatalog.ListLocalTests",
+        "SongCatalog.GetDefaultSong",
+        "SongCatalog.PrettyTitle"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 4
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong002.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11924,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong003.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11938,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong004.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11872,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong006.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11968,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong007.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12010,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong010.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12049,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong012.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12056,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong013.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12142,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong014.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11922,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong019.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11939,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong020.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11978,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong023.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11872,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong025.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11843,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong029.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12024,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong030.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11972,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong031.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 12013,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong034.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11909,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UkedCharts/Chart_LocalAudioSong035.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "score-and-timing",
+      "bytes": 11916,
+      "lines": 132,
+      "exportedFunctions": [
+        "note"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/BuffAttackService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "score-and-timing",
+      "bytes": 5739,
+      "lines": 165,
+      "exportedFunctions": [
+        "BuffAttackService:Init",
+        "getNow",
+        "BuffAttackService:_ensureSessionState",
+        "BuffAttackService:CanUse",
+        "BuffAttackService:ApplyBuff",
+        "BuffAttackService:GetAttackCooldown",
+        "BuffAttackService:ApplyAttack",
+        "BuffAttackService:ApplyMissMitigation",
+        "BuffAttackService:ShouldIgnoreCrowd",
+        "BuffAttackService:VisualModifiers"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/HypeService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "score-and-timing",
+      "bytes": 1878,
+      "lines": 64,
+      "exportedFunctions": [
+        "HypeService:Init",
+        "HypeService:GetTier",
+        "HypeService:ApplyDelta",
+        "HypeService:ApplyStartBonus",
+        "HypeService:ApplyPerfect",
+        "HypeService:ApplyGood",
+        "HypeService:ApplyMiss",
+        "HypeService:ApplyAudienceAction"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/SongSessionService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "score-and-timing",
+      "bytes": 26655,
+      "lines": 642,
+      "exportedFunctions": [
+        "now",
+        "SongSessionService:Init",
+        "SongSessionService:GetSession",
+        "SongSessionService:GetSessionById",
+        "SongSessionService:GetWatchingSession",
+        "SongSessionService:_buildSessionId",
+        "SongSessionService:_attachNotes",
+        "SongSessionService:_buildGroanPayload",
+        "SongSessionService:_createSession",
+        "GetSongTime",
+        "shallowCopy",
+        "participantUserIds",
+        "SongSessionService:_fireStartSong",
+        "SongSessionService:_startSessionForPlayer",
+        "SongSessionService:_startRoomCrewSong",
+        "SongSessionService:StartSong",
+        "SongSessionService:StartDefaultSong",
+        "SongSessionService:NoteHit",
+        "SongSessionService:UseBuff",
+        "SongSessionService:UseAttack"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "StarterPlayer/StarterPlayerScripts/RhythmClient.client.lua",
+      "scanRoot": "StarterPlayer/StarterPlayerScripts",
+      "family": "score-and-timing",
+      "bytes": 49402,
+      "lines": 1157,
+      "exportedFunctions": [
+        "serverNow",
+        "ensureScreenGui",
+        "corner",
+        "stroke",
+        "makeLabel",
+        "makeButton",
+        "routeMenu",
+        "closeMenu",
+        "restoreLobby",
+        "makeNavButton",
+        "setPerformanceUiVisible",
+        "refreshOptionButtons",
+        "applySongSelectResponsiveLayout",
+        "applyResultsResponsiveLayout",
+        "appendLimitedList",
+        "formatHelperAffinity",
+        "formatRoomUnlockSummary",
+        "stopSongAudio",
+        "playSongAudio",
+        "isPlayableAssetId"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 9
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/AudienceService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "service-lifecycle",
+      "bytes": 5618,
+      "lines": 156,
+      "exportedFunctions": [
+        "AudienceService:Init",
+        "isInAudienceZone",
+        "AudienceService:RefreshWatcher",
+        "AudienceService:IsWatching",
+        "AudienceService:ApplyAudienceAction"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/GameBootstrap.server.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "service-lifecycle",
+      "bytes": 11629,
+      "lines": 274,
+      "exportedFunctions": [
+        "ensureFolder",
+        "ensureRemote",
+        "createRemotes",
+        "loadServices",
+        "startServices",
+        "wireRemotes",
+        "installWorldV2Diagnostics",
+        "OnInvoke",
+        "installSpawnSafety",
+        "protectCharacter",
+        "startWorldV2Atmosphere",
+        "onPlayerAdded"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 6
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/ScoreService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "service-lifecycle",
+      "bytes": 9100,
+      "lines": 249,
+      "exportedFunctions": [
+        "adjustMultiplier",
+        "now",
+        "ScoreService:Init",
+        "ScoreService:CreateState",
+        "ScoreService:GetTimingBonus",
+        "ScoreService:GetGoodWindowBonus",
+        "ScoreService:GetHypeOnHit",
+        "ScoreService:GetMissDamage",
+        "ScoreService:GetMissPenalty",
+        "ScoreService:ApplyJudgement",
+        "ScoreService:ApplyMissIfNeeded",
+        "ScoreService:IsChorusSection",
+        "ScoreService:Finalize"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/GameTestHarness.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "test-harness",
+      "bytes": 11878,
+      "lines": 242,
+      "exportedFunctions": [
+        "assertCreatorStudioAuditedAssetsOnly",
+        "assertAuditedUiAssetContract",
+        "assertUiAuditFixture",
+        "notePayload",
+        "GameTestHarness.BuildSimulatedRun",
+        "GameTestHarness.Run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/UnitTests.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "test-harness",
+      "bytes": 85909,
+      "lines": 1362,
+      "exportedFunctions": [
+        "fail",
+        "expectEqual",
+        "expect",
+        "requireServerServiceClone",
+        "makeSong",
+        "testScoring",
+        "testChartSegments",
+        "testCatalogTitles",
+        "testSongCounts",
+        "testAssetAuditService",
+        "testAssetRegistryMissingBehavior",
+        "testWorldValidationPlaceholderDetection",
+        "testWorldValidationRejectsFakeAuditedSourceIds",
+        "testWorldValidationScriptDetection",
+        "testFanNpcCreatorLocalManifest",
+        "testVendorDialoguePrompts",
+        "testCreatorStoreBucketManifestSource",
+        "testConfigLanes",
+        "testAntiExploit",
+        "getScriptSource"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 7
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/WorldV2/HordeSectorDefinitions.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "world-layout",
+      "bytes": 259,
+      "lines": 11,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/WorldV2/PolarLayout.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "world-layout",
+      "bytes": 1320,
+      "lines": 42,
+      "exportedFunctions": [
+        "PolarLayout.position",
+        "PolarLayout.cframeFacingCenter",
+        "PolarLayout.cframeFacingOut",
+        "PolarLayout.distribute"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/WorldV2/VendorDefinitions.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "world-layout",
+      "bytes": 2347,
+      "lines": 11,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/WorldV2/WorldV2Config.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "world-layout",
+      "bytes": 1395,
+      "lines": 42,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ReplicatedStorage/Shared/WorldV2/WorldValidation.lua",
+      "scanRoot": "ReplicatedStorage/Shared",
+      "family": "world-layout",
+      "bytes": 24954,
+      "lines": 442,
+      "exportedFunctions": [
+        "add",
+        "isVisibleBasePart",
+        "matchesAnyPattern",
+        "placementCategory",
+        "resolvePath",
+        "auditedSourcePath",
+        "getServerStorage",
+        "countActive",
+        "WorldValidation.Run"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 4
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/CircularHordeVisualService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "world-layout",
+      "bytes": 1189,
+      "lines": 27,
+      "exportedFunctions": [
+        "CircularHordeVisualService.ApplyUpdate"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/HordeService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "world-layout",
+      "bytes": 47997,
+      "lines": 1048,
+      "exportedFunctions": [
+        "clampDistance",
+        "clampHealth",
+        "stateFor",
+        "newSectorState",
+        "weakestSector",
+        "sectorOrdinal",
+        "listHasSector",
+        "pressureForCue",
+        "sessionHasBoost",
+        "sessionHasHelper",
+        "biasForJudgement",
+        "scoreSectorTarget",
+        "setTargeting",
+        "helperReady",
+        "actionKindForCue",
+        "roundedTenths",
+        "actionChoreography",
+        "HordeService:Init",
+        "HordeService:_payload",
+        "HordeService:_paintWorldSector"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/VendorPromptService.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "world-layout",
+      "bytes": 7932,
+      "lines": 170,
+      "exportedFunctions": [
+        "getVendorDef",
+        "fireDialogue",
+        "configurePrompt",
+        "fireMenu",
+        "pulseWorldFeedback",
+        "VendorPromptService.Bind"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 8
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "ServerScriptService/Services/WorldV2Builder.lua",
+      "scanRoot": "ServerScriptService/Services",
+      "family": "world-layout",
+      "bytes": 86961,
+      "lines": 1468,
+      "exportedFunctions": [
+        "ensureFolder",
+        "ensureModel",
+        "setPartProps",
+        "part",
+        "markPlacedArt",
+        "artPart",
+        "hideInstanceVisuals",
+        "invisible",
+        "surfaceLabel",
+        "hideRejectedImportedBulkArt",
+        "hideLegacyGeneratedScaffold",
+        "buildStageCore",
+        "buildLightingAndTrusses",
+        "buildTourBusSpawnPath",
+        "buildRoomPortalRing",
+        "truncateLabel",
+        "roomEncounterHint",
+        "buildRoomObjectiveStations",
+        "buildRoomHazardLanes",
+        "buildRoomHelperNPCs"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 10
+    },
+    {
+      "project": "groantubehero",
+      "projectName": "GroanTubeHero",
+      "relativePath": "StarterPlayer/StarterPlayerScripts/HordeClient.client.lua",
+      "scanRoot": "StarterPlayer/StarterPlayerScripts",
+      "family": "world-layout",
+      "bytes": 27278,
+      "lines": 554,
+      "exportedFunctions": [
+        "setModelPrimaryPart",
+        "getSector",
+        "getCluster",
+        "fallbackHordePoints",
+        "colorForCue",
+        "cueType",
+        "cueStrength",
+        "cueRadiusOffset",
+        "addMovementCue",
+        "actionPart",
+        "sectorCFrame",
+        "actionNumber",
+        "actionInteger",
+        "offsetSectorCFrame",
+        "renderNpcAction",
+        "tweenCluster",
+        "updateSectorVisuals",
+        "pulse",
+        "scanClusters"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 6
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/gameCoverage.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 5511,
+      "lines": 163,
+      "exportedFunctions": [
+        "slugify",
+        "unique",
+        "themeHints",
+        "roomSlots",
+        "buildGameAssetCoverage",
+        "formatGameAssetCoverage"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/headlessPipeline.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 20008,
+      "lines": 496,
+      "exportedFunctions": [
+        "slugify",
+        "clampInt",
+        "uniqueThemes",
+        "coverageForFragment",
+        "normalizeAssemblyProfile",
+        "profileSettings",
+        "buildWorkPackets",
+        "buildHeadlessAssemblyPlan",
+        "asObject",
+        "stringField",
+        "normalizeIdentityPolicy",
+        "collectScriptSources",
+        "approvedPatternIds",
+        "validateFragmentManifest",
+        "formatHeadlessAssemblyPlan",
+        "formatFragmentManifestReport"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/index.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 46499,
+      "lines": 934,
+      "exportedFunctions": [
+        "rankedSearch",
+        "applyExcludes",
+        "applyPublishPermissionFilter",
+        "annotationSuffix",
+        "formatAsset",
+        "formatPaletteSeed",
+        "shardForAssetId",
+        "pagesLayout",
+        "collectAssetIdsForSnapshot",
+        "buildAssetBrainSnapshot",
+        "formatAssetBrainSnapshot",
+        "normalizeInspection",
+        "normalizePermissionArgs",
+        "publishValidationOptions",
+        "formatPublishPermissionValidation",
+        "main"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/playableSpaceReview.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 16949,
+      "lines": 470,
+      "exportedFunctions": [
+        "slugify",
+        "normalizeReviewMode",
+        "vec",
+        "normalizeSpace",
+        "cameraForQuadrant",
+        "reverseFor",
+        "capture",
+        "buildPlayableSpaceReviewPlan",
+        "asObject",
+        "normalizeIdList",
+        "normalizeScreenshot",
+        "normalizeFinding",
+        "inferSpacesFromReport",
+        "buildPlanForReviewReport",
+        "validatePlayableSpaceReview",
+        "formatPlayableSpaceReviewPlan",
+        "formatPlayableSpaceReviewValidation"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 5
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/propHuntGate.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 8526,
+      "lines": 221,
+      "exportedFunctions": [
+        "normalizeToken",
+        "slotSegments",
+        "tokensForSlot",
+        "classifySlot",
+        "boolValue",
+        "numberValue",
+        "sizeObject",
+        "maxDimension",
+        "inspectionScriptCount",
+        "inspectionBasePartCount",
+        "inspectionHasScripts",
+        "inspectionAnchoredCapable",
+        "inspectionPrimaryPart",
+        "areaStatsTemplate",
+        "validatePropHuntGate",
+        "formatPropHuntGateReport"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/toolbox.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 6152,
+      "lines": 183,
+      "exportedFunctions": [
+        "expandQuery",
+        "mapLimit",
+        "fetchJson",
+        "scoreAsset",
+        "normalizeAsset",
+        "fetchOneQuery",
+        "searchAssets"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/visualBatchGate.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 10859,
+      "lines": 301,
+      "exportedFunctions": [
+        "slugify",
+        "vec",
+        "vectorLua",
+        "cameraLua",
+        "preflightLua",
+        "expectedPlaceNames",
+        "normalizeAdapter",
+        "screenshotPath",
+        "captureInstruction",
+        "buildBatchVisualGatePlan",
+        "normalizeScreenshotResult",
+        "validateBatchVisualGateReport",
+        "formatBatchVisualGatePlan",
+        "formatBatchVisualGateValidation"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "scripts/merge_asset_brain_sources.mjs",
+      "scanRoot": "scripts",
+      "family": "asset-audit",
+      "bytes": 23725,
+      "lines": 614,
+      "exportedFunctions": [
+        "tildePath",
+        "exists",
+        "readJson",
+        "readText",
+        "readNdjson",
+        "addToSet",
+        "mergeRecord",
+        "countBy",
+        "collectSharedMcpBrain",
+        "collectEggBreakers",
+        "parseGroanPaletteDoc",
+        "parseGroanAssetManifest",
+        "collectGroanTubeHero",
+        "collectRepoAreas",
+        "buildManifest",
+        "toNdjson",
+        "toMarkdown",
+        "main"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 4
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "src/client/init.client.luau",
+      "scanRoot": "src/client",
+      "family": "client-ui",
+      "bytes": 8371,
+      "lines": 267,
+      "exportedFunctions": [
+        "showToast",
+        "includesUserId",
+        "currentRole",
+        "isHiderActive",
+        "scoreForLocalPlayer",
+        "updateRoomText",
+        "nearestProp"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "src/shared/Config.luau",
+      "scanRoot": "src/shared",
+      "family": "config-registry",
+      "bytes": 3329,
+      "lines": 132,
+      "exportedFunctions": [],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/store.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "economy-wallet",
+      "bytes": 18478,
+      "lines": 450,
+      "exportedFunctions": [
+        "brainDir",
+        "readJson",
+        "writeJsonAtomic",
+        "normalizeAccess",
+        "defaultPublishPolicy",
+        "normalizeDependency",
+        "normalizePublishPermission",
+        "dependencyPasses",
+        "evaluatePublishPermission",
+        "summarizePublishPermission",
+        "validatePalettePublishPermissions",
+        "diversify",
+        "filterByTerms"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "src/shared/Remotes.luau",
+      "scanRoot": "src/shared",
+      "family": "remote-contracts",
+      "bytes": 1015,
+      "lines": 41,
+      "exportedFunctions": [
+        "Remotes.setup",
+        "Remotes.get"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "scripts/headless_fragment_merge.luau",
+      "scanRoot": "scripts",
+      "family": "service-lifecycle",
+      "bytes": 20000,
+      "lines": 639,
+      "exportedFunctions": [
+        "fail",
+        "usage",
+        "parseArgs",
+        "readJson",
+        "stringField",
+        "isArray",
+        "basename",
+        "dirname",
+        "isAbsolutePath",
+        "resolveRelative",
+        "splitPath",
+        "getService",
+        "resolveTargetParent",
+        "normalizeIdentityPolicy",
+        "getAssetIds",
+        "getRoots",
+        "getExternalAnchors",
+        "buildApprovedPatternSet",
+        "addList",
+        "checkDigest"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 8
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "scripts/headless_place_insert_poc.luau",
+      "scanRoot": "scripts",
+      "family": "service-lifecycle",
+      "bytes": 4613,
+      "lines": 166,
+      "exportedFunctions": [
+        "makePart",
+        "makeModelSubtree"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "scripts/headless_place_verify_poc.luau",
+      "scanRoot": "scripts",
+      "family": "service-lifecycle",
+      "bytes": 1012,
+      "lines": 29,
+      "exportedFunctions": [],
+      "hasReturn": false,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "scripts/inventory_reusable_game_libraries.mjs",
+      "scanRoot": "scripts",
+      "family": "service-lifecycle",
+      "bytes": 8066,
+      "lines": 281,
+      "exportedFunctions": [
+        "exists",
+        "walk",
+        "classify",
+        "summarizeFile",
+        "match",
+        "countBy",
+        "main"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 7
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "scripts/run_ai_game_dev_pocs.mjs",
+      "scanRoot": "scripts",
+      "family": "service-lifecycle",
+      "bytes": 6269,
+      "lines": 175,
+      "exportedFunctions": [
+        "tail",
+        "exists",
+        "runCommand",
+        "skipped",
+        "main"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "scripts/studio_apply_working_visual_fixes.luau",
+      "scanRoot": "scripts",
+      "family": "service-lifecycle",
+      "bytes": 15059,
+      "lines": 416,
+      "exportedFunctions": [
+        "getOrCreateFolder",
+        "anchorAll",
+        "makePart",
+        "makeBillboard",
+        "disableOldLobbyLabels",
+        "softenRoomWalls",
+        "addLobbyGuides",
+        "cloneFromFolder",
+        "addAssetDensity",
+        "removeBadCabinCover",
+        "recolorProblemAssets",
+        "removeCameraBlockingPolish",
+        "hideOverheadNames",
+        "ensureGameShellMarkers"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "src/server/init.server.luau",
+      "scanRoot": "src/server",
+      "family": "service-lifecycle",
+      "bytes": 24394,
+      "lines": 868,
+      "exportedFunctions": [
+        "ensureTeam",
+        "setupTeams",
+        "setPlayerTeam",
+        "getOrCreateFolder",
+        "ensureMarkerPart",
+        "setupWorldMarkers",
+        "minPlayersForRoom",
+        "phaseDuration",
+        "getHideableProps",
+        "scoresSnapshot",
+        "stateForPlayer",
+        "broadcastTo",
+        "sendLobbyState",
+        "tableFromIds",
+        "setPlayerFrozen",
+        "setPlayersFrozen",
+        "clearDisguise",
+        "applyDisguise",
+        "teleportPlayer",
+        "cleanupPlayerFromRound"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 1
+    }
+  ]
+}

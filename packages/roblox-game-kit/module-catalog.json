@@ -1,0 +1,159 @@
+{
+  "schema": "roblox-game-kit-module-catalog/v1",
+  "purpose": "Reusable Roblox modules distilled from EggBreakers, GroanTubeHero, and RobloxAIDev Prop Hunt source libraries.",
+  "sourceProjects": [
+    "eggbreakers",
+    "groantubehero",
+    "robloxaidev-prophunt"
+  ],
+  "families": [
+    {
+      "id": "service-lifecycle",
+      "modulePaths": [
+        "src/ReplicatedStorage/GameKit/ServiceRegistry.luau",
+        "src/ReplicatedStorage/GameKit/Result.luau"
+      ],
+      "interface": "Register services, initialize them in dependency order, start them once, and return explicit Result records.",
+      "sourceExamples": [
+        "GroanTubeHero/ServerScriptService/Services/GameBootstrap.server.lua",
+        "eggBreakers/src/ServerScriptService/Bootstrap.lua"
+      ]
+    },
+    {
+      "id": "remote-contracts",
+      "modulePaths": [
+        "src/ReplicatedStorage/GameKit/RemoteBridge.luau"
+      ],
+      "interface": "Declare remote definitions once, create them on the server, and wait for them on clients.",
+      "sourceExamples": [
+        "RobloxAIDev/src/shared/Remotes.luau",
+        "eggBreakers/src/ReplicatedStorage/Shared/RemoteContracts.lua"
+      ]
+    },
+    {
+      "id": "remote-security",
+      "modulePaths": [
+        "src/ReplicatedStorage/GameKit/RateLimiter.luau"
+      ],
+      "interface": "Check cooldown and fixed-window action limits by player or arbitrary key.",
+      "sourceExamples": [
+        "eggBreakers/src/ServerScriptService/Services/RateLimitService.lua",
+        "GroanTubeHero/ServerScriptService/Services/AntiExploitService.lua"
+      ]
+    },
+    {
+      "id": "profile-store",
+      "modulePaths": [
+        "src/ServerScriptService/GameKit/ProfileStore.luau"
+      ],
+      "interface": "Load, migrate, cache, update, snapshot, and save player profiles through an injected DataStore adapter.",
+      "sourceExamples": [
+        "eggBreakers/src/ServerScriptService/Services/PlayerDataService.lua",
+        "GroanTubeHero/ServerScriptService/Services/DataService.lua"
+      ]
+    },
+    {
+      "id": "economy-wallet",
+      "modulePaths": [
+        "src/ReplicatedStorage/GameKit/EconomyWallet.luau"
+      ],
+      "interface": "Grant, spend, and validate multi-currency rewards against a profile table.",
+      "sourceExamples": [
+        "eggBreakers/src/ReplicatedStorage/Shared/EconomyConfig.lua",
+        "GroanTubeHero/ServerScriptService/Services/EconomyService.lua"
+      ]
+    },
+    {
+      "id": "score-and-timing",
+      "modulePaths": [
+        "src/ReplicatedStorage/GameKit/ScoringRules.luau"
+      ],
+      "interface": "Resolve judgement windows, grades, multipliers, accuracy, and session summaries.",
+      "sourceExamples": [
+        "GroanTubeHero/ReplicatedStorage/Shared/Scoring.lua",
+        "GroanTubeHero/ReplicatedStorage/Shared/ChartService.lua"
+      ]
+    },
+    {
+      "id": "room-session",
+      "modulePaths": [
+        "src/ReplicatedStorage/GameKit/RoomQueue.luau",
+        "src/ReplicatedStorage/GameKit/RoundPhaseMachine.luau"
+      ],
+      "interface": "Queue players into rooms and drive deterministic phase transitions for rounds or sessions.",
+      "sourceExamples": [
+        "RobloxAIDev/src/server/init.server.luau",
+        "GroanTubeHero/ServerScriptService/Services/RoomService.lua"
+      ]
+    },
+    {
+      "id": "world-layout",
+      "modulePaths": [
+        "src/ReplicatedStorage/GameKit/PolarLayout.luau",
+        "src/ReplicatedStorage/GameKit/PlacementRules.luau",
+        "src/ReplicatedStorage/GameKit/WorldMarkers.luau"
+      ],
+      "interface": "Compute reusable world positions, create marker parts, and validate placement plans against zones, routes, and category rules.",
+      "sourceExamples": [
+        "GroanTubeHero/ReplicatedStorage/Shared/WorldV2/PolarLayout.lua",
+        "eggBreakers/src/ServerScriptService/Services/PlacementValidationService.lua"
+      ]
+    },
+    {
+      "id": "asset-audit",
+      "modulePaths": [
+        "src/ReplicatedStorage/GameKit/AssetAudit.luau"
+      ],
+      "interface": "Count imported asset contents, surface script risk, and optionally quarantine executable scripts.",
+      "sourceExamples": [
+        "GroanTubeHero/ReplicatedStorage/Shared/WorldV2/AssetAuditService.lua",
+        "eggBreakers/src/ServerScriptService/Services/AssetImportAuditService.lua"
+      ]
+    },
+    {
+      "id": "config-registry",
+      "modulePaths": [
+        "src/ReplicatedStorage/GameKit/ConfigRegistry.luau",
+        "src/ReplicatedStorage/GameKit/DeepCopy.luau"
+      ],
+      "interface": "Register named config tables, deep-copy defaults, and retrieve project-specific adapters without mutating source config.",
+      "sourceExamples": [
+        "GroanTubeHero/ReplicatedStorage/Shared/Config.lua",
+        "eggBreakers/src/ReplicatedStorage/Shared/SpeciesRoster.lua"
+      ]
+    },
+    {
+      "id": "life-sim",
+      "modulePaths": [
+        "src/ReplicatedStorage/GameKit/StatRules.luau"
+      ],
+      "interface": "Apply bounded stat drains, regeneration, damage, and resource clamps for survival or combat loops.",
+      "sourceExamples": [
+        "eggBreakers/src/ServerScriptService/Services/SurvivalService.lua",
+        "eggBreakers/src/ServerScriptService/Services/OxygenService.lua"
+      ]
+    },
+    {
+      "id": "client-ui",
+      "modulePaths": [
+        "src/ReplicatedStorage/GameKit/ClientStateStore.luau"
+      ],
+      "interface": "Keep small client state snapshots and subscriber callbacks isolated from game-specific UI rendering.",
+      "sourceExamples": [
+        "GroanTubeHero/ReplicatedStorage/Shared/ClientState.lua",
+        "RobloxAIDev/src/client/init.client.luau"
+      ]
+    },
+    {
+      "id": "test-harness",
+      "modulePaths": [
+        "src/ReplicatedStorage/GameKit/TestHarness.luau"
+      ],
+      "interface": "Run table-based tests and return a machine-readable result without hiding failures.",
+      "sourceExamples": [
+        "eggBreakers/src/ReplicatedStorage/Shared/TestFramework/TestRunner.lua",
+        "GroanTubeHero/ReplicatedStorage/Shared/UnitTests.lua"
+      ]
+    }
+  ]
+}

@@ -23,6 +23,12 @@ import {
   formatPlayableSpaceReviewValidation,
   validatePlayableSpaceReview,
 } from "./playableSpaceReview.js";
+import {
+  buildBatchVisualGatePlan,
+  formatBatchVisualGatePlan,
+  formatBatchVisualGateValidation,
+  validateBatchVisualGateReport,
+} from "./visualBatchGate.js";
 import { formatPropHuntGateReport, validatePropHuntGate } from "./propHuntGate.js";
 
 const store = new Store();
@@ -425,6 +431,59 @@ server.tool(
   async (args) => {
     const result = validatePlayableSpaceReview(args.report, args.plan);
     return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatPlayableSpaceReviewValidation(result));
+  }
+);
+
+server.tool(
+  "plan_batch_visual_gate",
+  "Create a serial StudioMCP batch screenshot gate from a playable-space review plan. The returned packet includes active-place preflight Luau, deterministic camera steps, screen_capture requests, collation paths, accessibility fields, and a report template so a Studio wrapper can capture all views with minimal agent calls.",
+  {
+    project: z.string().optional().describe("Project name for capture ids (default: prophunt)."),
+    target_place: z.string().optional().describe("Expected active Studio place name/file, e.g. GroanTubeHero.rbxl or eggBreakers3.rbxl."),
+    review_mode: z.enum(["full", "player_angle"]).optional(),
+    spaces: z.array(z.object({
+      id: z.string().optional(),
+      name: z.string().optional(),
+      type: z.string().optional(),
+      center: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
+      size: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
+      entry: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
+      look_at: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
+      quadrants: z.array(z.string()).optional(),
+      ui_states: z.array(z.string()).optional(),
+    })).optional().describe("Optional custom playable spaces. Defaults to Place1 Prop Hunt spaces."),
+    include_defaults: z.boolean().optional().describe("Use default Prop Hunt spaces when spaces is empty (default true)."),
+    adapter: z.enum(["studio_mcp_proxy", "manual_studio_mcp"]).optional().describe("Studio execution adapter contract."),
+    artifact_root: z.string().optional().describe("Where the wrapper should write screenshots and the collated manifest."),
+    max_captures: z.number().int().min(1).max(200).optional().describe("Optional cap for smoke runs."),
+    format: z.enum(["text", "json"]).optional(),
+  },
+  async (args) => {
+    const plan = buildBatchVisualGatePlan({
+      project: args.project || "prophunt",
+      targetPlace: args.target_place || "Place1.rbxl",
+      reviewMode: args.review_mode || "full",
+      spaces: args.spaces || [],
+      includeDefaults: args.include_defaults !== false,
+      adapter: args.adapter,
+      artifactRoot: args.artifact_root,
+      maxCaptures: args.max_captures,
+    });
+    return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatBatchVisualGatePlan(plan));
+  }
+);
+
+server.tool(
+  "validate_batch_visual_gate",
+  "Validate the collated output from a StudioMCP batch screenshot wrapper. Requires active-place preflight proof, image paths for every planned capture, and a passing playable-space review report.",
+  {
+    batch_report: z.record(z.any()),
+    plan: z.record(z.any()).optional().describe("Optional plan from plan_batch_visual_gate(format='json')."),
+    format: z.enum(["text", "json"]).optional(),
+  },
+  async (args) => {
+    const result = validateBatchVisualGateReport(args.batch_report, args.plan);
+    return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatBatchVisualGateValidation(result));
   }
 );
 

@@ -13,8 +13,13 @@ is the validation gate** that proves the pipeline end to end.
   per-slot curation, a shared review cache, Studio inspection memory, a committed
   palette, the repo-side Prop Hunt asset gate, and headless fragment assembly
   planning for parallel `.rbxm` work packets, plus playable-space screenshot
-  review gating. Decoupled from the Roblox Studio MCP. See
+  review gating and a batch Studio visual-gate contract. Decoupled from the
+  Roblox Studio MCP. See
   [`asset-search-mcp/README.md`](asset-search-mcp/README.md).
+- **`asset-brain/v1/`** — the merged cross-project asset brain. It folds
+  metadata from the shared local MCP brain, EggBreakers, GroanTubeHero, and
+  prior RobloxAIGameDev copies into one repo-visible snapshot. Regenerate it with
+  `node scripts/merge_asset_brain_sources.mjs`.
 - **`skills/asset-driven-game-design/`** — the Claude skill that orchestrates the
   two MCPs (this search MCP for discovery, the official StudioMCP for building +
   geometric measurement) using a parallel fan-out / fan-in workflow.
@@ -147,6 +152,47 @@ For visual signoff, call `plan_playable_space_review`, capture the returned
 Studio screenshot queue, log findings/fixes, then run
 `validate_playable_space_review`. Missing player-height quadrants or unresolved
 major/blocker issues mean the map is not signed off.
+
+For lower-churn Studio proof, call `plan_batch_visual_gate` instead. It wraps a
+playable-space plan with active-place preflight, deterministic camera moves,
+`screen_capture` requests, screenshot collation paths, and a report template.
+Run the resulting packet through a StudioMCP adapter, then call
+`validate_batch_visual_gate` on the collated report. See
+[`docs/batch-studio-visual-gate.md`](docs/batch-studio-visual-gate.md) and
+[`docs/cross-project-asset-brain.md`](docs/cross-project-asset-brain.md).
+
+For the larger AI game-dev process, use
+[`CONTEXT.md`](CONTEXT.md),
+[`docs/roblox-ai-game-dev-architecture.md`](docs/roblox-ai-game-dev-architecture.md),
+and [`prompts/`](prompts/) as the operator surface. The architecture keeps
+Studio as the gated validator, compares Lune, rbx-dom, Rojo, Docker-wrapped
+Studio, direct asset parsing, and Studio-first alternatives, and defines prompt
+lanes for asset brain, curation, headless fragments, merge coordination,
+gameplay implementation, visual proof, and release verification.
+
+To refresh the local proof bundle for those claims:
+
+```bash
+node scripts/run_ai_game_dev_pocs.mjs
+npm --prefix asset-search-mcp test
+```
+
+The POC runner writes a small metadata report to
+[`docs/poc-results/ai-game-dev-poc-latest.json`](docs/poc-results/ai-game-dev-poc-latest.json)
+and keeps generated Roblox binaries under ignored scratch paths.
+
+Reusable game code now lives in
+[`packages/roblox-game-kit`](packages/roblox-game-kit). Refresh the three-game
+source inventory with:
+
+```bash
+node scripts/inventory_reusable_game_libraries.mjs
+npm --prefix asset-search-mcp run test:game-kit
+```
+
+See [`docs/reusable-roblox-game-kit.md`](docs/reusable-roblox-game-kit.md) for
+the cleanup plan, fallback classifications, module family map, and migration
+order.
 
 If StudioMCP reports a different place than the one you opened, do not capture
 screenshots. See

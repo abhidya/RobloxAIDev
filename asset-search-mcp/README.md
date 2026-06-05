@@ -50,6 +50,10 @@ agents need:
 - **`plan_playable_space_review` / `validate_playable_space_review`** — plan
   and enforce the player-height screenshot gate for lobby, rooms, UI states, and
   unresolved visual blockers, including scoped asset-fix passes.
+- **`plan_batch_visual_gate` / `validate_batch_visual_gate`** — wrap a
+  playable-space plan into one StudioMCP batch job with active-place preflight,
+  deterministic camera steps, screenshot collation, accessibility fields, and a
+  final validation gate.
 
 State persists as plain JSON under `~/.roblox-asset-brain/` — no native deps, no
 build step. The cache stores metadata only: IDs, reviews, inspections, visual
@@ -83,6 +87,8 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 | `validate_fragment_manifest(manifest, format?)` | Reject unsafe or under-specified `.rbxm` fragment manifests before coordinator merge. |
 | `plan_playable_space_review(project?, review_mode?, spaces?, include_defaults?, format?)` | Generate the required Studio screenshot queue for lobby/room quadrant review and UI states. `review_mode="player_angle"` emits only player-height quadrant shots for scoped asset-fix passes. |
 | `validate_playable_space_review(report, plan?, format?)` | Fail visual signoff reports that skip spaces, player-height quadrants, required screenshot kinds, or unresolved major/blocker findings. A supplied custom plan is authoritative; otherwise custom/scoped reports are inferred before the default Prop Hunt plan is used. |
+| `plan_batch_visual_gate(project?, target_place?, review_mode?, spaces?, include_defaults?, adapter?, artifact_root?, max_captures?, format?)` | Turn a playable-space review plan into one serial StudioMCP wrapper packet with active-place preflight, camera Luau, `screen_capture` requests, collation paths, and a report template. |
+| `validate_batch_visual_gate(batch_report, plan?, format?)` | Validate a collated Studio screenshot batch: active-place proof must pass, every planned capture needs an image path, and the embedded playable-space report must pass. |
 | `search_assets(query, max_results?, categories?, verified_only?, extensive?, exclude_terms?, exclude_rejected?, exclude_claimed?, exclude_ids?, exclude_unpublishable?, publish_permission_mode?, require_studio_probe?, require_save_reopen?)` | Ranked search; auto-hides rejected/claimed; `exclude_terms` drops off-theme names; optional release-mode permission filtering uses recorded proof. |
 | `curate_assets(slots[], per_slot?, verified_only?, extensive?, exclude_terms?, exclude_claimed?, exclude_unpublishable?, publish_permission_mode?, require_studio_probe?, require_save_reopen?)` | Diverse shortlist per slot; excludes rejected + claimed; no asset suggested for two slots; optional permission filtering for release palette curation. |
 | `claim_assets(project, slot, asset_ids[], reviewer?)` | Reserve assets to a slot so other agents' results hide them — prevents collisions. |
@@ -300,6 +306,13 @@ The report file can be either the report object itself or a `{ "report": ...,
 "plan": ... }` wrapper. Omitting the plan uses custom `spaces` or
 `spaces_reviewed` when present, then defaults to the Prop Hunt capture queue.
 
+For lower-churn validation, use `plan_batch_visual_gate`. It emits one wrapper
+packet for a StudioMCP adapter: active-place preflight first, then serial camera
+and screenshot steps for every capture, then contact-sheet/alt-text/report
+collation. Feed the wrapper output to `validate_batch_visual_gate`; it fails if
+the active place was wrong, if any planned image is missing, or if the normal
+playable-space report still has missing coverage or unresolved blockers.
+
 ## Prop Hunt gate
 
 Prop Hunt is this repo's validation gate. Commit palette slots using explicit
@@ -346,6 +359,7 @@ src/index.js     MCP server + tool registrations
 src/gameCoverage.js generic Roblox lobby/session/room coverage planner
 src/headlessPipeline.js headless fragment assembly planner + manifest validator
 src/playableSpaceReview.js playable-space screenshot planner + report validator
+src/visualBatchGate.js batch StudioMCP screenshot wrapper planner + validator
 src/propHuntGate.js Prop Hunt palette + inspection validation
 fixtures/place1-prop-hunt-gate.json audited Place1 gate fixture
 scripts/import-prop-hunt-gate.mjs imports audited gate fixtures into the store

@@ -15,6 +15,10 @@ import {
   buildPlayableSpaceReviewPlan,
   validatePlayableSpaceReview,
 } from "../src/playableSpaceReview.js";
+import {
+  buildBatchVisualGatePlan,
+  validateBatchVisualGateReport,
+} from "../src/visualBatchGate.js";
 import { formatPropHuntGateReport, validatePropHuntGate } from "../src/propHuntGate.js";
 
 // ---- toolbox parsing/ranking ----
@@ -206,6 +210,51 @@ const badVisual = validatePlayableSpaceReview({
 assert.equal(badVisual.passed, false, "incomplete visual review fails");
 assert.ok(badVisual.errors.some((error) => error.includes("missing player-height quadrant")), "missing quadrant screenshot rejected");
 assert.ok(badVisual.errors.some((error) => error.includes("unresolved blocker")), "unresolved blocker rejected");
+
+// ---- Studio batch visual gate planning + collated report validation ----
+const batchGate = buildBatchVisualGatePlan({
+  project: "groan-tube-hero",
+  targetPlace: "GroanTubeHero.rbxl",
+  reviewMode: "player_angle",
+  includeDefaults: false,
+  spaces: [{
+    id: "stage_circle",
+    name: "Stage Circle",
+    center: { x: 0, y: 6, z: 0 },
+    size: { x: 80, y: 24, z: 80 },
+    quadrants: ["front", "left"],
+  }],
+});
+assert.equal(batchGate.schema, "roblox-studio-batch-visual-gate/v1", "batch visual gate schema recorded");
+assert.equal(batchGate.capture_batch.serial, true, "batch captures are serial");
+assert.ok(batchGate.studio_preflight.code.includes("placeName"), "batch preflight checks active place");
+assert.ok(batchGate.capture_batch.captures.every((shot) => shot.studio_mcp_steps.length === 2), "each batch capture sets camera then screenshots");
+assert.ok(batchGate.capture_batch.captures.every((shot) => shot.expected_image_path.endsWith(".png")), "batch captures declare image paths");
+
+const batchReport = {
+  ...batchGate.report_template,
+  preflight: {
+    passed: true,
+    placeName: "GroanTubeHero.rbxl",
+    placeId: 123,
+  },
+  screenshots: batchGate.capture_batch.captures.map((shot) => ({
+    ...shot.result_contract,
+    passed: true,
+    alt_text: `${shot.capture_id} shows the planned view`,
+  })),
+  verdict: "player_angle_signed_off",
+};
+const batchValidation = validateBatchVisualGateReport(batchReport, batchGate);
+assert.equal(batchValidation.passed, true, batchValidation.errors.join("; "));
+assert.equal(batchValidation.counts.planned_captures, 2, "batch validation counts planned captures");
+
+const badBatchValidation = validateBatchVisualGateReport({
+  ...batchReport,
+  preflight: { passed: false },
+}, batchGate);
+assert.equal(badBatchValidation.passed, false, "failed active-place preflight blocks batch signoff");
+assert.ok(badBatchValidation.errors.some((error) => error.includes("preflight")), "preflight error is explicit");
 
 // ---- shared-brain: rejections + claims + annotation ----
 const dir = path.join(os.tmpdir(), "brain-offline-" + Date.now());
