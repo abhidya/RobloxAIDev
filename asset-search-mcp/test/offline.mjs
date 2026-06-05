@@ -307,6 +307,8 @@ const loopReport = {
         "validate_ai_game_dev_loop",
         "plan_asset_acquisition",
         "validate_asset_acquisition",
+        "plan_asset_delivery",
+        "validate_asset_delivery_receipt",
         "plan_batch_visual_gate",
         "validate_batch_visual_gate",
       ],
@@ -328,7 +330,7 @@ const badLoopValidation = validateAiGameDevLoopReport({
     custom_mcp_contract: { passed: true, tools: ["plan_ai_game_dev_loop"] },
   },
 }, loopPlan);
-assert.equal(badLoopValidation.passed, false, "custom MCP proof must include validator and visual-gate tools");
+assert.equal(badLoopValidation.passed, false, "custom MCP proof must include loop, acquisition, delivery, and visual-gate tools");
 assert.ok(badLoopValidation.errors.some((error) => error.includes("validate_ai_game_dev_loop")), "missing e2e validator is explicit");
 
 // ---- shared-brain: rejections + claims + annotation ----

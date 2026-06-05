@@ -20,6 +20,9 @@ prompts should use consistently.
   source asset id, staged model path, mesh id, palette slot, or import root.
 - **Family inspection** — one-family-at-a-time orientation, scale, grounding,
   script, and player-height review before a family is reused broadly.
+- **Asset delivery receipt** — the redacted proof that an authenticated Open
+  Cloud Asset Delivery request wrote candidate bytes to quarantine with a
+  sha256 digest; it records credential presence, not credential values.
 - **Headless assembly** — creating or mutating `.rbxm`, `.rbxl`, or `.rbxlx`
   files outside Studio using Lune, rbx-dom, Rojo, or equivalent Roblox file
   writers.

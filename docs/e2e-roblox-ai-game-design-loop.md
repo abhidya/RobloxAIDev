@@ -9,7 +9,7 @@ parsers/writers, a custom MCP contract, and gated Studio validation.
 idea
   -> plan_ai_game_dev_loop
   -> asset brain coverage, curation, claims, inspections, palette proof
-  -> plan_asset_acquisition for direct delivery, Studio fallback, quarantine
+  -> plan_asset_acquisition plus plan_asset_delivery for direct delivery, Studio fallback, quarantine
   -> GameKit source adoption
   -> headless Roblox parser/writer build
   -> fragment manifest validation and coordinator merge
@@ -40,6 +40,8 @@ Supporting MCP tools:
 - `validate_publish_permissions`
 - `plan_asset_acquisition`
 - `validate_asset_acquisition`
+- `plan_asset_delivery`
+- `validate_asset_delivery_receipt`
 - `plan_headless_assembly`
 - `validate_fragment_manifest`
 - `plan_batch_visual_gate`
@@ -56,6 +58,28 @@ Use Roblox file tooling before Studio:
   authority for deterministic referent, property, and identity handling.
 
 Studio opens only after headless validation passes.
+
+## Authenticated Asset Delivery Layer
+
+Use Open Cloud Asset Delivery before Studio insertion when an asset can be
+retrieved directly:
+
+```bash
+node asset-search-mcp/scripts/run-asset-delivery.mjs \
+  --project eggbreakers \
+  --slot nursery_grove.dino_fern \
+  --asset-id 123456 \
+  --json
+```
+
+The CLI reads `ROBLOX_OPEN_CLOUD_API_KEY` or
+`ROBLOX_OPEN_CLOUD_ACCESS_TOKEN`, fetches
+`/asset-delivery-api/v1/assetId/{assetId}` or the versioned endpoint, writes
+bytes under `work/asset-acquisition/.../quarantine`, and writes a redacted
+`*.delivery-receipt.json`. Validate that receipt with
+`validate_asset_delivery_receipt` before promoting the asset into the broader
+`validate_asset_acquisition` report. The asset brain receives only metadata
+paths and proof status, never downloaded bytes or credentials.
 
 ## Gated Studio Layer
 
@@ -110,6 +134,10 @@ node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs \
       "tools": [
         "plan_ai_game_dev_loop",
         "validate_ai_game_dev_loop",
+        "plan_asset_acquisition",
+        "validate_asset_acquisition",
+        "plan_asset_delivery",
+        "validate_asset_delivery_receipt",
         "plan_batch_visual_gate",
         "validate_batch_visual_gate"
       ]

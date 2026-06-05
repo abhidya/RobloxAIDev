@@ -104,6 +104,8 @@ export function buildAiGameDevLoopPlan({
         "claim_assets",
         "plan_asset_acquisition",
         "validate_asset_acquisition",
+        "plan_asset_delivery",
+        "validate_asset_delivery_receipt",
         "record_inspection",
         "commit_palette",
         "validate_publish_permissions",
@@ -115,8 +117,7 @@ export function buildAiGameDevLoopPlan({
     },
     studio_adapter: {
       cli: "node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs",
-      current_transport: "mock",
-      future_transport: "studio_mcp_proxy",
+      transports: ["mock", "studio_mcp_stdio"],
       purpose: "Consume a batch visual gate plan, execute Studio MCP steps serially, collate screenshots/alt text/execution logs, and return the report validated by validate_batch_visual_gate.",
     },
     phases: [
@@ -161,6 +162,12 @@ export function buildAiGameDevLoopPlan({
             query: "<claimed-slot-query>",
             target_place: targetPlace,
             delivery_mode: "direct_or_studio_fallback",
+            format: "json",
+          }),
+          compactToolCall("plan_asset_delivery", {
+            project,
+            slot: "<claimed-slot>",
+            asset_id: "<claimed-asset-id>",
             format: "json",
           }),
         ],
@@ -233,6 +240,7 @@ export function buildAiGameDevLoopPlan({
         goal: "Validate every proof bundle before claiming the game is ready.",
         required_gates: [
           "asset_brain",
+          "asset_delivery_or_studio_fallback",
           "gamekit_build",
           "parser_writer_generation",
           "fragment_manifest_validation",
@@ -308,6 +316,8 @@ export function validateAiGameDevLoopReport(report, plan = null) {
     "validate_ai_game_dev_loop",
     "plan_asset_acquisition",
     "validate_asset_acquisition",
+    "plan_asset_delivery",
+    "validate_asset_delivery_receipt",
     "plan_batch_visual_gate",
     "validate_batch_visual_gate",
   ]) {

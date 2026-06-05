@@ -39,6 +39,8 @@ for (const requiredTool of [
   "validate_batch_visual_gate",
   "plan_asset_acquisition",
   "validate_asset_acquisition",
+  "plan_asset_delivery",
+  "validate_asset_delivery_receipt",
   "record_inspection",
   "record_inspections",
   "get_inspection",
@@ -134,6 +136,8 @@ const loopValidation = JSON.parse(await call("validate_ai_game_dev_loop", {
           "validate_ai_game_dev_loop",
           "plan_asset_acquisition",
           "validate_asset_acquisition",
+          "plan_asset_delivery",
+          "validate_asset_delivery_receipt",
           "plan_batch_visual_gate",
           "validate_batch_visual_gate",
         ],
@@ -167,6 +171,47 @@ const acquisitionPlan = JSON.parse(await call("plan_asset_acquisition", {
 assert.equal(acquisitionPlan.schema, "roblox-asset-acquisition-plan/v1", "MCP asset acquisition plan schema");
 assert.ok(acquisitionPlan.phases.some((phase) => phase.id === "direct_delivery_parse"), "MCP acquisition includes direct delivery");
 assert.ok(acquisitionPlan.phases.some((phase) => phase.id === "studio_insert_fallback"), "MCP acquisition includes Studio fallback");
+assert.equal(acquisitionPlan.direct_delivery_requests.length, 2, "MCP acquisition includes per-asset delivery requests");
+const deliveryRequest = JSON.parse(await call("plan_asset_delivery", {
+  project: "eggbreakers",
+  slot: "nursery_grove.dino_fern",
+  asset_id: 101,
+  format: "json",
+}));
+assert.equal(deliveryRequest.schema, "roblox-asset-delivery-request/v1", "MCP asset delivery request schema");
+assert.ok(deliveryRequest.outputs.asset_path.includes("work/asset-acquisition"), "delivery request writes to quarantine");
+const deliveryReceipt = {
+  schema: "roblox-asset-delivery-receipt/v1",
+  project: "eggbreakers",
+  slot: "nursery_grove.dino_fern",
+  asset_id: 101,
+  version_number: null,
+  status: "passed",
+  passed: true,
+  request: deliveryRequest.endpoint,
+  auth: {
+    mode: "api_key",
+    source_env: "ROBLOX_OPEN_CLOUD_API_KEY",
+    header: "x-api-key",
+    credential_present: true,
+    redacted: true,
+  },
+  http: { status: 200, ok: true, content_type: "application/octet-stream" },
+  output: {
+    asset_path: deliveryRequest.outputs.asset_path,
+    receipt_path: deliveryRequest.outputs.receipt_path,
+    bytes: 12,
+    sha256: "sha256:abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+    content_type: "application/octet-stream",
+  },
+  blockers: [],
+};
+const deliveryValidation = JSON.parse(await call("validate_asset_delivery_receipt", {
+  request: deliveryRequest,
+  receipt: deliveryReceipt,
+  format: "json",
+}));
+assert.equal(deliveryValidation.passed, true, deliveryValidation.errors.join("; "));
 const acquisitionValidation = JSON.parse(await call("validate_asset_acquisition", {
   plan: acquisitionPlan,
   report: {

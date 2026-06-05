@@ -39,20 +39,20 @@
         "asset-search-mcp/src",
         "scripts"
       ],
-      "files": 26
+      "files": 27
     }
   ],
   "counts": {
-    "files": 272,
+    "files": 273,
     "byProject": {
       "eggbreakers": 150,
       "groantubehero": 96,
-      "robloxaidev-prophunt": 26
+      "robloxaidev-prophunt": 27
     },
     "byFamily": {
       "test-harness": 89,
       "score-and-timing": 49,
-      "asset-audit": 25,
+      "asset-audit": 26,
       "life-sim": 23,
       "world-layout": 19,
       "client-ui": 17,
@@ -4704,8 +4704,8 @@
       "relativePath": "asset-search-mcp/src/aiGameDevLoop.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 13970,
-      "lines": 394,
+      "bytes": 14322,
+      "lines": 404,
       "exportedFunctions": [
         "slugify",
         "compactToolCall",
@@ -4719,7 +4719,7 @@
         "formatAiGameDevLoopValidation"
       ],
       "hasReturn": true,
-      "fallbackSignals": 1
+      "fallbackSignals": 2
     },
     {
       "project": "robloxaidev-prophunt",
@@ -4727,8 +4727,8 @@
       "relativePath": "asset-search-mcp/src/assetAcquisition.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 9521,
-      "lines": 250,
+      "bytes": 11138,
+      "lines": 280,
       "exportedFunctions": [
         "slugify",
         "uniqueIds",
@@ -4745,6 +4745,39 @@
       ],
       "hasReturn": true,
       "fallbackSignals": 13
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/assetDelivery.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 12551,
+      "lines": 361,
+      "exportedFunctions": [
+        "asObject",
+        "slugify",
+        "numericId",
+        "optionalVersion",
+        "normalizeBaseUrl",
+        "deliveryPath",
+        "urlForRequest",
+        "defaultQuarantineRoot",
+        "outputStem",
+        "buildAssetDeliveryRequest",
+        "redactAuthProof",
+        "resolveAssetDeliveryAuth",
+        "receiptBase",
+        "limitText",
+        "writeReceipt",
+        "executeAssetDeliveryRequest",
+        "metadataOnlyPath",
+        "receiptHasSecretLeak",
+        "validateAssetDeliveryReceipt",
+        "formatAssetDeliveryRequest"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
     },
     {
       "project": "robloxaidev-prophunt",
@@ -4826,8 +4859,8 @@
       "relativePath": "asset-search-mcp/src/mcpTools/acquisitionTools.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 2533,
-      "lines": 51,
+      "bytes": 4961,
+      "lines": 100,
       "exportedFunctions": [
         "registerAcquisitionTools"
       ],
@@ -5205,8 +5238,8 @@
       "relativePath": "scripts/run_ai_game_dev_pocs.mjs",
       "scanRoot": "scripts",
       "family": "service-lifecycle",
-      "bytes": 7019,
-      "lines": 181,
+      "bytes": 7256,
+      "lines": 183,
       "exportedFunctions": [
         "tail",
         "exists",

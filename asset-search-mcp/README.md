@@ -88,6 +88,8 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 | `validate_ai_game_dev_loop(report, plan?, format?)` | Validate the final proof report for the full AI game-dev loop, including custom MCP contract proof and the nested batch visual gate report. |
 | `plan_asset_acquisition(project?, slot?, query?, asset_ids?, target_place?, delivery_mode?, require_publish_permission?, format?)` | Plan the asset acquisition seam: search/claim, publish permission proof, direct asset delivery parse, Studio insertion fallback, quarantine, manifest validation, and visual proof. |
 | `validate_asset_acquisition(report, plan?, format?)` | Validate an acquisition proof report before an asset can move from quarantine into a palette. |
+| `plan_asset_delivery(project?, slot?, asset_id, version_number?, quarantine_root?, base_url?, api_key_env?, bearer_env?, format?)` | Plan one authenticated Open Cloud Asset Delivery request that writes bytes to quarantine and records only a redacted receipt. |
+| `validate_asset_delivery_receipt(receipt, request?, format?)` | Validate an Asset Delivery receipt: redacted auth proof, 2xx response, non-empty bytes, sha256 digest, and no asset-brain binary paths. |
 | `plan_game_asset_coverage(game?, themes?, include_defaults?, include_lobby?, max_themes?, format?)` | Generate lobby/session/room asset search coverage before curation. |
 | `preprocess_storyboard_asset_cache(project?, game?, themes?, include_defaults?, include_lobby?, max_themes?, max_slots?, warm_search_cache?, per_slot?, verified_only?, extensive?, format?)` | Build storyboard-ready coverage slots, optionally warm ranked search cache, and return Pages-friendly metadata layout. |
 | `export_asset_brain_snapshot(project?, include_search_cache?, max_queries?, max_results_per_query?, format?)` | Export small metadata-only snapshot for GitHub Pages or handoff; no binaries/screenshots. |
@@ -245,6 +247,26 @@ brain into a static metadata tree such as GitHub Pages. Keep only IDs, review
 events, inspections, permission proof, visual verdicts, hashes, paths, and URLs
 in that mirror. Do not put `.rbxl`, `.rbxm`, screenshots, meshes, or thumbnails
 there.
+
+## Authenticated asset delivery
+
+Use `plan_asset_delivery` or the CLI to fetch candidate model bytes before
+falling back to Studio insertion:
+
+```bash
+node asset-search-mcp/scripts/run-asset-delivery.mjs \
+  --project eggbreakers \
+  --slot nursery_grove.dino_fern \
+  --asset-id 123456 \
+  --json
+```
+
+The adapter reads `ROBLOX_OPEN_CLOUD_API_KEY` or
+`ROBLOX_OPEN_CLOUD_ACCESS_TOKEN`, calls the Open Cloud Asset Delivery endpoint,
+writes downloaded bytes under `work/asset-acquisition/.../quarantine`, and
+stores a redacted delivery receipt. Run `validate_asset_delivery_receipt` before
+including that receipt in `validate_asset_acquisition`. Keep the receipt path
+metadata in the asset brain; keep downloaded `.rbxm` bytes out of it.
 
 ## Headless fragment assembly
 

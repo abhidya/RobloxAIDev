@@ -1,4 +1,5 @@
 import { OPEN_CLOUD_ENDPOINTS } from "./headlessPipeline.js";
+import { buildAssetDeliveryRequest, validateAssetDeliveryReceipt } from "./assetDelivery.js";
 
 function slugify(value) {
   const slug = String(value || "")
@@ -64,6 +65,12 @@ export function buildAssetAcquisitionPlan({
       no_runtime_asset_loaders: true,
     },
     artifacts,
+    direct_delivery_requests: ids.map((assetId) => buildAssetDeliveryRequest({
+      project,
+      slot,
+      assetId,
+      quarantineRoot: artifacts.quarantine_root,
+    })),
     phases: [
       {
         id: "search_claim",
@@ -82,6 +89,8 @@ export function buildAssetAcquisitionPlan({
         id: "direct_delivery_parse",
         goal: "Try asset delivery outside Studio, parse the serialized model, and write quarantine metadata.",
         endpoints: [endpoint("Asset Delivery"), endpoint("Toolbox asset metadata")].filter(Boolean),
+        executable_adapter: "node asset-search-mcp/scripts/run-asset-delivery.mjs --asset-id <asset-id> --project <project> --slot <slot>",
+        tools: ["plan_asset_delivery", "validate_asset_delivery_receipt"],
         parsers: [
           "Lune @lune/roblox for current Luau-native parse/serialize POC",
           "rbx-dom for production binary/XML authority",
@@ -177,6 +186,20 @@ export function validateAssetAcquisitionReport(report, plan = null) {
     if (Object.keys(value).length && !artifact(value)) warnings.push(`gate '${gateId}' should record an artifact_path`);
   }
 
+  const receipts = Array.isArray(raw.asset_delivery_receipts) ? raw.asset_delivery_receipts : [];
+  const planRequests = Array.isArray(expectedPlan.direct_delivery_requests) ? expectedPlan.direct_delivery_requests : [];
+  if (delivery.passed === true && !receipts.length) {
+    errors.push("passed direct_delivery_parse requires asset_delivery_receipts");
+  }
+  for (const receipt of receipts) {
+    const request = planRequests.find((item) => Number(item.asset_id) === Number(receipt?.asset_id));
+    const validation = validateAssetDeliveryReceipt(receipt, request || null);
+    if (!validation.passed) {
+      for (const error of validation.errors) errors.push(`asset delivery ${receipt?.asset_id || "receipt"}: ${error}`);
+    }
+    for (const warning of validation.warnings) warnings.push(`asset delivery ${receipt?.asset_id || "receipt"}: ${warning}`);
+  }
+
   const quarantined = Array.isArray(raw.quarantined_assets) ? raw.quarantined_assets : [];
   if (!quarantined.length) {
     errors.push("quarantined_assets array is required and must not be empty");
@@ -234,6 +257,14 @@ export function formatAssetAcquisitionPlan(plan) {
   lines.push("", "Artifacts:");
   for (const [key, value] of Object.entries(plan.artifacts)) {
     lines.push(`- ${key}: ${value}`);
+  }
+  const deliveryRequests = Array.isArray(plan.direct_delivery_requests) ? plan.direct_delivery_requests : [];
+  if (deliveryRequests.length) {
+    lines.push("", "Direct delivery:");
+    for (const request of deliveryRequests) {
+      lines.push(`- asset ${request.asset_id}: ${request.endpoint.method} ${request.endpoint.url}`);
+      lines.push(`  receipt=${request.outputs.receipt_path}`);
+    }
   }
   return lines.join("\n");
 }

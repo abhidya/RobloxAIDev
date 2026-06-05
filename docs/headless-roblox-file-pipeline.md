@@ -289,6 +289,12 @@ Practical interpretation:
 
 - For model assets, persist the returned bytes and attempt DOM deserialization
   as `.rbxm`/`.rbxmx` based on content/format.
+- The repo adapter is
+  `node asset-search-mcp/scripts/run-asset-delivery.mjs --asset-id <id>`.
+  It reads `ROBLOX_OPEN_CLOUD_API_KEY` or
+  `ROBLOX_OPEN_CLOUD_ACCESS_TOKEN`, writes bytes to quarantine, and emits a
+  redacted `*.delivery-receipt.json` validated by
+  `validate_asset_delivery_receipt`.
 - Meshes, textures, images, audio, and other dependencies usually remain as
   `rbxassetid://...`/content IDs in properties.
 - Do not inline dependencies unless we own a separate dependency expansion
@@ -488,9 +494,11 @@ Phase 2:
 
 Phase 3:
 
-- Add Open Cloud search/download/publish adapters.
+- Extend the Open Cloud delivery adapter with rate-limit-aware queues and
+  dependency expansion receipts.
 - Keep credentials out of repo.
-- Add rate-limit-aware queues and asset acquisition receipts.
+- Keep asset acquisition receipts metadata-only and outside `asset-brain/v1`
+  when they point at binaries.
 
 Phase 4:
 

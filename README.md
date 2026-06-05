@@ -161,6 +161,12 @@ Run the resulting packet through a StudioMCP adapter, then call
 [`docs/batch-studio-visual-gate.md`](docs/batch-studio-visual-gate.md) and
 [`docs/cross-project-asset-brain.md`](docs/cross-project-asset-brain.md).
 
+For direct model acquisition before Studio insertion, call `plan_asset_delivery`
+or run `node asset-search-mcp/scripts/run-asset-delivery.mjs --asset-id <id>`.
+The adapter reads `ROBLOX_OPEN_CLOUD_API_KEY` or
+`ROBLOX_OPEN_CLOUD_ACCESS_TOKEN`, writes bytes only under quarantine, and emits
+a redacted receipt for `validate_asset_delivery_receipt`.
+
 For the larger AI game-dev process, use
 [`CONTEXT.md`](CONTEXT.md),
 [`docs/roblox-ai-game-dev-architecture.md`](docs/roblox-ai-game-dev-architecture.md),

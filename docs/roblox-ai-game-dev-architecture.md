@@ -133,13 +133,16 @@ prompt.
 
 - `plan_ai_game_dev_loop`
 - `validate_ai_game_dev_loop`
+- `plan_asset_delivery`
+- `validate_asset_delivery_receipt`
+- `asset-search-mcp/scripts/run-asset-delivery.mjs`
 - `docs/e2e-roblox-ai-game-design-loop.md`
 
 **Implementation**
 
 - One planner that composes asset coverage, asset-brain cache planning, GameKit
-  adoption, Lune/Rojo/rbx-dom parser-writer work, headless assembly, and batch
-  Studio visual gate packets
+  adoption, authenticated Asset Delivery, Lune/Rojo/rbx-dom parser-writer work,
+  headless assembly, and batch Studio visual gate packets
 - One validator that requires every proof gate plus the nested batch visual gate
   report before the loop can be signed off
 - One adapter CLI,
@@ -290,7 +293,7 @@ from making the seams executable and smaller.
 | Publish policy is separated from persistence | JSON IO, reviews, claims, publish permissions, palettes, and inspection memory change for different reasons | Keep atomic persistence in `store.js`; keep release-readiness rules in `asset-search-mcp/src/publishPolicy.js` and MCP policy wiring in `mcpTools/policyTools.js` |
 | Batch visual gate has mock and stdio Studio MCP executors | It reduces agent churn only if something can consume the packet and return a collated proof bundle | Keep `run-studio-batch-visual-gate.mjs` preserving one artifact contract across mock, fake-MCP, and live Studio MCP transports |
 | Fragment manifest aliases have canonical fixtures | Alias tolerance helps migration but can hide drift between JS validators and Luau writers | Keep `asset-search-mcp/fixtures/fragment-manifests` and `test:fragment-fixtures` as the cross-writer schema guard |
-| Direct asset acquisition has an explicit seam | Search, permission proof, delivery, Studio fallback, quarantine, manifests, and screenshots can otherwise drift across agents | Use `plan_asset_acquisition` and `validate_asset_acquisition` before promoting delivered assets into palettes |
+| Authenticated Asset Delivery has an executable adapter | Search, permission proof, delivery, Studio fallback, quarantine, manifests, and screenshots can otherwise drift across agents | Use `plan_asset_delivery`, `run-asset-delivery.mjs`, `validate_asset_delivery_receipt`, then `validate_asset_acquisition` before promoting delivered assets into palettes |
 | Operator handoff must live in files | Chat-only workflow memory gets lost across agents and sessions | Keep `prompts/*.md` and test them with `test:prompt-contracts` |
 
 ## POC Matrix
@@ -301,7 +304,8 @@ from making the seams executable and smaller.
 | Roblox files can be created/mutated outside Studio | `lune run scripts/headless_place_insert_poc.luau` and `lune run scripts/headless_place_verify_poc.luau` | ignored files under `work/headless-poc/`, console `HEADLESS_*_OK` |
 | Fragment fan-in can be coordinator-gated | `lune run scripts/headless_fragment_merge.luau ...` | manifest digest validation and reload of merged place |
 | JS-generated and Luau-emitted fragment manifests normalize through one schema | `npm --prefix asset-search-mcp run test:fragment-fixtures` | `asset-search-mcp/fixtures/fragment-manifests/*.json` and `validate_fragment_manifest` |
-| Asset acquisition is a gated seam | `npm --prefix asset-search-mcp run test:asset-acquisition` and `npm --prefix asset-search-mcp run test:smoke` | `plan_asset_acquisition`, `validate_asset_acquisition`, quarantine metadata, and metadata-only asset-brain checks |
+| Authenticated asset delivery writes quarantine bytes and redacted receipts | `npm --prefix asset-search-mcp run test:asset-delivery` | `plan_asset_delivery`, `run-asset-delivery.mjs`, `validate_asset_delivery_receipt`, local fake Asset Delivery server |
+| Asset acquisition is a gated seam | `npm --prefix asset-search-mcp run test:asset-acquisition` and `npm --prefix asset-search-mcp run test:smoke` | `plan_asset_acquisition`, `validate_asset_acquisition`, delivery receipts, quarantine metadata, and metadata-only asset-brain checks |
 | Studio proof can be batched and adapter-consumed | `npm --prefix asset-search-mcp run test:offline`, `npm --prefix asset-search-mcp run test:studio-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `plan_batch_visual_gate`, mock transport, fake Studio MCP stdio transport, `run-studio-batch-visual-gate.mjs`, and `validate_batch_visual_gate` coverage |
 | Prompts/docs stay present and aligned | `npm --prefix asset-search-mcp run test:prompt-contracts` | prompt and architecture contract test |
 | The full proposed loop has fresh local evidence | `node scripts/run_ai_game_dev_pocs.mjs` | `docs/poc-results/ai-game-dev-poc-latest.json` |
@@ -312,8 +316,8 @@ from making the seams executable and smaller.
 
 - The Studio adapter now has mock and stdio MCP transports; this checkpoint tests
   stdio against a fake Studio MCP server, not a real open Studio session.
-- Direct asset download/parse remains auth-sensitive and should be isolated from
-  the metadata brain.
+- Direct asset delivery is executable and auth-sensitive; real credentials still
+  come only from environment variables and receipt validation must stay redacted.
 - Lune is good for the current coordinator POC, but rbx-dom should be evaluated
   for a production merge engine when fragment complexity grows.
 - Studio screenshot quality still depends on camera occlusion, lighting, and the
@@ -321,10 +325,7 @@ from making the seams executable and smaller.
 
 ## Next Deepening Candidates
 
-1. **Authenticated asset delivery implementation** — plug real authenticated
-   Asset Delivery and permission-dashboard evidence into the
-   `plan_asset_acquisition` contract.
-2. **Production coordinator module** — move from Lune-only scripts to an adapter
+1. **Production coordinator module** — move from Lune-only scripts to an adapter
    interface with Lune and rbx-dom implementations.
-3. **Project template module** — generate a new game repo skeleton with asset
+2. **Project template module** — generate a new game repo skeleton with asset
    brain, prompts, POC scripts, and gates prewired.

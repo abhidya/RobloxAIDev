@@ -17,6 +17,9 @@ assert.deepEqual(plan.candidate_asset_ids, [101, 202], "candidate ids are dedupl
 assert.ok(plan.phases.some((phase) => phase.id === "direct_delivery_parse"), "direct delivery phase exists");
 assert.ok(plan.phases.some((phase) => phase.id === "studio_insert_fallback"), "Studio fallback phase exists");
 assert.ok(plan.policy.asset_brain_is_metadata_only, "asset brain metadata-only policy is explicit");
+assert.equal(plan.direct_delivery_requests.length, 2, "one direct delivery request is planned per candidate");
+assert.equal(plan.direct_delivery_requests[0].asset_id, 101);
+assert.ok(plan.direct_delivery_requests[0].outputs.receipt_path.includes("delivery-receipt"), "delivery request includes receipt path");
 
 const report = {
   schema: "roblox-asset-acquisition-report/v1",
@@ -50,6 +53,62 @@ const report = {
 
 const validation = validateAssetAcquisitionReport(report, plan);
 assert.equal(validation.passed, true, validation.errors.join("; "));
+
+const directReceipt = {
+  schema: "roblox-asset-delivery-receipt/v1",
+  project: "eggbreakers",
+  slot: "nursery_grove.dino_fern",
+  asset_id: 101,
+  version_number: null,
+  status: "passed",
+  passed: true,
+  request: {
+    endpoint: "Asset Delivery",
+    method: "GET",
+    base_url: "https://apis.roblox.com/asset-delivery-api/v1",
+    path: "/assetId/101",
+    url: "https://apis.roblox.com/asset-delivery-api/v1/assetId/101",
+  },
+  auth: {
+    mode: "api_key",
+    source_env: "ROBLOX_OPEN_CLOUD_API_KEY",
+    header: "x-api-key",
+    credential_present: true,
+    redacted: true,
+  },
+  http: {
+    status: 200,
+    ok: true,
+    content_type: "application/octet-stream",
+  },
+  output: {
+    asset_path: `${plan.artifacts.quarantine_root}/assets/101.rbxm`,
+    receipt_path: `${plan.artifacts.quarantine_root}/receipts/101.delivery-receipt.json`,
+    bytes: 16,
+    sha256: "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    content_type: "application/octet-stream",
+  },
+  blockers: [],
+};
+const directDeliveryReport = {
+  ...report,
+  gates: {
+    ...report.gates,
+    acquisition_attempt: { passed: true, artifact_path: plan.artifacts.delivery_report },
+    direct_delivery_parse: { passed: true, artifact_path: plan.artifacts.delivery_report },
+    studio_insert_fallback: { passed: false },
+  },
+  asset_delivery_receipts: [directReceipt],
+};
+const directValidation = validateAssetAcquisitionReport(directDeliveryReport, plan);
+assert.equal(directValidation.passed, true, directValidation.errors.join("; "));
+
+const missingReceipt = validateAssetAcquisitionReport({
+  ...directDeliveryReport,
+  asset_delivery_receipts: [],
+}, plan);
+assert.equal(missingReceipt.passed, false, "passed direct delivery requires receipt evidence");
+assert.ok(missingReceipt.errors.some((error) => error.includes("asset_delivery_receipts")), "missing receipt error is explicit");
 
 const badBinaryBrain = validateAssetAcquisitionReport({
   ...report,
