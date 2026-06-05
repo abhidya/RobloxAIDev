@@ -33,6 +33,8 @@ for (const requiredTool of [
   "validate_fragment_manifest",
   "plan_playable_space_review",
   "validate_playable_space_review",
+  "plan_batch_visual_gate",
+  "validate_batch_visual_gate",
   "record_inspection",
   "record_inspections",
   "get_inspection",
@@ -205,6 +207,39 @@ const badReviewText = await call("validate_playable_space_review", {
 assert.ok(badReviewText.startsWith("FAIL"), "incomplete visual review fails");
 assert.ok(badReviewText.includes("unresolved blocker"), "visual review reports unresolved blocker");
 console.log(badReviewText.split("\n").slice(0, 7).join("\n"));
+
+console.log("\n--- plan_batch_visual_gate ---");
+const batchPlan = JSON.parse(await call("plan_batch_visual_gate", {
+  project: "groan-tube-hero",
+  target_place: "GroanTubeHero.rbxl",
+  review_mode: "player_angle",
+  include_defaults: false,
+  spaces: [{ id: "stage_circle", quadrants: ["front", "left"] }],
+  format: "json",
+}));
+assert.equal(batchPlan.schema, "roblox-studio-batch-visual-gate/v1", "batch visual gate schema");
+assert.equal(batchPlan.capture_batch.serial, true, "batch visual gate is serial");
+assert.ok(batchPlan.studio_preflight.code.includes("placeName"), "batch visual gate includes active-place preflight");
+const batchReport = {
+  ...batchPlan.report_template,
+  preflight: { passed: true, placeName: "GroanTubeHero.rbxl" },
+  screenshots: batchPlan.capture_batch.captures.map((shot) => ({
+    ...shot.result_contract,
+    passed: true,
+    alt_text: `${shot.capture_id} planned screenshot`,
+  })),
+  verdict: "player_angle_signed_off",
+};
+const batchValidation = JSON.parse(await call("validate_batch_visual_gate", {
+  batch_report: batchReport,
+  plan: batchPlan,
+  format: "json",
+}));
+assert.equal(batchValidation.passed, true, batchValidation.errors.join("; "));
+console.log(JSON.stringify({
+  captures: batchPlan.capture_batch.captures.length,
+  serialSteps: batchPlan.agent_call_reduction.serial_studio_steps,
+}, null, 2));
 
 console.log("\n--- curate_assets ---");
 console.log(
