@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
   executeMockStudioBatchVisualGate,
+  executeStudioMcpBatchVisualGate,
   formatStudioBatchAdapterResult,
 } from "../src/studioBatchAdapter.js";
 
@@ -11,6 +12,7 @@ function parseArgs(argv) {
     format: "text",
     transport: "mock",
     placeId: 0,
+    studioMcpArgs: [],
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -32,8 +34,24 @@ function parseArgs(argv) {
       args.placeId = Number(next);
       i += 1;
     } else if (arg === "--transport") {
-      if (!next) throw new Error("--transport requires mock");
+      if (!next) throw new Error("--transport requires mock or studio_mcp_stdio");
       args.transport = next;
+      i += 1;
+    } else if (arg === "--studio-mcp-command") {
+      if (!next) throw new Error("--studio-mcp-command requires a command path");
+      args.studioMcpCommand = next;
+      i += 1;
+    } else if (arg === "--studio-mcp-arg") {
+      if (!next) throw new Error("--studio-mcp-arg requires a value");
+      args.studioMcpArgs.push(next);
+      i += 1;
+    } else if (arg === "--studio-id") {
+      if (!next) throw new Error("--studio-id requires an id");
+      args.studioId = next;
+      i += 1;
+    } else if (arg === "--studio-name") {
+      if (!next) throw new Error("--studio-name requires a name");
+      args.studioName = next;
       i += 1;
     } else if (arg === "--json") {
       args.format = "json";
@@ -54,7 +72,13 @@ Options:
   --out <path>           Batch report path (default: <artifact_root>/batch-report.json)
   --active-place <name>  Mock active Studio place name (default: plan target_place)
   --place-id <id>        Mock place id
-  --transport mock       Adapter transport; only mock is implemented here
+  --transport <mode>     mock or studio_mcp_stdio
+  --studio-mcp-command <cmd>
+                         Studio MCP command for studio_mcp_stdio
+                         (default: /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP)
+  --studio-mcp-arg <arg> Repeatable Studio MCP command argument
+  --studio-id <id>       Optional Studio instance id to set active
+  --studio-name <name>   Optional Studio instance name to set active
   --json                 Print JSON instead of text
 `;
 }
@@ -78,15 +102,24 @@ try {
     process.exit(0);
   }
   if (!args.plan) throw new Error("--plan is required");
-  if (args.transport !== "mock") {
-    throw new Error("Only --transport mock is implemented; real Studio MCP transport plugs into this CLI contract later.");
-  }
 
   const plan = unwrapPlan(JSON.parse(await readFile(args.plan, "utf8")));
-  const result = executeMockStudioBatchVisualGate(plan, {
-    activePlaceName: args.activePlace,
-    placeId: args.placeId,
-  });
+  const result = args.transport === "mock"
+    ? executeMockStudioBatchVisualGate(plan, {
+      activePlaceName: args.activePlace,
+      placeId: args.placeId,
+    })
+    : args.transport === "studio_mcp_stdio"
+      ? await executeStudioMcpBatchVisualGate(plan, {
+        command: args.studioMcpCommand || process.env.STUDIO_MCP_COMMAND || "/Applications/RobloxStudio.app/Contents/MacOS/StudioMCP",
+        args: args.studioMcpArgs,
+        activePlaceName: args.activePlace,
+        placeId: args.placeId,
+        studioId: args.studioId,
+        studioName: args.studioName,
+      })
+      : null;
+  if (!result) throw new Error("--transport must be mock or studio_mcp_stdio");
   const reportPath = args.out || path.join(result.artifact_root || "artifacts/visual-gates/mock", "batch-report.json");
   const root = path.dirname(reportPath);
 

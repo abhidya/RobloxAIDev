@@ -98,7 +98,10 @@ place structure, or Studio state. The coordinator owns those concerns.
 Schema drift, referent collisions, and unsafe script loaders are caught before
 Studio opens.
 
-### Studio Gate Module
+### Studio Gate And Studio Adapter Module
+
+This Studio adapter module owns the replaceable bridge between batch visual
+gate plans and Studio MCP execution.
 
 **Interface**
 
@@ -141,8 +144,8 @@ prompt.
   report before the loop can be signed off
 - One adapter CLI,
   `asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs`, that starts with
-  a mock transport and writes the proof bundle shape the live Studio MCP wrapper
-  must preserve
+  a mock transport and includes a `studio_mcp_stdio` transport for the official
+  Studio MCP tool shape
 
 **Depth**
 
@@ -285,7 +288,7 @@ from making the seams executable and smaller.
 | --- | --- | --- |
 | Planning/visual and policy tool registration has been split out of `index.js` | A change to visual gates, headless contracts, e2e planning, or release policy should not collide with asset memory transport boot | Keep `asset-search-mcp/src/mcpTools/planningTools.js` and `asset-search-mcp/src/mcpTools/policyTools.js` focused; move remaining asset-memory tools only when a clear cluster is ready |
 | Publish policy is separated from persistence | JSON IO, reviews, claims, publish permissions, palettes, and inspection memory change for different reasons | Keep atomic persistence in `store.js`; keep release-readiness rules in `asset-search-mcp/src/publishPolicy.js` and MCP policy wiring in `mcpTools/policyTools.js` |
-| Batch visual gate starts with a mock executor | It reduces agent churn only if something can consume the packet and return a collated proof bundle | Extend `run-studio-batch-visual-gate.mjs` from mock transport to real Studio MCP transport while preserving the artifact contract |
+| Batch visual gate has mock and stdio Studio MCP executors | It reduces agent churn only if something can consume the packet and return a collated proof bundle | Keep `run-studio-batch-visual-gate.mjs` preserving one artifact contract across mock, fake-MCP, and live Studio MCP transports |
 | Fragment manifest aliases have canonical fixtures | Alias tolerance helps migration but can hide drift between JS validators and Luau writers | Keep `asset-search-mcp/fixtures/fragment-manifests` and `test:fragment-fixtures` as the cross-writer schema guard |
 | Direct asset acquisition has an explicit seam | Search, permission proof, delivery, Studio fallback, quarantine, manifests, and screenshots can otherwise drift across agents | Use `plan_asset_acquisition` and `validate_asset_acquisition` before promoting delivered assets into palettes |
 | Operator handoff must live in files | Chat-only workflow memory gets lost across agents and sessions | Keep `prompts/*.md` and test them with `test:prompt-contracts` |
@@ -299,7 +302,7 @@ from making the seams executable and smaller.
 | Fragment fan-in can be coordinator-gated | `lune run scripts/headless_fragment_merge.luau ...` | manifest digest validation and reload of merged place |
 | JS-generated and Luau-emitted fragment manifests normalize through one schema | `npm --prefix asset-search-mcp run test:fragment-fixtures` | `asset-search-mcp/fixtures/fragment-manifests/*.json` and `validate_fragment_manifest` |
 | Asset acquisition is a gated seam | `npm --prefix asset-search-mcp run test:asset-acquisition` and `npm --prefix asset-search-mcp run test:smoke` | `plan_asset_acquisition`, `validate_asset_acquisition`, quarantine metadata, and metadata-only asset-brain checks |
-| Studio proof can be batched and adapter-consumed | `npm --prefix asset-search-mcp run test:offline`, `npm --prefix asset-search-mcp run test:studio-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `plan_batch_visual_gate`, `run-studio-batch-visual-gate.mjs`, and `validate_batch_visual_gate` coverage |
+| Studio proof can be batched and adapter-consumed | `npm --prefix asset-search-mcp run test:offline`, `npm --prefix asset-search-mcp run test:studio-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `plan_batch_visual_gate`, mock transport, fake Studio MCP stdio transport, `run-studio-batch-visual-gate.mjs`, and `validate_batch_visual_gate` coverage |
 | Prompts/docs stay present and aligned | `npm --prefix asset-search-mcp run test:prompt-contracts` | prompt and architecture contract test |
 | The full proposed loop has fresh local evidence | `node scripts/run_ai_game_dev_pocs.mjs` | `docs/poc-results/ai-game-dev-poc-latest.json` |
 | Source-game libraries can be converted into reusable module families | `node scripts/inventory_reusable_game_libraries.mjs` and `npm --prefix asset-search-mcp run test:game-kit` | `packages/roblox-game-kit/module-catalog.json`, `packages/roblox-game-kit/inventory/source-library-inventory.json` |
@@ -307,8 +310,8 @@ from making the seams executable and smaller.
 
 ## Open Risks
 
-- The current Studio adapter transport is mock-only; the artifact shape is ready
-  for a live Studio MCP transport.
+- The Studio adapter now has mock and stdio MCP transports; this checkpoint tests
+  stdio against a fake Studio MCP server, not a real open Studio session.
 - Direct asset download/parse remains auth-sensitive and should be isolated from
   the metadata brain.
 - Lune is good for the current coordinator POC, but rbx-dom should be evaluated
@@ -318,13 +321,10 @@ from making the seams executable and smaller.
 
 ## Next Deepening Candidates
 
-1. **Live Studio adapter module** — replace the mock transport in
-   `run-studio-batch-visual-gate.mjs` with a real Studio MCP transport while
-   preserving the proof bundle files.
-2. **Authenticated asset delivery implementation** — plug real authenticated
+1. **Authenticated asset delivery implementation** — plug real authenticated
    Asset Delivery and permission-dashboard evidence into the
    `plan_asset_acquisition` contract.
-3. **Production coordinator module** — move from Lune-only scripts to an adapter
+2. **Production coordinator module** — move from Lune-only scripts to an adapter
    interface with Lune and rbx-dom implementations.
-4. **Project template module** — generate a new game repo skeleton with asset
+3. **Project template module** — generate a new game repo skeleton with asset
    brain, prompts, POC scripts, and gates prewired.

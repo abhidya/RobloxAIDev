@@ -4,7 +4,10 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { executeMockStudioBatchVisualGate } from "../src/studioBatchAdapter.js";
+import {
+  executeMockStudioBatchVisualGate,
+  executeStudioMcpBatchVisualGate,
+} from "../src/studioBatchAdapter.js";
 import { buildBatchVisualGatePlan, validateBatchVisualGateReport } from "../src/visualBatchGate.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -84,5 +87,59 @@ for (const file of [
   assert.ok(stat.size > 0, `${file} should be written`);
 }
 
+const studioMcpResult = await executeStudioMcpBatchVisualGate(plan, {
+  command: "node",
+  args: [path.join(root, "test", "fake-studio-mcp.mjs")],
+  studioId: "fake-studio-1",
+});
+assert.equal(studioMcpResult.schema, "roblox-studio-batch-adapter-result/v1");
+assert.equal(studioMcpResult.transport, "studio_mcp_stdio");
+assert.equal(studioMcpResult.validation.passed, true, studioMcpResult.validation.errors.join("; "));
+assert.equal(studioMcpResult.report.preflight.passed, true);
+assert.equal(studioMcpResult.report.screenshots.length, plan.capture_batch.captures.length);
+assert.ok(studioMcpResult.execution_log.some((step) => step.tool === "set_active_studio"), "stdio adapter selects requested Studio instance");
+assert.ok(studioMcpResult.execution_log.some((step) => step.tool === "execute_luau"), "stdio adapter runs Luau preflight/camera steps");
+assert.ok(studioMcpResult.execution_log.some((step) => step.tool === "screen_capture"), "stdio adapter calls screen_capture");
+for (const shot of studioMcpResult.report.screenshots) {
+  const stat = await fs.stat(shot.image_path);
+  assert.ok(stat.size > 0, `${shot.image_path} should be written from MCP image data`);
+}
+
+const liveReportPath = path.join(tempDir, "live", "batch-report.json");
+const liveCli = spawnSync("node", [
+  path.join(root, "scripts", "run-studio-batch-visual-gate.mjs"),
+  "--plan",
+  planPath,
+  "--out",
+  liveReportPath,
+  "--transport",
+  "studio_mcp_stdio",
+  "--studio-mcp-command",
+  "node",
+  "--studio-mcp-arg",
+  path.join(root, "test", "fake-studio-mcp.mjs"),
+  "--studio-id",
+  "fake-studio-1",
+  "--json",
+], {
+  cwd: root,
+  encoding: "utf8",
+  env: {
+    ...process.env,
+    FAKE_STUDIO_PLACE_NAME: "GroanTubeHero.rbxl",
+    FAKE_STUDIO_PLACE_ID: "123",
+  },
+});
+assert.equal(liveCli.status, 0, liveCli.stderr || liveCli.stdout);
+const liveResult = JSON.parse(liveCli.stdout);
+assert.equal(liveResult.transport, "studio_mcp_stdio");
+assert.equal(liveResult.validation.passed, true, liveResult.validation.errors.join("; "));
+assert.ok(liveResult.execution_log.some((step) => step.tool === "set_active_studio"), "stdio transport selects requested Studio instance");
+assert.ok(liveResult.execution_log.some((step) => step.tool === "screen_capture"), "stdio transport calls screen_capture");
+for (const shot of liveResult.report.screenshots) {
+  const stat = await fs.stat(shot.image_path);
+  assert.ok(stat.size > 0, `${shot.image_path} should be written from MCP image data`);
+}
+
 await fs.rm(tempDir, { recursive: true, force: true });
-console.log("STUDIO_BATCH_ADAPTER_OK mock transport emitted and validated a collated proof bundle");
+console.log("STUDIO_BATCH_ADAPTER_OK mock and stdio MCP transports emitted validated proof bundles");

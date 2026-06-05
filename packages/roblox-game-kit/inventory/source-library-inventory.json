@@ -4951,19 +4951,30 @@
       "relativePath": "asset-search-mcp/src/studioBatchAdapter.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 4563,
-      "lines": 137,
+      "bytes": 12546,
+      "lines": 358,
       "exportedFunctions": [
         "asObject",
         "expectedPlaceMatches",
         "signedOffVerdict",
         "mockAltText",
         "normalizeCaptureResult",
+        "responseText",
+        "responseJson",
+        "toolArgsForStep",
+        "writeImageContent",
+        "preflightPassedFromPayload",
+        "normalizePreflightPayload",
+        "normalizeLiveScreenshot",
+        "callStudioTool",
+        "connectStudioMcp",
+        "maybeSelectStudio",
+        "executeStudioMcpBatchVisualGate",
         "executeMockStudioBatchVisualGate",
         "formatStudioBatchAdapterResult"
       ],
       "hasReturn": true,
-      "fallbackSignals": 0
+      "fallbackSignals": 5
     },
     {
       "project": "robloxaidev-prophunt",

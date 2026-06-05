@@ -64,8 +64,9 @@ Studio work is serial and active-place sensitive. The loop gates it:
 - `plan_batch_visual_gate` emits active-place preflight Luau.
 - The Studio wrapper runs camera moves and screenshots serially.
 - `asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs` is the executable
-  adapter contract. Its mock transport writes a collated proof bundle before a
-  live Studio MCP transport exists.
+  adapter contract. Its mock transport writes a collated proof bundle, and its
+  `studio_mcp_stdio` transport connects to a Studio MCP stdio server while
+  preserving the same artifact shape.
 - `validate_batch_visual_gate` requires preflight proof, image paths, alt text,
   and passing playable-space review.
 - `validate_ai_game_dev_loop` refuses to sign off the full loop if the Studio
@@ -77,6 +78,17 @@ Mock adapter command:
 node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs \
   --plan batch-plan.json \
   --active-place GroanTubeHero.rbxl \
+  --json
+```
+
+Studio MCP stdio adapter command:
+
+```bash
+node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs \
+  --plan batch-plan.json \
+  --transport studio_mcp_stdio \
+  --studio-mcp-command /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP \
+  --studio-id <studio-instance-id> \
   --json
 ```
 
@@ -126,5 +138,6 @@ npm --prefix asset-search-mcp test
 ```
 
 The smoke test exercises the custom MCP tools end to end with a synthetic
-collated Studio proof report, so the loop contract is enforced before any live
-Studio adapter exists.
+collated Studio proof report. `test:studio-adapter` also exercises the stdio
+transport against a fake Studio MCP server before a real open Studio session is
+used.

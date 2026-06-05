@@ -38,7 +38,7 @@ binaries. A Studio adapter is responsible for executing the returned
 `studio_mcp_steps` against the active Studio MCP and writing artifacts under the
 declared `artifact_root`.
 
-The executable adapter contract starts with a mock transport:
+The executable adapter contract has two transports:
 
 ```bash
 node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs \
@@ -47,9 +47,26 @@ node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs \
   --json
 ```
 
-The mock writes `batch-report.json`, `batch-manifest.json`, `alt-text.json`, and
-`execution-log.json` with the same shape the live Studio MCP transport must
-preserve.
+The default `mock` transport writes `batch-report.json`, `batch-manifest.json`,
+`alt-text.json`, and `execution-log.json` without opening Studio.
+
+The `studio_mcp_stdio` transport runs the same packet through a Studio MCP stdio
+server:
+
+```bash
+node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs \
+  --plan batch-plan.json \
+  --transport studio_mcp_stdio \
+  --studio-mcp-command /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP \
+  --studio-id <studio-instance-id> \
+  --json
+```
+
+It can also pass repeatable `--studio-mcp-arg` values, or resolve the command
+from `STUDIO_MCP_COMMAND`. The transport optionally lists Studio instances,
+selects one with `set_active_studio`, runs the active-place `execute_luau`
+preflight, executes each camera step, writes image content returned by
+`screen_capture`, and preserves the same report shape as the mock transport.
 
 The batch report must include:
 
