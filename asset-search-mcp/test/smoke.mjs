@@ -37,6 +37,8 @@ for (const requiredTool of [
   "validate_playable_space_review",
   "plan_batch_visual_gate",
   "validate_batch_visual_gate",
+  "plan_asset_acquisition",
+  "validate_asset_acquisition",
   "record_inspection",
   "record_inspections",
   "get_inspection",
@@ -101,6 +103,7 @@ const loopPlan = JSON.parse(await call("plan_ai_game_dev_loop", {
 }));
 assert.equal(loopPlan.schema, "roblox-ai-game-dev-loop/v1", "MCP e2e loop plan schema");
 assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_headless_assembly"), "MCP e2e loop includes headless tool");
+assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_asset_acquisition"), "MCP e2e loop includes acquisition tool");
 assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_batch_visual_gate"), "MCP e2e loop includes batch visual gate");
 assert.ok(loopPlan.phases.some((phase) => phase.id === "parser_writer_generation"), "MCP e2e loop includes parser/writer phase");
 assert.ok(loopPlan.studio_adapter.cli.includes("run-studio-batch-visual-gate"), "MCP e2e loop includes Studio adapter CLI");
@@ -126,7 +129,14 @@ const loopValidation = JSON.parse(await call("validate_ai_game_dev_loop", {
       fragment_manifest_validation: { passed: true, artifact_path: "fragments/groantubehero.manifest.json" },
       custom_mcp_contract: {
         passed: true,
-        tools: ["plan_ai_game_dev_loop", "validate_ai_game_dev_loop", "plan_batch_visual_gate", "validate_batch_visual_gate"],
+        tools: [
+          "plan_ai_game_dev_loop",
+          "validate_ai_game_dev_loop",
+          "plan_asset_acquisition",
+          "validate_asset_acquisition",
+          "plan_batch_visual_gate",
+          "validate_batch_visual_gate",
+        ],
       },
       batch_visual_gate: {
         passed: true,
@@ -143,6 +153,52 @@ console.log(JSON.stringify({
   phases: loopPlan.phases.length,
   captures: loopPlan.batch_visual_gate_plan.capture_batch.captures.length,
   loopValidation: loopValidation.passed,
+}, null, 2));
+
+console.log("\n--- plan_asset_acquisition ---");
+const acquisitionPlan = JSON.parse(await call("plan_asset_acquisition", {
+  project: "eggbreakers",
+  slot: "nursery_grove.dino_fern",
+  query: "roblox fern dinosaur nursery",
+  asset_ids: [101, 202],
+  target_place: "eggBreakers3.rbxl",
+  format: "json",
+}));
+assert.equal(acquisitionPlan.schema, "roblox-asset-acquisition-plan/v1", "MCP asset acquisition plan schema");
+assert.ok(acquisitionPlan.phases.some((phase) => phase.id === "direct_delivery_parse"), "MCP acquisition includes direct delivery");
+assert.ok(acquisitionPlan.phases.some((phase) => phase.id === "studio_insert_fallback"), "MCP acquisition includes Studio fallback");
+const acquisitionValidation = JSON.parse(await call("validate_asset_acquisition", {
+  plan: acquisitionPlan,
+  report: {
+    schema: "roblox-asset-acquisition-report/v1",
+    project: "eggbreakers",
+    slot: "nursery_grove.dino_fern",
+    gates: {
+      search_claim: { passed: true, artifact_path: "asset-brain/v1/claims/fern.json" },
+      permission_proof: { passed: true, artifact_path: "asset-brain/v1/permissions/101.json" },
+      acquisition_attempt: { passed: true, artifact_path: acquisitionPlan.artifacts.delivery_report },
+      direct_delivery_parse: { passed: false, artifact_path: acquisitionPlan.artifacts.delivery_report },
+      studio_insert_fallback: { passed: true, artifact_path: acquisitionPlan.artifacts.studio_fallback_report },
+      quarantine_scan: { passed: true, artifact_path: `${acquisitionPlan.artifacts.quarantine_root}/scan.json` },
+      manifest_validation: { passed: true, artifact_path: acquisitionPlan.artifacts.fragment_manifest },
+      visual_gate: { passed: true, artifact_path: acquisitionPlan.artifacts.visual_gate_report },
+    },
+    quarantined_assets: [{
+      asset_id: 101,
+      has_scripts: false,
+      remote_loaders: false,
+      permission_status: "pass",
+      visual_status: "player_angle_pass",
+    }],
+    asset_brain_paths: ["asset-brain/v1/assets/by-id/101/101.json"],
+    open_blockers: [],
+  },
+  format: "json",
+}));
+assert.equal(acquisitionValidation.passed, true, acquisitionValidation.errors.join("; "));
+console.log(JSON.stringify({
+  phases: acquisitionPlan.phases.length,
+  acquisitionValidation: acquisitionValidation.passed,
 }, null, 2));
 
 console.log("\n--- plan_headless_assembly ---");

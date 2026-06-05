@@ -9,6 +9,7 @@ parsers/writers, a custom MCP contract, and gated Studio validation.
 idea
   -> plan_ai_game_dev_loop
   -> asset brain coverage, curation, claims, inspections, palette proof
+  -> plan_asset_acquisition for direct delivery, Studio fallback, quarantine
   -> GameKit source adoption
   -> headless Roblox parser/writer build
   -> fragment manifest validation and coordinator merge
@@ -37,6 +38,8 @@ Supporting MCP tools:
 - `record_inspection`
 - `commit_palette`
 - `validate_publish_permissions`
+- `plan_asset_acquisition`
+- `validate_asset_acquisition`
 - `plan_headless_assembly`
 - `validate_fragment_manifest`
 - `plan_batch_visual_gate`

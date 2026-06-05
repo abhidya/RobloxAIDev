@@ -274,6 +274,7 @@ const loopPlan = buildAiGameDevLoopPlan({
 });
 assert.equal(loopPlan.schema, "roblox-ai-game-dev-loop/v1", "e2e loop plan schema");
 assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_headless_assembly"), "e2e loop includes headless MCP support");
+assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_asset_acquisition"), "e2e loop includes asset acquisition MCP support");
 assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_batch_visual_gate"), "e2e loop includes gated Studio MCP support");
 assert.ok(loopPlan.phases.some((phase) => phase.id === "parser_writer_generation"), "e2e loop includes parser/writer phase");
 assert.ok(loopPlan.phases.some((phase) => phase.id === "gated_studio_batch"), "e2e loop includes gated Studio phase");
@@ -301,7 +302,14 @@ const loopReport = {
     fragment_manifest_validation: { passed: true, artifact_path: "fragments/groantubehero.manifest.json" },
     custom_mcp_contract: {
       passed: true,
-      tools: ["plan_ai_game_dev_loop", "validate_ai_game_dev_loop", "plan_batch_visual_gate", "validate_batch_visual_gate"],
+      tools: [
+        "plan_ai_game_dev_loop",
+        "validate_ai_game_dev_loop",
+        "plan_asset_acquisition",
+        "validate_asset_acquisition",
+        "plan_batch_visual_gate",
+        "validate_batch_visual_gate",
+      ],
     },
     batch_visual_gate: {
       passed: true,

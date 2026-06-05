@@ -16,7 +16,7 @@
     "gate:prop-hunt": "node scripts/validate-prop-hunt-gate.mjs --project prophunt",
     "gate:playable-space": "node scripts/validate-playable-space-review.mjs",
     "demo:offline": "node scripts/offline-demo-summary.mjs",
-    "test": "npm run test:offline && npm run test:gate && npm run test:playable-space && npm run test:studio-adapter && npm run test:fragment-fixtures && npm run test:asset-brain && npm run test:fixture && npm run test:prompt-contracts && npm run test:game-kit && npm run test:smoke",
+    "test": "npm run test:offline && npm run test:gate && npm run test:playable-space && npm run test:studio-adapter && npm run test:fragment-fixtures && npm run test:asset-acquisition && npm run test:asset-brain && npm run test:fixture && npm run test:prompt-contracts && npm run test:game-kit && npm run test:smoke",
     "test:asset-brain": "node test/asset-brain-merge-artifacts.mjs",
     "test:fixture": "node test/fixture-import.mjs",
     "test:gate": "node test/gate-cli.mjs",
@@ -24,6 +24,7 @@
     "test:playable-space": "node test/playable-review-cli.mjs",
     "test:studio-adapter": "node test/studio-batch-adapter.mjs",
     "test:fragment-fixtures": "node test/fragment-manifest-fixtures.mjs",
+    "test:asset-acquisition": "node test/asset-acquisition.mjs",
     "test:prompt-contracts": "node test/prompt-contracts.mjs",
     "test:game-kit": "node test/game-kit-contracts.mjs",
     "test:smoke": "node test/smoke.mjs"

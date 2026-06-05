@@ -11,6 +11,7 @@ import { z } from "zod";
 import { searchAssets, DEFAULT_CATEGORIES } from "./toolbox.js";
 import { Store, diversify, filterByTerms } from "./store.js";
 import { buildGameAssetCoverage } from "./gameCoverage.js";
+import { registerAcquisitionTools } from "./mcpTools/acquisitionTools.js";
 import { registerPlanningTools } from "./mcpTools/planningTools.js";
 import { registerPolicyTools } from "./mcpTools/policyTools.js";
 import { formatPropHuntGateReport, validatePropHuntGate } from "./propHuntGate.js";
@@ -92,6 +93,7 @@ const text = (s) => ({ content: [{ type: "text", text: s }] });
 const server = new McpServer({ name: "asset-search", version: "0.8.0" });
 registerPlanningTools(server, { text });
 registerPolicyTools(server, { store, text });
+registerAcquisitionTools(server, { text });
 
 function shardForAssetId(assetId) {
   return String(assetId).replace(/\D/g, "").slice(0, 3) || "unknown";

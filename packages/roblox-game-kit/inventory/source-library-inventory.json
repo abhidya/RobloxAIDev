@@ -39,20 +39,20 @@
         "asset-search-mcp/src",
         "scripts"
       ],
-      "files": 24
+      "files": 26
     }
   ],
   "counts": {
-    "files": 270,
+    "files": 272,
     "byProject": {
       "eggbreakers": 150,
       "groantubehero": 96,
-      "robloxaidev-prophunt": 24
+      "robloxaidev-prophunt": 26
     },
     "byFamily": {
       "test-harness": 89,
       "score-and-timing": 49,
-      "asset-audit": 23,
+      "asset-audit": 25,
       "life-sim": 23,
       "world-layout": 19,
       "client-ui": 17,
@@ -2825,8 +2825,8 @@
       "relativePath": "src/ServerScriptService/Services/MapLayoutService.lua",
       "scanRoot": "src/ServerScriptService/Services",
       "family": "world-layout",
-      "bytes": 115888,
-      "lines": 2333,
+      "bytes": 117392,
+      "lines": 2373,
       "exportedFunctions": [
         "MapLayoutService:GetFoodMetadata",
         "MapLayoutService:ApplyFoodMetadata",
@@ -2839,15 +2839,15 @@
         "isOversizedThinPanel",
         "MapLayoutService:HasOversizedFlatPanelFoodVisual",
         "lowerContains",
+        "nameMatchesFoodDiet",
         "MapLayoutService:IsFoodVisualTemplateCandidate",
+        "MapLayoutService:GetImportedFoodVisualTemplateCandidates",
+        "foodVisualCandidateMatches",
         "MapLayoutService:ResolveImportedFoodVisualTemplate",
         "MapLayoutService:RemoveImportedFoodVisual",
         "MapLayoutService:RemoveProceduralFoodAffordances",
         "MapLayoutService:SanitizeImportedFoodVisualClone",
-        "MapLayoutService:AttachImportedFoodVisual",
-        "MapLayoutService:EnsureVisibleFoliageVisual",
-        "MapLayoutService:ApplyBrowseFoodAttributes",
-        "MapLayoutService:CompactPosition"
+        "MapLayoutService:AttachImportedFoodVisual"
       ],
       "hasReturn": true,
       "fallbackSignals": 40
@@ -4704,8 +4704,8 @@
       "relativePath": "asset-search-mcp/src/aiGameDevLoop.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 13495,
-      "lines": 377,
+      "bytes": 13970,
+      "lines": 394,
       "exportedFunctions": [
         "slugify",
         "compactToolCall",
@@ -4719,7 +4719,32 @@
         "formatAiGameDevLoopValidation"
       ],
       "hasReturn": true,
-      "fallbackSignals": 0
+      "fallbackSignals": 1
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/assetAcquisition.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 9521,
+      "lines": 250,
+      "exportedFunctions": [
+        "slugify",
+        "uniqueIds",
+        "artifactPaths",
+        "endpoint",
+        "buildAssetAcquisitionPlan",
+        "asObject",
+        "gate",
+        "passed",
+        "artifact",
+        "validateAssetAcquisitionReport",
+        "formatAssetAcquisitionPlan",
+        "formatAssetAcquisitionValidation"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 13
     },
     {
       "project": "robloxaidev-prophunt",
@@ -4775,8 +4800,8 @@
       "relativePath": "asset-search-mcp/src/index.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 28793,
-      "lines": 592,
+      "bytes": 28912,
+      "lines": 594,
       "exportedFunctions": [
         "rankedSearch",
         "applyExcludes",
@@ -4794,6 +4819,20 @@
       ],
       "hasReturn": true,
       "fallbackSignals": 2
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/mcpTools/acquisitionTools.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 2533,
+      "lines": 51,
+      "exportedFunctions": [
+        "registerAcquisitionTools"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 5
     },
     {
       "project": "robloxaidev-prophunt",
@@ -5155,8 +5194,8 @@
       "relativePath": "scripts/run_ai_game_dev_pocs.mjs",
       "scanRoot": "scripts",
       "family": "service-lifecycle",
-      "bytes": 6770,
-      "lines": 179,
+      "bytes": 7019,
+      "lines": 181,
       "exportedFunctions": [
         "tail",
         "exists",

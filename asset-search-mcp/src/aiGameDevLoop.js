@@ -102,6 +102,8 @@ export function buildAiGameDevLoopPlan({
         "preprocess_storyboard_asset_cache",
         "curate_assets",
         "claim_assets",
+        "plan_asset_acquisition",
+        "validate_asset_acquisition",
         "record_inspection",
         "commit_palette",
         "validate_publish_permissions",
@@ -153,8 +155,16 @@ export function buildAiGameDevLoopPlan({
             per_slot: 3,
             extensive: true,
           }),
+          compactToolCall("plan_asset_acquisition", {
+            project,
+            slot: "<claimed-slot>",
+            query: "<claimed-slot-query>",
+            target_place: targetPlace,
+            delivery_mode: "direct_or_studio_fallback",
+            format: "json",
+          }),
         ],
-        outputs: [artifacts.asset_brain_snapshot, "claims", "rejections", "inspection queue"],
+        outputs: [artifacts.asset_brain_snapshot, "claims", "rejections", "asset acquisition plans", "inspection queue"],
       },
       {
         id: "gamekit_source",
@@ -293,7 +303,14 @@ export function validateAiGameDevLoopReport(report, plan = null) {
   }
 
   const customTools = raw.gates?.custom_mcp_contract?.tools || raw.custom_mcp_tools || [];
-  for (const requiredTool of ["plan_ai_game_dev_loop", "validate_ai_game_dev_loop", "plan_batch_visual_gate", "validate_batch_visual_gate"]) {
+  for (const requiredTool of [
+    "plan_ai_game_dev_loop",
+    "validate_ai_game_dev_loop",
+    "plan_asset_acquisition",
+    "validate_asset_acquisition",
+    "plan_batch_visual_gate",
+    "validate_batch_visual_gate",
+  ]) {
     if (!customTools.includes(requiredTool)) {
       errors.push(`custom MCP proof must include tool '${requiredTool}'`);
     }
