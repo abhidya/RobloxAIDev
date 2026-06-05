@@ -39,22 +39,22 @@
         "asset-search-mcp/src",
         "scripts"
       ],
-      "files": 19
+      "files": 24
     }
   ],
   "counts": {
-    "files": 265,
+    "files": 270,
     "byProject": {
       "eggbreakers": 150,
       "groantubehero": 96,
-      "robloxaidev-prophunt": 19
+      "robloxaidev-prophunt": 24
     },
     "byFamily": {
       "test-harness": 89,
       "score-and-timing": 49,
+      "asset-audit": 23,
       "life-sim": 23,
       "world-layout": 19,
-      "asset-audit": 18,
       "client-ui": 17,
       "service-lifecycle": 17,
       "config-registry": 8,
@@ -2300,8 +2300,8 @@
       "relativePath": "src/ServerScriptService/Tests/Placement/StoryboardBeatValidation.lua",
       "scanRoot": "src/ServerScriptService/Tests",
       "family": "test-harness",
-      "bytes": 16765,
-      "lines": 321,
+      "bytes": 20411,
+      "lines": 385,
       "exportedFunctions": [
         "getOrCreateFolder",
         "countVisibleParts",
@@ -2312,10 +2312,11 @@
         "run",
         "run",
         "run",
+        "run",
         "run"
       ],
       "hasReturn": true,
-      "fallbackSignals": 12
+      "fallbackSignals": 13
     },
     {
       "project": "eggbreakers",
@@ -2824,8 +2825,8 @@
       "relativePath": "src/ServerScriptService/Services/MapLayoutService.lua",
       "scanRoot": "src/ServerScriptService/Services",
       "family": "world-layout",
-      "bytes": 99587,
-      "lines": 1958,
+      "bytes": 115888,
+      "lines": 2333,
       "exportedFunctions": [
         "MapLayoutService:GetFoodMetadata",
         "MapLayoutService:ApplyFoodMetadata",
@@ -2849,7 +2850,7 @@
         "MapLayoutService:CompactPosition"
       ],
       "hasReturn": true,
-      "fallbackSignals": 18
+      "fallbackSignals": 40
     },
     {
       "project": "eggbreakers",
@@ -4700,6 +4701,29 @@
     {
       "project": "robloxaidev-prophunt",
       "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/aiGameDevLoop.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 13495,
+      "lines": 377,
+      "exportedFunctions": [
+        "slugify",
+        "compactToolCall",
+        "requiredGameKitModules",
+        "loopArtifactPaths",
+        "buildAiGameDevLoopPlan",
+        "gatePassed",
+        "gateArtifact",
+        "validateAiGameDevLoopReport",
+        "formatAiGameDevLoopPlan",
+        "formatAiGameDevLoopValidation"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
       "relativePath": "asset-search-mcp/src/gameCoverage.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
@@ -4751,8 +4775,8 @@
       "relativePath": "asset-search-mcp/src/index.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 46499,
-      "lines": 934,
+      "bytes": 28793,
+      "lines": 592,
       "exportedFunctions": [
         "rankedSearch",
         "applyExcludes",
@@ -4766,13 +4790,41 @@
         "buildAssetBrainSnapshot",
         "formatAssetBrainSnapshot",
         "normalizeInspection",
-        "normalizePermissionArgs",
-        "publishValidationOptions",
-        "formatPublishPermissionValidation",
         "main"
       ],
       "hasReturn": true,
       "fallbackSignals": 2
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/mcpTools/planningTools.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 13004,
+      "lines": 237,
+      "exportedFunctions": [
+        "registerPlanningTools"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/mcpTools/policyTools.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 8144,
+      "lines": 172,
+      "exportedFunctions": [
+        "normalizePermissionArgs",
+        "publishValidationOptions",
+        "formatPublishPermissionValidation",
+        "registerPolicyTools"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
     },
     {
       "project": "robloxaidev-prophunt",
@@ -4836,6 +4888,47 @@
     {
       "project": "robloxaidev-prophunt",
       "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/publishPolicy.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 7363,
+      "lines": 175,
+      "exportedFunctions": [
+        "normalizeAccess",
+        "defaultPublishPolicy",
+        "normalizeDependency",
+        "normalizePublishPermission",
+        "dependencyPasses",
+        "evaluatePublishPermission",
+        "summarizePublishPermission",
+        "validatePalettePublishPermissions"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/studioBatchAdapter.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 4563,
+      "lines": 137,
+      "exportedFunctions": [
+        "asObject",
+        "expectedPlaceMatches",
+        "signedOffVerdict",
+        "mockAltText",
+        "normalizeCaptureResult",
+        "executeMockStudioBatchVisualGate",
+        "formatStudioBatchAdapterResult"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
       "relativePath": "asset-search-mcp/src/toolbox.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
@@ -4859,8 +4952,8 @@
       "relativePath": "asset-search-mcp/src/visualBatchGate.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 10859,
-      "lines": 301,
+      "bytes": 10980,
+      "lines": 302,
       "exportedFunctions": [
         "slugify",
         "vec",
@@ -4949,20 +5042,12 @@
       "relativePath": "asset-search-mcp/src/store.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "economy-wallet",
-      "bytes": 18478,
-      "lines": 450,
+      "bytes": 11471,
+      "lines": 289,
       "exportedFunctions": [
         "brainDir",
         "readJson",
         "writeJsonAtomic",
-        "normalizeAccess",
-        "defaultPublishPolicy",
-        "normalizeDependency",
-        "normalizePublishPermission",
-        "dependencyPasses",
-        "evaluatePublishPermission",
-        "summarizePublishPermission",
-        "validatePalettePublishPermissions",
         "diversify",
         "filterByTerms"
       ],
@@ -5070,8 +5155,8 @@
       "relativePath": "scripts/run_ai_game_dev_pocs.mjs",
       "scanRoot": "scripts",
       "family": "service-lifecycle",
-      "bytes": 6269,
-      "lines": 175,
+      "bytes": 6770,
+      "lines": 179,
       "exportedFunctions": [
         "tail",
         "exists",

@@ -107,6 +107,7 @@ async function main() {
   await add("asset_brain_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:asset-brain"]);
   await add("batch_visual_gate_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:offline"]);
   await add("studio_batch_adapter_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:studio-adapter"]);
+  await add("fragment_fixture_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:fragment-fixtures"]);
   await add("prompt_doc_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:prompt-contracts"]);
 
   const luneVersion = await runCommand("lune_version", "lune", ["--version"], { required: false });
@@ -157,6 +158,7 @@ async function main() {
       asset_brain_contract: commands.some((entry) => entry.id === "asset_brain_contract" && entry.status === "passed"),
       batch_visual_gate_contract: commands.some((entry) => entry.id === "batch_visual_gate_contract" && entry.status === "passed"),
       studio_batch_adapter_contract: commands.some((entry) => entry.id === "studio_batch_adapter_contract" && entry.status === "passed"),
+      fragment_fixture_contract: commands.some((entry) => entry.id === "fragment_fixture_contract" && entry.status === "passed"),
       prompt_doc_contract: commands.some((entry) => entry.id === "prompt_doc_contract" && entry.status === "passed"),
       headless_generation:
         commands.some((entry) => entry.id === "headless_fragment_verify" && entry.status === "passed")

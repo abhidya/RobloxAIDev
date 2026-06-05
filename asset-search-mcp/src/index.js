@@ -10,31 +10,9 @@ import { z } from "zod";
 
 import { searchAssets, DEFAULT_CATEGORIES } from "./toolbox.js";
 import { Store, diversify, filterByTerms } from "./store.js";
-import { buildGameAssetCoverage, formatGameAssetCoverage } from "./gameCoverage.js";
-import {
-  buildHeadlessAssemblyPlan,
-  formatFragmentManifestReport,
-  formatHeadlessAssemblyPlan,
-  validateFragmentManifest,
-} from "./headlessPipeline.js";
-import {
-  buildPlayableSpaceReviewPlan,
-  formatPlayableSpaceReviewPlan,
-  formatPlayableSpaceReviewValidation,
-  validatePlayableSpaceReview,
-} from "./playableSpaceReview.js";
-import {
-  buildBatchVisualGatePlan,
-  formatBatchVisualGatePlan,
-  formatBatchVisualGateValidation,
-  validateBatchVisualGateReport,
-} from "./visualBatchGate.js";
-import {
-  buildAiGameDevLoopPlan,
-  formatAiGameDevLoopPlan,
-  formatAiGameDevLoopValidation,
-  validateAiGameDevLoopReport,
-} from "./aiGameDevLoop.js";
+import { buildGameAssetCoverage } from "./gameCoverage.js";
+import { registerPlanningTools } from "./mcpTools/planningTools.js";
+import { registerPolicyTools } from "./mcpTools/policyTools.js";
 import { formatPropHuntGateReport, validatePropHuntGate } from "./propHuntGate.js";
 
 const store = new Store();
@@ -112,6 +90,8 @@ function formatPaletteSeed(slot, entry, index) {
 const text = (s) => ({ content: [{ type: "text", text: s }] });
 
 const server = new McpServer({ name: "asset-search", version: "0.8.0" });
+registerPlanningTools(server, { text });
+registerPolicyTools(server, { store, text });
 
 function shardForAssetId(assetId) {
   return String(assetId).replace(/\D/g, "").slice(0, 3) || "unknown";
@@ -228,94 +208,6 @@ function formatAssetBrainSnapshot(snapshot) {
 }
 
 server.tool(
-  "plan_ai_game_dev_loop",
-  "Plan the full AI Roblox game-dev loop: asset brain coverage/curation, reusable GameKit source adoption, Roblox file parser/writer generation, headless fragment merge, custom MCP validation, and gated Studio batch screenshots. This is the top-level custom MCP tool for reducing agent churn across the whole game design loop.",
-  {
-    project: z.string().optional().describe("Project or game slug."),
-    game: z.string().optional().describe("Short game idea or title."),
-    target_place: z.string().optional().describe("Source place file to copy/mutate before Studio validation."),
-    themes: z.array(z.string()).optional().describe("Room/world themes to cover."),
-    include_defaults: z.boolean().optional(),
-    include_lobby: z.boolean().optional(),
-    max_themes: z.number().int().min(1).max(12).optional(),
-    max_fragments: z.number().int().min(1).max(12).optional(),
-    assembly_profile: z.enum(["prop_hunt", "concert_defense", "metadata_evidence"]).optional(),
-    review_mode: z.enum(["full", "player_angle"]).optional(),
-    spaces: z.array(z.object({
-      id: z.string().optional(),
-      name: z.string().optional(),
-      type: z.string().optional(),
-      center: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
-      size: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
-      entry: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
-      look_at: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
-      quadrants: z.array(z.string()).optional(),
-      ui_states: z.array(z.string()).optional(),
-    })).optional(),
-    include_default_spaces: z.boolean().optional(),
-    artifact_root: z.string().optional(),
-    max_captures: z.number().int().min(1).max(200).optional(),
-    format: z.enum(["text", "json"]).optional(),
-  },
-  async (args) => {
-    const plan = buildAiGameDevLoopPlan({
-      project: args.project || "roblox-ai-game",
-      game: args.game || args.project || "Roblox AI game",
-      targetPlace: args.target_place || "Place1.rbxl",
-      themes: args.themes || [],
-      includeDefaults: args.include_defaults !== false,
-      includeLobby: args.include_lobby !== false,
-      maxThemes: args.max_themes ?? 6,
-      maxFragments: args.max_fragments ?? 6,
-      assemblyProfile: args.assembly_profile,
-      reviewMode: args.review_mode || "player_angle",
-      spaces: args.spaces || [],
-      includeDefaultSpaces: args.include_default_spaces !== false,
-      artifactRoot: args.artifact_root,
-      maxCaptures: args.max_captures,
-    });
-    return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatAiGameDevLoopPlan(plan));
-  }
-);
-
-server.tool(
-  "validate_ai_game_dev_loop",
-  "Validate a proof report for the full AI Roblox game-dev loop. Requires asset brain, GameKit build, parser/writer generation, fragment validation, custom MCP contract proof, and a passing gated Studio batch visual report.",
-  {
-    report: z.record(z.any()),
-    plan: z.record(z.any()).optional().describe("Optional plan from plan_ai_game_dev_loop(format='json')."),
-    format: z.enum(["text", "json"]).optional(),
-  },
-  async (args) => {
-    const result = validateAiGameDevLoopReport(args.report, args.plan);
-    return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatAiGameDevLoopValidation(result));
-  }
-);
-
-server.tool(
-  "plan_game_asset_coverage",
-  "Create a generic Roblox game asset coverage plan for the asset-driven skill: lobby spawn, NPCs, portals, upgrade shop, leaderboard/cosmetics, and capacity-limited themed room packs. Use this before curate_assets so new rooms such as underwater, space, haunted, or jungle are grounded in searchable Creator Store slots instead of hand-built placeholders.",
-  {
-    game: z.string().optional().describe("Short game idea or title."),
-    themes: z.array(z.string()).optional().describe("Room themes to cover, e.g. ['underwater reef', 'space station']."),
-    include_defaults: z.boolean().optional().describe("Add default expansion themes when true (default true)."),
-    include_lobby: z.boolean().optional().describe("Include lobby/social shell slots when true (default true)."),
-    max_themes: z.number().int().min(1).max(12).optional(),
-    format: z.enum(["text", "json"]).optional(),
-  },
-  async (args) => {
-    const coverage = buildGameAssetCoverage({
-      game: args.game || "Roblox game",
-      themes: args.themes || [],
-      includeDefaults: args.include_defaults !== false,
-      includeLobby: args.include_lobby !== false,
-      maxThemes: args.max_themes ?? 6,
-    });
-    return text(args.format === "json" ? JSON.stringify(coverage, null, 2) : formatGameAssetCoverage(coverage));
-  }
-);
-
-server.tool(
   "preprocess_storyboard_asset_cache",
   "Preprocess the asset-search cache for asset-driven storyboarding and headless Roblox file assembly. Builds coverage slots, optionally warms ranked search cache for each slot, and returns storyboard/headless inputs plus the GitHub Pages-friendly metadata layout. Use this before storyboarding so the game bends to cached Creator Store evidence.",
   {
@@ -418,143 +310,6 @@ server.tool(
       maxResultsPerQuery: args.max_results_per_query ?? 8,
     });
     return text(args.format === "json" ? JSON.stringify(snapshot, null, 2) : formatAssetBrainSnapshot(snapshot));
-  }
-);
-
-server.tool(
-  "plan_headless_assembly",
-  "Create the headless fan-out/fan-in assembly plan for parallel Roblox game agents. Returns agent fragment packets, the referent-safe manifest contract, asset/search/download/publish endpoints, coordinator merge steps, Rojo/Lune validation commands, and the Studio visual gate. Use assembly_profile='concert_defense' for GroanTubeHero/WorldV2-style concert arenas instead of Prop Hunt room parents.",
-  {
-    project: z.string().optional().describe("Project or game name (default: prophunt)."),
-    target_place: z.string().optional().describe("Source place file to copy before mutation (default: Place1.rbxl)."),
-    themes: z.array(z.string()).optional().describe("Themed room packets to generate, e.g. ['underwater reef','space station']."),
-    include_lobby: z.boolean().optional().describe("Include the persistent lobby fragment packet (default true)."),
-    max_fragments: z.number().int().min(1).max(12).optional(),
-    assembly_profile: z.enum(["prop_hunt", "concert_defense", "metadata_evidence"]).optional().describe("Fragment target profile. Defaults to prop_hunt, but GroanTubeHero-like project names infer concert_defense."),
-    format: z.enum(["text", "json"]).optional(),
-  },
-  async (args) => {
-    const plan = buildHeadlessAssemblyPlan({
-      project: args.project || "prophunt",
-      targetPlace: args.target_place || "Place1.rbxl",
-      themes: args.themes || [],
-      includeLobby: args.include_lobby !== false,
-      maxFragments: args.max_fragments ?? 6,
-      assemblyProfile: args.assembly_profile,
-    });
-    return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatHeadlessAssemblyPlan(plan));
-  }
-);
-
-server.tool(
-  "validate_fragment_manifest",
-  "Validate an agent-produced rbxm fragment manifest before a coordinator merges it into a Roblox place. Enforces one-root fragments, coordinator-owned referent remapping, strip/regenerate UniqueId policy, declared asset ids/external anchors, and blocks risky script loaders such as require(assetId), InsertService:LoadAsset, loadstring, and HttpService requests.",
-  {
-    manifest: z.record(z.any()),
-    format: z.enum(["text", "json"]).optional(),
-  },
-  async (args) => {
-    const result = validateFragmentManifest(args.manifest);
-    return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatFragmentManifestReport(result));
-  }
-);
-
-server.tool(
-  "plan_playable_space_review",
-  "Create a Studio screenshot plan for Roblox playable-space signoff. Covers lobby, portals, rooms, player-height quadrants, reverse shots, UI states, and the visual rubric. Use review_mode='player_angle' for scoped asset-fix passes that only need player-height screenshots.",
-  {
-    project: z.string().optional().describe("Project name for capture ids (default: prophunt)."),
-    review_mode: z.enum(["full", "player_angle"]).optional().describe("full = overhead/entry/player/reverse/UI. player_angle = scoped player-height quadrant screenshots for asset fixes."),
-    spaces: z.array(z.object({
-      id: z.string().optional(),
-      name: z.string().optional(),
-      type: z.string().optional(),
-      center: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
-      size: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
-      entry: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
-      look_at: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
-      quadrants: z.array(z.string()).optional(),
-      ui_states: z.array(z.string()).optional(),
-    })).optional().describe("Optional custom playable spaces. Defaults to Place1 Prop Hunt lobby + 3 rooms."),
-    include_defaults: z.boolean().optional().describe("Use default Prop Hunt spaces when spaces is empty (default true)."),
-    format: z.enum(["text", "json"]).optional(),
-  },
-  async (args) => {
-    const plan = buildPlayableSpaceReviewPlan({
-      project: args.project || "prophunt",
-      spaces: args.spaces || [],
-      includeDefaults: args.include_defaults !== false,
-      reviewMode: args.review_mode || "full",
-      format: args.format || "text",
-    });
-    return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatPlayableSpaceReviewPlan(plan));
-  }
-);
-
-server.tool(
-  "validate_playable_space_review",
-  "Validate a Roblox playable-space visual review report. Fails when spaces are missing, player-height quadrant screenshots are missing, required screenshot kinds are skipped, or major/blocker findings remain unresolved. A supplied custom plan is authoritative; without one, custom/scoped reports are inferred from the report before falling back to the default Prop Hunt plan.",
-  {
-    report: z.record(z.any()),
-    plan: z.record(z.any()).optional().describe("Optional plan from plan_playable_space_review(format='json')."),
-    format: z.enum(["text", "json"]).optional(),
-  },
-  async (args) => {
-    const result = validatePlayableSpaceReview(args.report, args.plan);
-    return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatPlayableSpaceReviewValidation(result));
-  }
-);
-
-server.tool(
-  "plan_batch_visual_gate",
-  "Create a serial StudioMCP batch screenshot gate from a playable-space review plan. The returned packet includes active-place preflight Luau, deterministic camera steps, screen_capture requests, collation paths, accessibility fields, and a report template so a Studio wrapper can capture all views with minimal agent calls.",
-  {
-    project: z.string().optional().describe("Project name for capture ids (default: prophunt)."),
-    target_place: z.string().optional().describe("Expected active Studio place name/file, e.g. GroanTubeHero.rbxl or eggBreakers3.rbxl."),
-    review_mode: z.enum(["full", "player_angle"]).optional(),
-    spaces: z.array(z.object({
-      id: z.string().optional(),
-      name: z.string().optional(),
-      type: z.string().optional(),
-      center: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
-      size: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
-      entry: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
-      look_at: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
-      quadrants: z.array(z.string()).optional(),
-      ui_states: z.array(z.string()).optional(),
-    })).optional().describe("Optional custom playable spaces. Defaults to Place1 Prop Hunt spaces."),
-    include_defaults: z.boolean().optional().describe("Use default Prop Hunt spaces when spaces is empty (default true)."),
-    adapter: z.enum(["studio_mcp_proxy", "manual_studio_mcp"]).optional().describe("Studio execution adapter contract."),
-    artifact_root: z.string().optional().describe("Where the wrapper should write screenshots and the collated manifest."),
-    max_captures: z.number().int().min(1).max(200).optional().describe("Optional cap for smoke runs."),
-    format: z.enum(["text", "json"]).optional(),
-  },
-  async (args) => {
-    const plan = buildBatchVisualGatePlan({
-      project: args.project || "prophunt",
-      targetPlace: args.target_place || "Place1.rbxl",
-      reviewMode: args.review_mode || "full",
-      spaces: args.spaces || [],
-      includeDefaults: args.include_defaults !== false,
-      adapter: args.adapter,
-      artifactRoot: args.artifact_root,
-      maxCaptures: args.max_captures,
-    });
-    return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatBatchVisualGatePlan(plan));
-  }
-);
-
-server.tool(
-  "validate_batch_visual_gate",
-  "Validate the collated output from a StudioMCP batch screenshot wrapper. Requires active-place preflight proof, image paths for every planned capture, and a passing playable-space review report.",
-  {
-    batch_report: z.record(z.any()),
-    plan: z.record(z.any()).optional().describe("Optional plan from plan_batch_visual_gate(format='json')."),
-    format: z.enum(["text", "json"]).optional(),
-  },
-  async (args) => {
-    const result = validateBatchVisualGateReport(args.batch_report, args.plan);
-    return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatBatchVisualGateValidation(result));
   }
 );
 
@@ -774,78 +529,6 @@ function normalizeInspection(args) {
   };
 }
 
-const publishAccessSchema = z.enum(["grantable", "open_use", "open_use_dependency", "restricted_denied", "unknown"]);
-const publishPolicySchema = z.enum(["allow", "allow_external_open_use", "quarantine", "reject"]);
-const probeSchema = z.enum(["not_run", "pass", "fail"]);
-const publishPermissionDependencySchema = z.object({
-  asset_id: z.number().optional(),
-  assetId: z.number().optional(),
-  type: z.string().optional(),
-  access: publishAccessSchema.optional(),
-  grantable_by_us: z.boolean().optional(),
-  grantableByUs: z.boolean().optional(),
-  experience_has_access: z.boolean().optional(),
-  experienceHasAccess: z.boolean().optional(),
-  status: z.enum(["pass", "quarantine", "reject", "unknown"]).optional(),
-  evidence: z.array(z.string()).optional(),
-  notes: z.string().optional(),
-});
-const publishPermissionSchema = z.object({
-  asset_id: z.number(),
-  target_publisher: z.record(z.any()).optional().describe("Publisher proof target, e.g. {type:'group', id:'123'}"),
-  target_experience_id: z.string().optional(),
-  access: publishAccessSchema.describe("grantable = owned by target publisher; open_use/open_use_dependency = usable but not grantable; restricted_denied/unknown block release."),
-  grantable_by_us: z.boolean().optional(),
-  experience_has_access: z.boolean().optional(),
-  publish_policy: publishPolicySchema.optional(),
-  studio_insert_probe: probeSchema.optional(),
-  save_reopen_probe: probeSchema.optional(),
-  dependencies: z.array(publishPermissionDependencySchema).optional(),
-  evidence: z.array(z.string()).optional(),
-  notes: z.string().optional(),
-  reviewer: z.string().optional(),
-  source: z.string().optional(),
-});
-
-function normalizePermissionArgs(args) {
-  return {
-    targetPublisher: args.target_publisher ?? null,
-    targetExperienceId: args.target_experience_id ?? null,
-    access: args.access,
-    grantableByUs: args.grantable_by_us ?? null,
-    experienceHasAccess: args.experience_has_access ?? null,
-    publishPolicy: args.publish_policy ?? null,
-    studioInsertProbe: args.studio_insert_probe ?? "not_run",
-    saveReopenProbe: args.save_reopen_probe ?? "not_run",
-    dependencies: args.dependencies ?? [],
-    evidence: args.evidence ?? [],
-    notes: args.notes ?? null,
-    reviewer: args.reviewer ?? null,
-    source: args.source ?? "permission-audit",
-  };
-}
-
-function publishValidationOptions(args) {
-  return {
-    mode: args.publish_permission_mode || args.mode || "grantable_or_open_use",
-    requireStudioProbe: !!args.require_studio_probe,
-    requireSaveReopen: !!args.require_save_reopen,
-  };
-}
-
-function formatPublishPermissionValidation(result) {
-  const head = `${result.passed ? "PASS" : "FAIL"} publish permissions for '${result.project}' mode=${result.mode}`;
-  const counts = `palette=${result.counts.paletteAssets} passed=${result.counts.passed} failed=${result.counts.failed} missing=${result.counts.missing}`;
-  const lines = [head, counts];
-  if (result.errors.length) {
-    lines.push("", "Errors:", ...result.errors.map((error) => `- ${error}`));
-  }
-  if (result.warnings.length) {
-    lines.push("", "Warnings:", ...result.warnings.map((warning) => `- ${warning}`));
-  }
-  return lines.join("\n");
-}
-
 server.tool(
   "record_inspections",
   "Record many StudioMCP inspection records in one call. Use this after a live Studio audit of a full Prop Hunt palette so the search MCP has reusable geometry/safety evidence without dozens of individual tool calls.",
@@ -861,108 +544,12 @@ server.tool(
 );
 
 server.tool(
-  "record_asset_permission",
-  "Record publish-permission proof for one asset: whether the target user/group can grant it, whether the target experience can load it, dependency access, and Studio/save-reopen probes. Use this before strict palette commits or release cache snapshots.",
-  publishPermissionSchema.shape,
-  async (args) => {
-    await store.recordPublishPermission(args.asset_id, normalizePermissionArgs(args));
-    const evaluation = store.evaluatePublishPermission(args.asset_id);
-    return text(`Recorded publish permission for ${args.asset_id}: ${evaluation.passed ? "publish-ready" : "not publish-ready"} (${evaluation.errors.join("; ") || "ok"}).`);
-  }
-);
-
-server.tool(
-  "record_asset_permissions",
-  "Record many asset publish-permission proofs in one call after a Creator Dashboard export or Studio permission audit.",
-  { permissions: z.array(publishPermissionSchema).min(1).max(500) },
-  async (args) => {
-    for (const permission of args.permissions) {
-      await store.recordPublishPermission(permission.asset_id, normalizePermissionArgs(permission));
-    }
-    return text(`Recorded ${args.permissions.length} publish permission record(s).`);
-  }
-);
-
-server.tool(
-  "get_asset_permission",
-  "Get the latest publish-permission proof and evaluated release readiness for an asset id.",
-  {
-    asset_id: z.number(),
-    publish_permission_mode: z.enum(["grantable_only", "grantable_or_open_use"]).optional(),
-    require_studio_probe: z.boolean().optional(),
-    require_save_reopen: z.boolean().optional(),
-  },
-  async (args) => {
-    const permission = store.getPublishPermission(args.asset_id);
-    const evaluation = store.evaluatePublishPermission(args.asset_id, publishValidationOptions(args));
-    return text(JSON.stringify({ permission, evaluation }, null, 2));
-  }
-);
-
-server.tool(
-  "validate_publish_permissions",
-  "Validate that every asset in a committed palette has publish-permission proof before headless build, Studio insertion, save/reopen, or release. Use mode='grantable_only' when the palette must contain only assets the target publisher can grant, and mode='grantable_or_open_use' when Open Use external dependencies are allowed.",
-  {
-    project: z.string().optional().describe("Palette project name (default: prophunt)."),
-    publish_permission_mode: z.enum(["grantable_only", "grantable_or_open_use"]).optional(),
-    require_studio_probe: z.boolean().optional(),
-    require_save_reopen: z.boolean().optional(),
-    format: z.enum(["text", "json"]).optional(),
-  },
-  async (args) => {
-    const result = store.validatePalettePublishPermissions(args.project || "prophunt", publishValidationOptions(args));
-    return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatPublishPermissionValidation(result));
-  }
-);
-
-server.tool(
   "get_inspection",
   "Get the latest persisted StudioMCP inspection for an asset id.",
   { asset_id: z.number() },
   async (args) => {
     const inspection = store.getInspection(args.asset_id);
     return text(inspection ? JSON.stringify(inspection, null, 2) : `No inspection recorded for ${args.asset_id}.`);
-  }
-);
-
-server.tool(
-  "commit_palette",
-  "Freeze the chosen asset for a slot into the project palette (also claims it). Pass require_publish_permission=true to block assets without publish-permission proof before they can enter a release palette.",
-  {
-    project: z.string(),
-    slot: z.string(),
-    asset_id: z.number(),
-    name: z.string().optional(),
-    require_publish_permission: z.boolean().optional(),
-    publish_permission_mode: z.enum(["grantable_only", "grantable_or_open_use"]).optional(),
-    require_studio_probe: z.boolean().optional(),
-    require_save_reopen: z.boolean().optional(),
-  },
-  async (args) => {
-    if (args.require_publish_permission) {
-      const evaluation = store.evaluatePublishPermission(args.asset_id, publishValidationOptions(args));
-      if (!evaluation.passed) {
-        return text(`Refused to commit ${args.slot} -> ${args.asset_id}: publish permission gate failed (${evaluation.errors.join("; ")}).`);
-      }
-    }
-    await store.commitPalette(args.project, args.slot, args.asset_id, args.name);
-    return text(`Committed ${args.slot} -> ${args.asset_id} in '${args.project}' (and claimed it).`);
-  }
-);
-
-server.tool(
-  "get_palette",
-  "Return the committed palette (slot -> chosen asset id) for a project.",
-  { project: z.string() },
-  async (args) => {
-    const pal = store.getPalette(args.project);
-    const entries = Object.entries(pal);
-    if (!entries.length) return text(`Palette '${args.project}' is empty.`);
-    return text(`Palette '${args.project}':\n${entries.map(([slot, v]) => {
-      const evaluation = store.evaluatePublishPermission(v.assetId);
-      const publish = evaluation.passed ? "publish=pass" : `publish=fail:${evaluation.errors[0] || "unknown"}`;
-      return `${slot}: ${v.assetId}${v.name ? ` (${v.name})` : ""} [${publish}]`;
-    }).join("\n")}`);
   }
 );
 

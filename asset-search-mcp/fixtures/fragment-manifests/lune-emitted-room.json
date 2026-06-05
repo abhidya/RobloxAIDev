@@ -1,0 +1,19 @@
+{
+  "version": "roblox-fragment-manifest/v1",
+  "fragmentId": "reef_room",
+  "targetParent": "Workspace.PropHuntRooms",
+  "orderKey": "010-reef",
+  "singleRoot": true,
+  "root_name": "ReefRoom",
+  "sourceDigest": "sha256:0123456789abcdef",
+  "assetIds": ["1001", "1002"],
+  "external_references": ["Workspace.RoomSpawns.Reef"],
+  "identityPolicy": {
+    "referent_policy": "coordinator",
+    "unique_id_policy": "coordinator_generate",
+    "history_id_policy": "strip"
+  },
+  "scriptSources": {
+    "ReefRoom/ClientCue": "print('reef ready')"
+  }
+}

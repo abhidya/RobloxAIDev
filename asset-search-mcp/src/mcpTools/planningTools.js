@@ -1,0 +1,236 @@
+import { z } from "zod";
+import { buildGameAssetCoverage, formatGameAssetCoverage } from "../gameCoverage.js";
+import {
+  buildHeadlessAssemblyPlan,
+  formatFragmentManifestReport,
+  formatHeadlessAssemblyPlan,
+  validateFragmentManifest,
+} from "../headlessPipeline.js";
+import {
+  buildPlayableSpaceReviewPlan,
+  formatPlayableSpaceReviewPlan,
+  formatPlayableSpaceReviewValidation,
+  validatePlayableSpaceReview,
+} from "../playableSpaceReview.js";
+import {
+  buildBatchVisualGatePlan,
+  formatBatchVisualGatePlan,
+  formatBatchVisualGateValidation,
+  validateBatchVisualGateReport,
+} from "../visualBatchGate.js";
+import {
+  buildAiGameDevLoopPlan,
+  formatAiGameDevLoopPlan,
+  formatAiGameDevLoopValidation,
+  validateAiGameDevLoopReport,
+} from "../aiGameDevLoop.js";
+
+const pointSchema = z.object({ x: z.number(), y: z.number(), z: z.number() });
+const playableSpaceSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  type: z.string().optional(),
+  center: pointSchema.optional(),
+  size: pointSchema.optional(),
+  entry: pointSchema.optional(),
+  look_at: pointSchema.optional(),
+  quadrants: z.array(z.string()).optional(),
+  ui_states: z.array(z.string()).optional(),
+});
+
+export function registerPlanningTools(server, { text }) {
+  server.tool(
+    "plan_ai_game_dev_loop",
+    "Plan the full AI Roblox game-dev loop: asset brain coverage/curation, reusable GameKit source adoption, Roblox file parser/writer generation, headless fragment merge, custom MCP validation, and gated Studio batch screenshots. This is the top-level custom MCP tool for reducing agent churn across the whole game design loop.",
+    {
+      project: z.string().optional().describe("Project or game slug."),
+      game: z.string().optional().describe("Short game idea or title."),
+      target_place: z.string().optional().describe("Source place file to copy/mutate before Studio validation."),
+      themes: z.array(z.string()).optional().describe("Room/world themes to cover."),
+      include_defaults: z.boolean().optional(),
+      include_lobby: z.boolean().optional(),
+      max_themes: z.number().int().min(1).max(12).optional(),
+      max_fragments: z.number().int().min(1).max(12).optional(),
+      assembly_profile: z.enum(["prop_hunt", "concert_defense", "metadata_evidence"]).optional(),
+      review_mode: z.enum(["full", "player_angle"]).optional(),
+      spaces: z.array(playableSpaceSchema).optional(),
+      include_default_spaces: z.boolean().optional(),
+      artifact_root: z.string().optional(),
+      max_captures: z.number().int().min(1).max(200).optional(),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const plan = buildAiGameDevLoopPlan({
+        project: args.project || "roblox-ai-game",
+        game: args.game || args.project || "Roblox AI game",
+        targetPlace: args.target_place || "Place1.rbxl",
+        themes: args.themes || [],
+        includeDefaults: args.include_defaults !== false,
+        includeLobby: args.include_lobby !== false,
+        maxThemes: args.max_themes ?? 6,
+        maxFragments: args.max_fragments ?? 6,
+        assemblyProfile: args.assembly_profile,
+        reviewMode: args.review_mode || "player_angle",
+        spaces: args.spaces || [],
+        includeDefaultSpaces: args.include_default_spaces !== false,
+        artifactRoot: args.artifact_root,
+        maxCaptures: args.max_captures,
+      });
+      return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatAiGameDevLoopPlan(plan));
+    }
+  );
+
+  server.tool(
+    "validate_ai_game_dev_loop",
+    "Validate a proof report for the full AI Roblox game-dev loop. Requires asset brain, GameKit build, parser/writer generation, fragment validation, custom MCP contract proof, and a passing gated Studio batch visual report.",
+    {
+      report: z.record(z.any()),
+      plan: z.record(z.any()).optional().describe("Optional plan from plan_ai_game_dev_loop(format='json')."),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const result = validateAiGameDevLoopReport(args.report, args.plan);
+      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatAiGameDevLoopValidation(result));
+    }
+  );
+
+  server.tool(
+    "plan_game_asset_coverage",
+    "Create a generic Roblox game asset coverage plan for the asset-driven skill: lobby spawn, NPCs, portals, upgrade shop, leaderboard/cosmetics, and capacity-limited themed room packs. Use this before curate_assets so new rooms such as underwater, space, haunted, or jungle are grounded in searchable Creator Store slots instead of hand-built placeholders.",
+    {
+      game: z.string().optional().describe("Short game idea or title."),
+      themes: z.array(z.string()).optional().describe("Room themes to cover, e.g. ['underwater reef', 'space station']."),
+      include_defaults: z.boolean().optional().describe("Add default expansion themes when true (default true)."),
+      include_lobby: z.boolean().optional().describe("Include lobby/social shell slots when true (default true)."),
+      max_themes: z.number().int().min(1).max(12).optional(),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const coverage = buildGameAssetCoverage({
+        game: args.game || "Roblox game",
+        themes: args.themes || [],
+        includeDefaults: args.include_defaults !== false,
+        includeLobby: args.include_lobby !== false,
+        maxThemes: args.max_themes ?? 6,
+      });
+      return text(args.format === "json" ? JSON.stringify(coverage, null, 2) : formatGameAssetCoverage(coverage));
+    }
+  );
+
+  server.tool(
+    "plan_headless_assembly",
+    "Create the headless fan-out/fan-in assembly plan for parallel Roblox game agents. Returns agent fragment packets, the referent-safe manifest contract, asset/search/download/publish endpoints, coordinator merge steps, Rojo/Lune validation commands, and the Studio visual gate. Use assembly_profile='concert_defense' for GroanTubeHero/WorldV2-style concert arenas instead of Prop Hunt room parents.",
+    {
+      project: z.string().optional().describe("Project or game name (default: prophunt)."),
+      target_place: z.string().optional().describe("Source place file to copy before mutation (default: Place1.rbxl)."),
+      themes: z.array(z.string()).optional().describe("Themed room packets to generate, e.g. ['underwater reef','space station']."),
+      include_lobby: z.boolean().optional().describe("Include the persistent lobby fragment packet (default true)."),
+      max_fragments: z.number().int().min(1).max(12).optional(),
+      assembly_profile: z.enum(["prop_hunt", "concert_defense", "metadata_evidence"]).optional().describe("Fragment target profile. Defaults to prop_hunt, but GroanTubeHero-like project names infer concert_defense."),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const plan = buildHeadlessAssemblyPlan({
+        project: args.project || "prophunt",
+        targetPlace: args.target_place || "Place1.rbxl",
+        themes: args.themes || [],
+        includeLobby: args.include_lobby !== false,
+        maxFragments: args.max_fragments ?? 6,
+        assemblyProfile: args.assembly_profile,
+      });
+      return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatHeadlessAssemblyPlan(plan));
+    }
+  );
+
+  server.tool(
+    "validate_fragment_manifest",
+    "Validate an agent-produced rbxm fragment manifest before a coordinator merges it into a Roblox place. Enforces one-root fragments, coordinator-owned referent remapping, strip/regenerate UniqueId policy, declared asset ids/external anchors, and blocks risky script loaders such as require(assetId), InsertService:LoadAsset, loadstring, and HttpService requests.",
+    {
+      manifest: z.record(z.any()),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const result = validateFragmentManifest(args.manifest);
+      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatFragmentManifestReport(result));
+    }
+  );
+
+  server.tool(
+    "plan_playable_space_review",
+    "Create a Studio screenshot plan for Roblox playable-space signoff. Covers lobby, portals, rooms, player-height quadrants, reverse shots, UI states, and the visual rubric. Use review_mode='player_angle' for scoped asset-fix passes that only need player-height screenshots.",
+    {
+      project: z.string().optional().describe("Project name for capture ids (default: prophunt)."),
+      review_mode: z.enum(["full", "player_angle"]).optional().describe("full = overhead/entry/player/reverse/UI. player_angle = scoped player-height quadrant screenshots for asset fixes."),
+      spaces: z.array(playableSpaceSchema).optional().describe("Optional custom playable spaces. Defaults to Place1 Prop Hunt lobby + 3 rooms."),
+      include_defaults: z.boolean().optional().describe("Use default Prop Hunt spaces when spaces is empty (default true)."),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const plan = buildPlayableSpaceReviewPlan({
+        project: args.project || "prophunt",
+        spaces: args.spaces || [],
+        includeDefaults: args.include_defaults !== false,
+        reviewMode: args.review_mode || "full",
+        format: args.format || "text",
+      });
+      return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatPlayableSpaceReviewPlan(plan));
+    }
+  );
+
+  server.tool(
+    "validate_playable_space_review",
+    "Validate a Roblox playable-space visual review report. Fails when spaces are missing, player-height quadrant screenshots are missing, required screenshot kinds are skipped, or major/blocker findings remain unresolved. A supplied custom plan is authoritative; without one, custom/scoped reports are inferred from the report before falling back to the default Prop Hunt plan.",
+    {
+      report: z.record(z.any()),
+      plan: z.record(z.any()).optional().describe("Optional plan from plan_playable_space_review(format='json')."),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const result = validatePlayableSpaceReview(args.report, args.plan);
+      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatPlayableSpaceReviewValidation(result));
+    }
+  );
+
+  server.tool(
+    "plan_batch_visual_gate",
+    "Create a serial StudioMCP batch screenshot gate from a playable-space review plan. The returned packet includes active-place preflight Luau, deterministic camera steps, screen_capture requests, collation paths, accessibility fields, and a report template so a Studio wrapper can capture all views with minimal agent calls.",
+    {
+      project: z.string().optional().describe("Project name for capture ids (default: prophunt)."),
+      target_place: z.string().optional().describe("Expected active Studio place name/file, e.g. GroanTubeHero.rbxl or eggBreakers3.rbxl."),
+      review_mode: z.enum(["full", "player_angle"]).optional(),
+      spaces: z.array(playableSpaceSchema).optional().describe("Optional custom playable spaces. Defaults to Place1 Prop Hunt spaces."),
+      include_defaults: z.boolean().optional().describe("Use default Prop Hunt spaces when spaces is empty (default true)."),
+      adapter: z.enum(["studio_mcp_proxy", "manual_studio_mcp"]).optional().describe("Studio execution adapter contract."),
+      artifact_root: z.string().optional().describe("Where the wrapper should write screenshots and the collated manifest."),
+      max_captures: z.number().int().min(1).max(200).optional().describe("Optional cap for smoke runs."),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const plan = buildBatchVisualGatePlan({
+        project: args.project || "prophunt",
+        targetPlace: args.target_place || "Place1.rbxl",
+        reviewMode: args.review_mode || "full",
+        spaces: args.spaces || [],
+        includeDefaults: args.include_defaults !== false,
+        adapter: args.adapter,
+        artifactRoot: args.artifact_root,
+        maxCaptures: args.max_captures,
+      });
+      return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatBatchVisualGatePlan(plan));
+    }
+  );
+
+  server.tool(
+    "validate_batch_visual_gate",
+    "Validate the collated output from a StudioMCP batch screenshot wrapper. Requires active-place preflight proof, image paths for every planned capture, and a passing playable-space review report.",
+    {
+      batch_report: z.record(z.any()),
+      plan: z.record(z.any()).optional().describe("Optional plan from plan_batch_visual_gate(format='json')."),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const result = validateBatchVisualGateReport(args.batch_report, args.plan);
+      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatBatchVisualGateValidation(result));
+    }
+  );
+}

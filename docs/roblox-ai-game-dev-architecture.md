@@ -283,10 +283,10 @@ from making the seams executable and smaller.
 
 | Finding | Why It Matters | Hardening Step |
 | --- | --- | --- |
-| `asset-search-mcp/src/index.js` owns too many tool families | A change to visual gates, Prop Hunt policy, headless contracts, or asset memory can collide in one file | Split tool registration into asset, headless, visual, and policy modules while keeping transport boot in `index.js` |
-| `asset-search-mcp/src/store.js` mixes persistence and policy | JSON IO, reviews, claims, publish permissions, palettes, and inspection memory change for different reasons | Keep atomic persistence in `store.js`; move publish-permission and palette policy into explicit policy modules |
+| Planning/visual and policy tool registration has been split out of `index.js` | A change to visual gates, headless contracts, e2e planning, or release policy should not collide with asset memory transport boot | Keep `asset-search-mcp/src/mcpTools/planningTools.js` and `asset-search-mcp/src/mcpTools/policyTools.js` focused; move remaining asset-memory tools only when a clear cluster is ready |
+| Publish policy is separated from persistence | JSON IO, reviews, claims, publish permissions, palettes, and inspection memory change for different reasons | Keep atomic persistence in `store.js`; keep release-readiness rules in `asset-search-mcp/src/publishPolicy.js` and MCP policy wiring in `mcpTools/policyTools.js` |
 | Batch visual gate starts with a mock executor | It reduces agent churn only if something can consume the packet and return a collated proof bundle | Extend `run-studio-batch-visual-gate.mjs` from mock transport to real Studio MCP transport while preserving the artifact contract |
-| Fragment manifest shapes still tolerate aliases | Alias tolerance helps migration but can hide drift between JS validators and Luau writers | Add canonical fixtures for JS-generated and Luau-emitted manifests, then round-trip both through one schema |
+| Fragment manifest aliases have canonical fixtures | Alias tolerance helps migration but can hide drift between JS validators and Luau writers | Keep `asset-search-mcp/fixtures/fragment-manifests` and `test:fragment-fixtures` as the cross-writer schema guard |
 | Operator handoff must live in files | Chat-only workflow memory gets lost across agents and sessions | Keep `prompts/*.md` and test them with `test:prompt-contracts` |
 
 ## POC Matrix
@@ -296,6 +296,7 @@ from making the seams executable and smaller.
 | Cross-project asset memory can be canonicalized | `node scripts/merge_asset_brain_sources.mjs` and `npm --prefix asset-search-mcp run test:asset-brain` | `asset-brain/v1/manifest.json`, `asset-brain/v1/indexes/merged-project-assets.ndjson` |
 | Roblox files can be created/mutated outside Studio | `lune run scripts/headless_place_insert_poc.luau` and `lune run scripts/headless_place_verify_poc.luau` | ignored files under `work/headless-poc/`, console `HEADLESS_*_OK` |
 | Fragment fan-in can be coordinator-gated | `lune run scripts/headless_fragment_merge.luau ...` | manifest digest validation and reload of merged place |
+| JS-generated and Luau-emitted fragment manifests normalize through one schema | `npm --prefix asset-search-mcp run test:fragment-fixtures` | `asset-search-mcp/fixtures/fragment-manifests/*.json` and `validate_fragment_manifest` |
 | Studio proof can be batched and adapter-consumed | `npm --prefix asset-search-mcp run test:offline`, `npm --prefix asset-search-mcp run test:studio-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `plan_batch_visual_gate`, `run-studio-batch-visual-gate.mjs`, and `validate_batch_visual_gate` coverage |
 | Prompts/docs stay present and aligned | `npm --prefix asset-search-mcp run test:prompt-contracts` | prompt and architecture contract test |
 | The full proposed loop has fresh local evidence | `node scripts/run_ai_game_dev_pocs.mjs` | `docs/poc-results/ai-game-dev-poc-latest.json` |
