@@ -161,6 +161,26 @@ Run the resulting packet through a StudioMCP adapter, then call
 [`docs/batch-studio-visual-gate.md`](docs/batch-studio-visual-gate.md) and
 [`docs/cross-project-asset-brain.md`](docs/cross-project-asset-brain.md).
 
+For the larger AI game-dev process, use
+[`CONTEXT.md`](CONTEXT.md),
+[`docs/roblox-ai-game-dev-architecture.md`](docs/roblox-ai-game-dev-architecture.md),
+and [`prompts/`](prompts/) as the operator surface. The architecture keeps
+Studio as the gated validator, compares Lune, rbx-dom, Rojo, Docker-wrapped
+Studio, direct asset parsing, and Studio-first alternatives, and defines prompt
+lanes for asset brain, curation, headless fragments, merge coordination,
+gameplay implementation, visual proof, and release verification.
+
+To refresh the local proof bundle for those claims:
+
+```bash
+node scripts/run_ai_game_dev_pocs.mjs
+npm --prefix asset-search-mcp test
+```
+
+The POC runner writes a small metadata report to
+[`docs/poc-results/ai-game-dev-poc-latest.json`](docs/poc-results/ai-game-dev-poc-latest.json)
+and keeps generated Roblox binaries under ignored scratch paths.
+
 If StudioMCP reports a different place than the one you opened, do not capture
 screenshots. See
 [`docs/studio-mcp-troubleshooting.md`](docs/studio-mcp-troubleshooting.md) for

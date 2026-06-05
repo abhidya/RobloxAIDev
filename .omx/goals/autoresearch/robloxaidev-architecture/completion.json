@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "slug": "robloxaidev-architecture",
+  "verdict": "pass",
+  "passed": true,
+  "summary": "RobloxAIDev now has repo-native architecture docs, context vocabulary, ten prompt lane files, prompt-contract tests, a POC runner, and fresh green evidence for asset brain merge, batch visual-gate contracts, and Lune headless place mutation/fragment merge.",
+  "evidence": "node scripts/run_ai_game_dev_pocs.mjs => passed; npm --prefix asset-search-mcp test => passed",
+  "artifact_path": "docs/poc-results/ai-game-dev-poc-latest.json",
+  "critic_command": "npm --prefix asset-search-mcp test",
+  "recorded_at": "2026-06-05T22:39:33.217Z"
+}
