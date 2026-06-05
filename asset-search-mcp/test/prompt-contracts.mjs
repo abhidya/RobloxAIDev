@@ -48,6 +48,7 @@ for (const claim of [
   "Rust/rbx-dom coordinator",
   "Docker-wrapped Studio",
   "Studio adapter module",
+  "run-studio-batch-visual-gate.mjs",
 ]) {
   assertIncludes(architecture, claim, "architecture doc");
 }
@@ -55,6 +56,7 @@ for (const claim of [
 for (const docPath of [
   "docs/batch-studio-visual-gate.md",
   "docs/cross-project-asset-brain.md",
+  "docs/e2e-roblox-ai-game-design-loop.md",
   "docs/headless-roblox-file-pipeline.md",
   "docs/studio-mcp-troubleshooting.md",
 ]) {

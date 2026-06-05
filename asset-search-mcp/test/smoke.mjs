@@ -26,6 +26,8 @@ const tools = await client.listTools();
 const toolNames = tools.tools.map((t) => t.name);
 console.log("TOOLS:", toolNames.join(", "));
 for (const requiredTool of [
+  "plan_ai_game_dev_loop",
+  "validate_ai_game_dev_loop",
   "plan_game_asset_coverage",
   "preprocess_storyboard_asset_cache",
   "export_asset_brain_snapshot",
@@ -82,6 +84,65 @@ console.log(JSON.stringify({
   slots: cachePlan.slots.length,
   warmed: cachePlan.warmed.length,
   pages: cachePlan.pagesLayout.manifest,
+}, null, 2));
+
+console.log("\n--- plan_ai_game_dev_loop ---");
+const loopPlan = JSON.parse(await call("plan_ai_game_dev_loop", {
+  project: "groan-tube-hero",
+  game: "concert defense rhythm arena",
+  target_place: "GroanTubeHero.rbxl",
+  themes: ["volcano concert arena"],
+  assembly_profile: "concert_defense",
+  review_mode: "player_angle",
+  include_default_spaces: false,
+  spaces: [{ id: "stage_circle", quadrants: ["front", "left"] }],
+  max_fragments: 2,
+  format: "json",
+}));
+assert.equal(loopPlan.schema, "roblox-ai-game-dev-loop/v1", "MCP e2e loop plan schema");
+assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_headless_assembly"), "MCP e2e loop includes headless tool");
+assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_batch_visual_gate"), "MCP e2e loop includes batch visual gate");
+assert.ok(loopPlan.phases.some((phase) => phase.id === "parser_writer_generation"), "MCP e2e loop includes parser/writer phase");
+assert.ok(loopPlan.studio_adapter.cli.includes("run-studio-batch-visual-gate"), "MCP e2e loop includes Studio adapter CLI");
+const loopBatchReport = {
+  ...loopPlan.batch_visual_gate_plan.report_template,
+  preflight: { passed: true, placeName: "GroanTubeHero.rbxl", placeId: 123 },
+  screenshots: loopPlan.batch_visual_gate_plan.capture_batch.captures.map((shot) => ({
+    ...shot.result_contract,
+    passed: true,
+    alt_text: `${shot.capture_id} planned proof`,
+  })),
+  verdict: "player_angle_signed_off",
+};
+const loopValidation = JSON.parse(await call("validate_ai_game_dev_loop", {
+  plan: loopPlan,
+  report: {
+    schema: "roblox-ai-game-dev-loop-report/v1",
+    project: "groan-tube-hero",
+    gates: {
+      asset_brain: { passed: true, artifact_path: "asset-brain/v1/manifest.json" },
+      gamekit_build: { passed: true, artifact_path: "/tmp/RobloxGameKit.rbxlx" },
+      parser_writer_generation: { passed: true, artifact_path: "docs/poc-results/ai-game-dev-poc-latest.json" },
+      fragment_manifest_validation: { passed: true, artifact_path: "fragments/groantubehero.manifest.json" },
+      custom_mcp_contract: {
+        passed: true,
+        tools: ["plan_ai_game_dev_loop", "validate_ai_game_dev_loop", "plan_batch_visual_gate", "validate_batch_visual_gate"],
+      },
+      batch_visual_gate: {
+        passed: true,
+        artifact_path: "artifacts/visual-gates/groan-tube-hero/batch-report.json",
+        batch_report: loopBatchReport,
+      },
+    },
+    open_blockers: [],
+  },
+  format: "json",
+}));
+assert.equal(loopValidation.passed, true, loopValidation.errors.join("; "));
+console.log(JSON.stringify({
+  phases: loopPlan.phases.length,
+  captures: loopPlan.batch_visual_gate_plan.capture_batch.captures.length,
+  loopValidation: loopValidation.passed,
 }, null, 2));
 
 console.log("\n--- plan_headless_assembly ---");
