@@ -29,6 +29,12 @@ import {
   formatBatchVisualGateValidation,
   validateBatchVisualGateReport,
 } from "./visualBatchGate.js";
+import {
+  buildAiGameDevLoopPlan,
+  formatAiGameDevLoopPlan,
+  formatAiGameDevLoopValidation,
+  validateAiGameDevLoopReport,
+} from "./aiGameDevLoop.js";
 import { formatPropHuntGateReport, validatePropHuntGate } from "./propHuntGate.js";
 
 const store = new Store();
@@ -220,6 +226,71 @@ function formatAssetBrainSnapshot(snapshot) {
     ...snapshot.assets.slice(0, 20).map((asset) => `- ${asset.assetId} shard=${asset.shard} rejected=${asset.rejected} visual=${asset.visual.screenshotVerdict} publish=${asset.publishReadiness.passed ? "pass" : "fail"}`),
   ].join("\n");
 }
+
+server.tool(
+  "plan_ai_game_dev_loop",
+  "Plan the full AI Roblox game-dev loop: asset brain coverage/curation, reusable GameKit source adoption, Roblox file parser/writer generation, headless fragment merge, custom MCP validation, and gated Studio batch screenshots. This is the top-level custom MCP tool for reducing agent churn across the whole game design loop.",
+  {
+    project: z.string().optional().describe("Project or game slug."),
+    game: z.string().optional().describe("Short game idea or title."),
+    target_place: z.string().optional().describe("Source place file to copy/mutate before Studio validation."),
+    themes: z.array(z.string()).optional().describe("Room/world themes to cover."),
+    include_defaults: z.boolean().optional(),
+    include_lobby: z.boolean().optional(),
+    max_themes: z.number().int().min(1).max(12).optional(),
+    max_fragments: z.number().int().min(1).max(12).optional(),
+    assembly_profile: z.enum(["prop_hunt", "concert_defense", "metadata_evidence"]).optional(),
+    review_mode: z.enum(["full", "player_angle"]).optional(),
+    spaces: z.array(z.object({
+      id: z.string().optional(),
+      name: z.string().optional(),
+      type: z.string().optional(),
+      center: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
+      size: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
+      entry: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
+      look_at: z.object({ x: z.number(), y: z.number(), z: z.number() }).optional(),
+      quadrants: z.array(z.string()).optional(),
+      ui_states: z.array(z.string()).optional(),
+    })).optional(),
+    include_default_spaces: z.boolean().optional(),
+    artifact_root: z.string().optional(),
+    max_captures: z.number().int().min(1).max(200).optional(),
+    format: z.enum(["text", "json"]).optional(),
+  },
+  async (args) => {
+    const plan = buildAiGameDevLoopPlan({
+      project: args.project || "roblox-ai-game",
+      game: args.game || args.project || "Roblox AI game",
+      targetPlace: args.target_place || "Place1.rbxl",
+      themes: args.themes || [],
+      includeDefaults: args.include_defaults !== false,
+      includeLobby: args.include_lobby !== false,
+      maxThemes: args.max_themes ?? 6,
+      maxFragments: args.max_fragments ?? 6,
+      assemblyProfile: args.assembly_profile,
+      reviewMode: args.review_mode || "player_angle",
+      spaces: args.spaces || [],
+      includeDefaultSpaces: args.include_default_spaces !== false,
+      artifactRoot: args.artifact_root,
+      maxCaptures: args.max_captures,
+    });
+    return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatAiGameDevLoopPlan(plan));
+  }
+);
+
+server.tool(
+  "validate_ai_game_dev_loop",
+  "Validate a proof report for the full AI Roblox game-dev loop. Requires asset brain, GameKit build, parser/writer generation, fragment validation, custom MCP contract proof, and a passing gated Studio batch visual report.",
+  {
+    report: z.record(z.any()),
+    plan: z.record(z.any()).optional().describe("Optional plan from plan_ai_game_dev_loop(format='json')."),
+    format: z.enum(["text", "json"]).optional(),
+  },
+  async (args) => {
+    const result = validateAiGameDevLoopReport(args.report, args.plan);
+    return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatAiGameDevLoopValidation(result));
+  }
+);
 
 server.tool(
   "plan_game_asset_coverage",

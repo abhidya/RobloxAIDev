@@ -38,6 +38,19 @@ binaries. A Studio adapter is responsible for executing the returned
 `studio_mcp_steps` against the active Studio MCP and writing artifacts under the
 declared `artifact_root`.
 
+The executable adapter contract starts with a mock transport:
+
+```bash
+node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs \
+  --plan batch-plan.json \
+  --active-place GroanTubeHero.rbxl \
+  --json
+```
+
+The mock writes `batch-report.json`, `batch-manifest.json`, `alt-text.json`, and
+`execution-log.json` with the same shape the live Studio MCP transport must
+preserve.
+
 The batch report must include:
 
 - `preflight.passed=true` from the target Studio place;
@@ -51,6 +64,7 @@ The batch report must include:
 - `validate_batch_visual_gate`
 - `plan_playable_space_review`
 - `validate_playable_space_review`
+- `asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs`
 
 This keeps the agent's job small: ask for the plan, hand it to the wrapper, read
 the collated report, then fix and recapture only the failing views.

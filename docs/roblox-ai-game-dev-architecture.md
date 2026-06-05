@@ -110,7 +110,7 @@ Studio opens.
 **Implementation**
 
 - MCP-visible plans that produce camera queues and validation contracts
-- A future StudioMCP adapter that executes `studio_mcp_steps` serially
+- A mockable StudioMCP adapter CLI that executes `studio_mcp_steps` serially
 - Batch reports that include active-place proof, screenshots, alt text,
   findings, fixes, and verdict
 
@@ -123,6 +123,37 @@ placement, active-place checks, retry policy, and validation logic.
 
 Visual signoff bugs stay in the Studio gate instead of leaking into every agent
 prompt.
+
+### E2E Custom MCP Module
+
+**Interface**
+
+- `plan_ai_game_dev_loop`
+- `validate_ai_game_dev_loop`
+- `docs/e2e-roblox-ai-game-design-loop.md`
+
+**Implementation**
+
+- One planner that composes asset coverage, asset-brain cache planning, GameKit
+  adoption, Lune/Rojo/rbx-dom parser-writer work, headless assembly, and batch
+  Studio visual gate packets
+- One validator that requires every proof gate plus the nested batch visual gate
+  report before the loop can be signed off
+- One adapter CLI,
+  `asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs`, that starts with
+  a mock transport and writes the proof bundle shape the live Studio MCP wrapper
+  must preserve
+
+**Depth**
+
+The caller asks for a whole Roblox AI game-dev loop. The module hides the
+ordering and proof dependencies between asset search, reusable source, file
+generation, Studio screenshots, and release evidence.
+
+**Locality**
+
+Changes to the loop contract happen in one MCP module instead of being repeated
+across prompts, docs, and ad hoc agent instructions.
 
 ### Agent Prompt Module
 
@@ -254,7 +285,7 @@ from making the seams executable and smaller.
 | --- | --- | --- |
 | `asset-search-mcp/src/index.js` owns too many tool families | A change to visual gates, Prop Hunt policy, headless contracts, or asset memory can collide in one file | Split tool registration into asset, headless, visual, and policy modules while keeping transport boot in `index.js` |
 | `asset-search-mcp/src/store.js` mixes persistence and policy | JSON IO, reviews, claims, publish permissions, palettes, and inspection memory change for different reasons | Keep atomic persistence in `store.js`; move publish-permission and palette policy into explicit policy modules |
-| Batch visual gate is currently a contract, not an executor | It reduces agent churn only if something can consume the packet and return a collated proof bundle | Add a StudioMCP adapter CLI that executes `studio_mcp_steps` against a mocked transport first, then the real Studio transport |
+| Batch visual gate starts with a mock executor | It reduces agent churn only if something can consume the packet and return a collated proof bundle | Extend `run-studio-batch-visual-gate.mjs` from mock transport to real Studio MCP transport while preserving the artifact contract |
 | Fragment manifest shapes still tolerate aliases | Alias tolerance helps migration but can hide drift between JS validators and Luau writers | Add canonical fixtures for JS-generated and Luau-emitted manifests, then round-trip both through one schema |
 | Operator handoff must live in files | Chat-only workflow memory gets lost across agents and sessions | Keep `prompts/*.md` and test them with `test:prompt-contracts` |
 
@@ -265,14 +296,16 @@ from making the seams executable and smaller.
 | Cross-project asset memory can be canonicalized | `node scripts/merge_asset_brain_sources.mjs` and `npm --prefix asset-search-mcp run test:asset-brain` | `asset-brain/v1/manifest.json`, `asset-brain/v1/indexes/merged-project-assets.ndjson` |
 | Roblox files can be created/mutated outside Studio | `lune run scripts/headless_place_insert_poc.luau` and `lune run scripts/headless_place_verify_poc.luau` | ignored files under `work/headless-poc/`, console `HEADLESS_*_OK` |
 | Fragment fan-in can be coordinator-gated | `lune run scripts/headless_fragment_merge.luau ...` | manifest digest validation and reload of merged place |
-| Studio proof can be batched | `npm --prefix asset-search-mcp run test:offline` and `npm --prefix asset-search-mcp run test:smoke` | new `plan_batch_visual_gate` and `validate_batch_visual_gate` coverage |
+| Studio proof can be batched and adapter-consumed | `npm --prefix asset-search-mcp run test:offline`, `npm --prefix asset-search-mcp run test:studio-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `plan_batch_visual_gate`, `run-studio-batch-visual-gate.mjs`, and `validate_batch_visual_gate` coverage |
 | Prompts/docs stay present and aligned | `npm --prefix asset-search-mcp run test:prompt-contracts` | prompt and architecture contract test |
 | The full proposed loop has fresh local evidence | `node scripts/run_ai_game_dev_pocs.mjs` | `docs/poc-results/ai-game-dev-poc-latest.json` |
 | Source-game libraries can be converted into reusable module families | `node scripts/inventory_reusable_game_libraries.mjs` and `npm --prefix asset-search-mcp run test:game-kit` | `packages/roblox-game-kit/module-catalog.json`, `packages/roblox-game-kit/inventory/source-library-inventory.json` |
+| The e2e game-design loop is a custom MCP contract | `npm --prefix asset-search-mcp run test:offline`, `npm --prefix asset-search-mcp run test:studio-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `plan_ai_game_dev_loop`, `validate_ai_game_dev_loop`, `docs/e2e-roblox-ai-game-design-loop.md` |
 
 ## Open Risks
 
-- The current batch visual gate returns a contract, not a live Studio adapter.
+- The current Studio adapter transport is mock-only; the artifact shape is ready
+  for a live Studio MCP transport.
 - Direct asset download/parse remains auth-sensitive and should be isolated from
   the metadata brain.
 - Lune is good for the current coordinator POC, but rbx-dom should be evaluated
@@ -282,8 +315,9 @@ from making the seams executable and smaller.
 
 ## Next Deepening Candidates
 
-1. **Studio adapter module** — build an adapter that consumes
-   `plan_batch_visual_gate` packets and emits proof bundles.
+1. **Live Studio adapter module** — replace the mock transport in
+   `run-studio-batch-visual-gate.mjs` with a real Studio MCP transport while
+   preserving the proof bundle files.
 2. **Asset acquisition module** — split search, permission proof, asset delivery,
    Studio insertion fallback, and quarantine into one explicit seam.
 3. **Production coordinator module** — move from Lune-only scripts to an adapter

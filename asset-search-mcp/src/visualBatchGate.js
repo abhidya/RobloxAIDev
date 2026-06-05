@@ -242,6 +242,7 @@ export function validateBatchVisualGateReport(batchReport, plan) {
   for (const screenshot of screenshots) {
     if (!screenshot.capture_id) errors.push("every batch screenshot needs capture_id");
     if (!screenshot.image_path) errors.push(`${screenshot.capture_id || "screenshot"} is missing image_path`);
+    if (screenshot.passed === false) errors.push(`${screenshot.capture_id || "screenshot"} did not pass visual review`);
     if (!screenshot.alt_text) warnings.push(`${screenshot.capture_id || "screenshot"} is missing alt_text`);
   }
 

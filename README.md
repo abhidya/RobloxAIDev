@@ -194,6 +194,16 @@ See [`docs/reusable-roblox-game-kit.md`](docs/reusable-roblox-game-kit.md) for
 the cleanup plan, fallback classifications, module family map, and migration
 order.
 
+The top-level end-to-end game design loop is now a custom MCP contract:
+`plan_ai_game_dev_loop` plans the asset-brain, GameKit, parser/writer,
+headless-merge, gated-Studio, and release-verification phases, while
+`validate_ai_game_dev_loop` validates the final proof bundle. See
+[`docs/e2e-roblox-ai-game-design-loop.md`](docs/e2e-roblox-ai-game-design-loop.md).
+The Studio batch wrapper has a mock transport at
+`asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs`; it consumes
+`plan_batch_visual_gate` packets and emits the same collated proof bundle the
+future live Studio MCP adapter must emit.
+
 If StudioMCP reports a different place than the one you opened, do not capture
 screenshots. See
 [`docs/studio-mcp-troubleshooting.md`](docs/studio-mcp-troubleshooting.md) for

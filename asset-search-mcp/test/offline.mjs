@@ -19,6 +19,10 @@ import {
   buildBatchVisualGatePlan,
   validateBatchVisualGateReport,
 } from "../src/visualBatchGate.js";
+import {
+  buildAiGameDevLoopPlan,
+  validateAiGameDevLoopReport,
+} from "../src/aiGameDevLoop.js";
 import { formatPropHuntGateReport, validatePropHuntGate } from "../src/propHuntGate.js";
 
 // ---- toolbox parsing/ranking ----
@@ -255,6 +259,69 @@ const badBatchValidation = validateBatchVisualGateReport({
 }, batchGate);
 assert.equal(badBatchValidation.passed, false, "failed active-place preflight blocks batch signoff");
 assert.ok(badBatchValidation.errors.some((error) => error.includes("preflight")), "preflight error is explicit");
+
+// ---- full AI game-dev loop plan + validation ----
+const loopPlan = buildAiGameDevLoopPlan({
+  project: "groan-tube-hero",
+  game: "concert defense rhythm arena",
+  targetPlace: "GroanTubeHero.rbxl",
+  themes: ["volcano concert arena"],
+  assemblyProfile: "concert_defense",
+  reviewMode: "player_angle",
+  includeDefaultSpaces: false,
+  spaces: [{ id: "stage_circle", quadrants: ["front", "left"] }],
+  maxFragments: 2,
+});
+assert.equal(loopPlan.schema, "roblox-ai-game-dev-loop/v1", "e2e loop plan schema");
+assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_headless_assembly"), "e2e loop includes headless MCP support");
+assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_batch_visual_gate"), "e2e loop includes gated Studio MCP support");
+assert.ok(loopPlan.phases.some((phase) => phase.id === "parser_writer_generation"), "e2e loop includes parser/writer phase");
+assert.ok(loopPlan.phases.some((phase) => phase.id === "gated_studio_batch"), "e2e loop includes gated Studio phase");
+assert.ok(loopPlan.studio_adapter.cli.includes("run-studio-batch-visual-gate"), "e2e loop includes executable Studio adapter CLI");
+assert.ok(loopPlan.phases.find((phase) => phase.id === "gamekit_source").modules.includes("RemoteBridge"), "e2e loop starts from GameKit modules");
+
+const loopBatchPlan = loopPlan.batch_visual_gate_plan;
+const loopBatchReport = {
+  ...loopBatchPlan.report_template,
+  preflight: { passed: true, placeName: "GroanTubeHero.rbxl", placeId: 123 },
+  screenshots: loopBatchPlan.capture_batch.captures.map((shot) => ({
+    ...shot.result_contract,
+    passed: true,
+    alt_text: `${shot.capture_id} proves the planned player view`,
+  })),
+  verdict: "player_angle_signed_off",
+};
+const loopReport = {
+  schema: "roblox-ai-game-dev-loop-report/v1",
+  project: "groan-tube-hero",
+  gates: {
+    asset_brain: { passed: true, artifact_path: "asset-brain/v1/manifest.json" },
+    gamekit_build: { passed: true, artifact_path: "/tmp/RobloxGameKit.rbxlx" },
+    parser_writer_generation: { passed: true, artifact_path: "docs/poc-results/ai-game-dev-poc-latest.json" },
+    fragment_manifest_validation: { passed: true, artifact_path: "fragments/groantubehero.manifest.json" },
+    custom_mcp_contract: {
+      passed: true,
+      tools: ["plan_ai_game_dev_loop", "validate_ai_game_dev_loop", "plan_batch_visual_gate", "validate_batch_visual_gate"],
+    },
+    batch_visual_gate: {
+      passed: true,
+      artifact_path: "artifacts/visual-gates/groan-tube-hero/batch-report.json",
+      batch_report: loopBatchReport,
+    },
+  },
+  open_blockers: [],
+};
+const loopValidation = validateAiGameDevLoopReport(loopReport, loopPlan);
+assert.equal(loopValidation.passed, true, loopValidation.errors.join("; "));
+const badLoopValidation = validateAiGameDevLoopReport({
+  ...loopReport,
+  gates: {
+    ...loopReport.gates,
+    custom_mcp_contract: { passed: true, tools: ["plan_ai_game_dev_loop"] },
+  },
+}, loopPlan);
+assert.equal(badLoopValidation.passed, false, "custom MCP proof must include validator and visual-gate tools");
+assert.ok(badLoopValidation.errors.some((error) => error.includes("validate_ai_game_dev_loop")), "missing e2e validator is explicit");
 
 // ---- shared-brain: rejections + claims + annotation ----
 const dir = path.join(os.tmpdir(), "brain-offline-" + Date.now());

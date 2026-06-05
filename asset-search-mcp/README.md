@@ -54,6 +54,10 @@ agents need:
   playable-space plan into one StudioMCP batch job with active-place preflight,
   deterministic camera steps, screenshot collation, accessibility fields, and a
   final validation gate.
+- **`plan_ai_game_dev_loop` / `validate_ai_game_dev_loop`** — top-level custom
+  MCP contract for the whole AI game-design loop: asset brain, reusable GameKit
+  source, Roblox file parsers/writers, headless merge, gated Studio screenshot
+  proof, and release verification.
 
 State persists as plain JSON under `~/.roblox-asset-brain/` — no native deps, no
 build step. The cache stores metadata only: IDs, reviews, inspections, visual
@@ -80,6 +84,8 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 
 | Tool | Purpose |
 |------|---------|
+| `plan_ai_game_dev_loop(project?, game?, target_place?, themes?, include_defaults?, include_lobby?, max_themes?, max_fragments?, assembly_profile?, review_mode?, spaces?, include_default_spaces?, artifact_root?, max_captures?, format?)` | Plan the full AI Roblox game-dev loop across asset brain, GameKit, parser/writer generation, headless merge, gated Studio batch proof, and release verification. |
+| `validate_ai_game_dev_loop(report, plan?, format?)` | Validate the final proof report for the full AI game-dev loop, including custom MCP contract proof and the nested batch visual gate report. |
 | `plan_game_asset_coverage(game?, themes?, include_defaults?, include_lobby?, max_themes?, format?)` | Generate lobby/session/room asset search coverage before curation. |
 | `preprocess_storyboard_asset_cache(project?, game?, themes?, include_defaults?, include_lobby?, max_themes?, max_slots?, warm_search_cache?, per_slot?, verified_only?, extensive?, format?)` | Build storyboard-ready coverage slots, optionally warm ranked search cache, and return Pages-friendly metadata layout. |
 | `export_asset_brain_snapshot(project?, include_search_cache?, max_queries?, max_results_per_query?, format?)` | Export small metadata-only snapshot for GitHub Pages or handoff; no binaries/screenshots. |
@@ -105,6 +111,19 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 | `commit_palette(project, slot, asset_id, name?, require_publish_permission?, publish_permission_mode?, require_studio_probe?, require_save_reopen?)` | Freeze a chosen asset per slot (also claims it); strict mode refuses assets without publish proof. |
 | `get_palette(project)` | Read the committed palette for the build phase, including publish-readiness status. |
 | `validate_prop_hunt_gate(project?, min_areas?, min_hideable_total?, min_setpiece_total?, min_hideable_per_area?, min_setpiece_per_area?, min_hideable_studs?, max_hideable_studs?, require_inspections?, require_primary_part?, format?)` | Check the committed Prop Hunt palette before Studio build. |
+
+The Studio batch execution side has a mockable CLI contract:
+
+```bash
+node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs \
+  --plan batch-plan.json \
+  --active-place GroanTubeHero.rbxl \
+  --json
+```
+
+The mock transport writes `batch-report.json`, `batch-manifest.json`,
+`alt-text.json`, and `execution-log.json`; the live Studio MCP transport should
+keep that artifact shape.
 
 ### How it prevents multi-agent collisions
 
