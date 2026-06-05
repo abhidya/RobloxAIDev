@@ -321,8 +321,9 @@ from making the seams executable and smaller.
 1. **Live Studio adapter module** — replace the mock transport in
    `run-studio-batch-visual-gate.mjs` with a real Studio MCP transport while
    preserving the proof bundle files.
-2. **Asset acquisition module** — split search, permission proof, asset delivery,
-   Studio insertion fallback, and quarantine into one explicit seam.
+2. **Authenticated asset delivery implementation** — plug real authenticated
+   Asset Delivery and permission-dashboard evidence into the
+   `plan_asset_acquisition` contract.
 3. **Production coordinator module** — move from Lune-only scripts to an adapter
    interface with Lune and rbx-dom implementations.
 4. **Project template module** — generate a new game repo skeleton with asset
