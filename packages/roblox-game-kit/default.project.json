@@ -1,0 +1,16 @@
+{
+  "name": "RobloxGameKit",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "GameKit": {
+        "$path": "src/ReplicatedStorage/GameKit"
+      }
+    },
+    "ServerScriptService": {
+      "GameKit": {
+        "$path": "src/ServerScriptService/GameKit"
+      }
+    }
+  }
+}

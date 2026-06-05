@@ -181,6 +181,19 @@ The POC runner writes a small metadata report to
 [`docs/poc-results/ai-game-dev-poc-latest.json`](docs/poc-results/ai-game-dev-poc-latest.json)
 and keeps generated Roblox binaries under ignored scratch paths.
 
+Reusable game code now lives in
+[`packages/roblox-game-kit`](packages/roblox-game-kit). Refresh the three-game
+source inventory with:
+
+```bash
+node scripts/inventory_reusable_game_libraries.mjs
+npm --prefix asset-search-mcp run test:game-kit
+```
+
+See [`docs/reusable-roblox-game-kit.md`](docs/reusable-roblox-game-kit.md) for
+the cleanup plan, fallback classifications, module family map, and migration
+order.
+
 If StudioMCP reports a different place than the one you opened, do not capture
 screenshots. See
 [`docs/studio-mcp-troubleshooting.md`](docs/studio-mcp-troubleshooting.md) for

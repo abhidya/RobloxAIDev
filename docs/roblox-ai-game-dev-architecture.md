@@ -146,6 +146,34 @@ the agent may edit, what it must prove, and where it hands work back.
 Multi-agent behavior changes are made in prompt files and contracts, not spread
 through ad hoc chat instructions.
 
+### Reusable GameKit Module
+
+**Interface**
+
+- `packages/roblox-game-kit/module-catalog.json`
+- `packages/roblox-game-kit/inventory/source-library-inventory.json`
+- `packages/roblox-game-kit/src/ReplicatedStorage/GameKit`
+- `packages/roblox-game-kit/src/ServerScriptService/GameKit`
+
+**Implementation**
+
+- Deterministic inventory script that maps EggBreakers, GroanTubeHero, and
+  RobloxAIDev Prop Hunt libraries into reusable module families
+- Small source-first Luau modules for remotes, rate limits, service lifecycle,
+  profiles, economy, scoring, room sessions, world layout, asset audit, config,
+  client state, and test harnesses
+
+**Depth**
+
+New games depend on a narrow GameKit interface and provide project adapters for
+DataStore names, art policy, config, and UI rendering. The module hides repeated
+game-loop mechanics without importing project-specific content.
+
+**Locality**
+
+Future library changes are made in one package and validated by inventory plus
+contract tests instead of being re-created across every generated Roblox game.
+
 ## Recommended End-To-End Process
 
 1. **Brief intake**
@@ -240,6 +268,7 @@ from making the seams executable and smaller.
 | Studio proof can be batched | `npm --prefix asset-search-mcp run test:offline` and `npm --prefix asset-search-mcp run test:smoke` | new `plan_batch_visual_gate` and `validate_batch_visual_gate` coverage |
 | Prompts/docs stay present and aligned | `npm --prefix asset-search-mcp run test:prompt-contracts` | prompt and architecture contract test |
 | The full proposed loop has fresh local evidence | `node scripts/run_ai_game_dev_pocs.mjs` | `docs/poc-results/ai-game-dev-poc-latest.json` |
+| Source-game libraries can be converted into reusable module families | `node scripts/inventory_reusable_game_libraries.mjs` and `npm --prefix asset-search-mcp run test:game-kit` | `packages/roblox-game-kit/module-catalog.json`, `packages/roblox-game-kit/inventory/source-library-inventory.json` |
 
 ## Open Risks
 

@@ -29,6 +29,7 @@ Use these prompts with the vocabulary in `CONTEXT.md`:
 | `roblox-headless-fragment-builder.md` | One fragment plus manifest | Global identity or final place writes |
 | `roblox-headless-merge-coordinator.md` | Manifest validation and candidate place assembly | Choosing assets or visual signoff |
 | `roblox-gameplay-implementer.md` | Source-controlled Roblox gameplay logic | Imported asset authority scripts |
+| `roblox-game-kit-librarian.md` | Reusable module inventory, catalog, and migration order | Blindly copying project-specific services |
 | `roblox-visual-gate-runner.md` | Batch screenshot proof and visual validator reports | Asset choice or code architecture |
 | `roblox-release-verifier.md` | Final evidence audit and claim wording | Waiving missing gates |
 

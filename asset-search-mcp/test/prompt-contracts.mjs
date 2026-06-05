@@ -74,6 +74,7 @@ const promptFiles = [
   "prompts/roblox-headless-fragment-builder.md",
   "prompts/roblox-headless-merge-coordinator.md",
   "prompts/roblox-gameplay-implementer.md",
+  "prompts/roblox-game-kit-librarian.md",
   "prompts/roblox-visual-gate-runner.md",
   "prompts/roblox-release-verifier.md",
 ];

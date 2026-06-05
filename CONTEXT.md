@@ -39,6 +39,12 @@ prompts should use consistently.
   generated reports. Proof bundles are metadata paths, not committed screenshots.
 - **Release palette** — the committed set of asset slots allowed into a build,
   with inspection and publish-permission proof appropriate to the release target.
+- **Reusable GameKit** — `packages/roblox-game-kit`, the source-first Roblox
+  module pack distilled from EggBreakers, GroanTubeHero, and RobloxAIDev Prop
+  Hunt libraries for faster future game development.
+- **Source library inventory** — the generated metadata file that maps every
+  scanned source library from the three games to a reusable GameKit module
+  family before any migration rewrites begin.
 
 ## Architecture Vocabulary
 
