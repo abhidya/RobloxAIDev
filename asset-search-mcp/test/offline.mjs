@@ -16,6 +16,10 @@ import {
   validatePlayableSpaceReview,
 } from "../src/playableSpaceReview.js";
 import {
+  buildWorldAssetFamilySweepPlan,
+  validateWorldAssetFamilySweep,
+} from "../src/worldAssetFamilySweep.js";
+import {
   buildBatchVisualGatePlan,
   validateBatchVisualGateReport,
 } from "../src/visualBatchGate.js";
@@ -217,6 +221,67 @@ assert.equal(badVisual.passed, false, "incomplete visual review fails");
 assert.ok(badVisual.errors.some((error) => error.includes("missing player-height quadrant")), "missing quadrant screenshot rejected");
 assert.ok(badVisual.errors.some((error) => error.includes("unresolved blocker")), "unresolved blocker rejected");
 
+// ---- world asset-family sweep plan + validation ----
+const familySweepPlan = buildWorldAssetFamilySweepPlan({
+  project: "eggbreakers",
+  targetPlace: "eggBreakers3.rbxl",
+  families: [
+    { family_id: "fern_food_and_ground_cover", source_asset_id: 7979002756, live_instance_count: 12 },
+  ],
+});
+assert.equal(familySweepPlan.schema, "roblox-world-asset-family-sweep-plan/v1", "family sweep schema recorded");
+assert.equal(familySweepPlan.capture_batch.serial, true, "family sweep captures are serial");
+assert.ok(familySweepPlan.capture_batch.captures.some((capture) => capture.kind === "live_player_height_after"), "family sweep requires live player-height proof");
+const familyScreenshots = familySweepPlan.capture_batch.captures.map((capture) => ({
+  capture_id: capture.capture_id,
+  family_id: capture.family_id,
+  kind: capture.kind,
+  phase: capture.phase,
+  image_path: capture.expected_image_path,
+  passed: true,
+}));
+const familySweepReport = {
+  schema: "roblox-world-asset-family-sweep-report/v1",
+  project: "eggbreakers",
+  target_place: "eggBreakers3.rbxl",
+  family_reports: [{
+    family_id: "fern_food_and_ground_cover",
+    status: "pass",
+    screenshot_verdict: "pass",
+    inventory: { live_instance_count: 12 },
+    clean_clone: { created: true },
+    canonical: {
+      up: "Y+",
+      forward: "Z- toward player path",
+      scale_policy: "preserve source scale",
+      grounding_offset_studs: 0,
+      pivot_policy: "PrimaryPart at visual base",
+    },
+    propagation: { live_instances_total: 12, fixed_live_instances: 12, skipped_non_visual_instances: 0 },
+    cleanup: { clean_clone_removed: true, temporary_models_remaining: 0 },
+    screenshots: familyScreenshots,
+    findings: [],
+    blockers: [],
+    inspection_recorded: true,
+  }],
+  temporary_cleanup: { probes_remaining: 0 },
+  verdict: "signed_off",
+};
+const familySweepValidation = validateWorldAssetFamilySweep(familySweepReport, familySweepPlan);
+assert.equal(familySweepValidation.passed, true, familySweepValidation.errors.join("; "));
+const badFamilySweep = validateWorldAssetFamilySweep({
+  ...familySweepReport,
+  family_reports: [{
+    ...familySweepReport.family_reports[0],
+    propagation: { live_instances_total: 12, fixed_live_instances: 1, skipped_non_visual_instances: 0 },
+    cleanup: { clean_clone_removed: false, temporary_models_remaining: 1 },
+    screenshots: familyScreenshots.filter((screenshot) => screenshot.kind !== "live_player_height_after"),
+    inspection_recorded: false,
+  }],
+}, familySweepPlan);
+assert.equal(badFamilySweep.passed, false, "temp-only family sweep fails");
+assert.ok(badFamilySweep.errors.some((error) => error.includes("live_player_height_after")), "family sweep rejects missing live screenshot");
+
 // ---- Studio batch visual gate planning + collated report validation ----
 const batchGate = buildBatchVisualGatePlan({
   project: "groan-tube-hero",
@@ -313,6 +378,8 @@ const loopReport = {
         "validate_asset_acquisition",
         "plan_asset_delivery",
         "validate_asset_delivery_receipt",
+        "plan_world_asset_family_sweep",
+        "validate_world_asset_family_sweep",
         "plan_batch_visual_gate",
         "validate_batch_visual_gate",
         "plan_coordinator_merge",

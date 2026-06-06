@@ -20,6 +20,10 @@ prompts should use consistently.
   source asset id, staged model path, mesh id, palette slot, or import root.
 - **Family inspection** — one-family-at-a-time orientation, scale, grounding,
   script, and player-height review before a family is reused broadly.
+- **World asset-family sweep** — the MCP-gated family inspection pass that
+  requires clean-clone before/after screenshots, live in-world player-height
+  proof, propagated fixes, recorded inspection metadata, and temporary clone
+  cleanup before visual signoff.
 - **Asset delivery receipt** — the redacted proof that an authenticated Open
   Cloud Asset Delivery request wrote candidate bytes to quarantine with a
   sha256 digest; it records credential presence, not credential values.

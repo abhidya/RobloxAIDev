@@ -9,6 +9,7 @@ Use these prompts with the vocabulary in `CONTEXT.md`:
 - asset brain
 - dream queue
 - asset family
+- world asset-family sweep
 - headless assembly
 - fragment
 - coordinator merge

@@ -19,6 +19,12 @@ import {
   validatePlayableSpaceReview,
 } from "../playableSpaceReview.js";
 import {
+  buildWorldAssetFamilySweepPlan,
+  formatWorldAssetFamilySweepPlan,
+  formatWorldAssetFamilySweepValidation,
+  validateWorldAssetFamilySweep,
+} from "../worldAssetFamilySweep.js";
+import {
   buildBatchVisualGatePlan,
   formatBatchVisualGatePlan,
   formatBatchVisualGateValidation,
@@ -49,6 +55,22 @@ const playableSpaceSchema = z.object({
   look_at: pointSchema.optional(),
   quadrants: z.array(z.string()).optional(),
   ui_states: z.array(z.string()).optional(),
+});
+const assetFamilySchema = z.object({
+  family_id: z.string().optional(),
+  id: z.string().optional(),
+  name: z.string().optional(),
+  source_asset_id: z.union([z.string(), z.number()]).optional(),
+  asset_id: z.union([z.string(), z.number()]).optional(),
+  slot: z.string().optional(),
+  family_key: z.string().optional(),
+  mesh_id: z.string().optional(),
+  staged_model_path: z.string().optional(),
+  live_instance_count: z.number().optional(),
+  instances: z.number().optional(),
+  count: z.number().optional(),
+  locations: z.array(z.string()).optional(),
+  notes: z.string().optional(),
 });
 
 export function registerPlanningTools(server, { text }) {
@@ -272,6 +294,43 @@ export function registerPlanningTools(server, { text }) {
         format: args.format || "text",
       });
       return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatPlayableSpaceReviewPlan(plan));
+    }
+  );
+
+  server.tool(
+    "plan_world_asset_family_sweep",
+    "Plan a strict Roblox world asset-family verification pass for repeated imported/staged assets that are sideways, face-down, floating, buried, mis-scaled, or inconsistently placed. The plan enforces one family at a time, clean-spot clone screenshots before/after fixes, live player-height proof, propagation to all live visual instances, record_inspection metadata, and temporary clone cleanup.",
+    {
+      project: z.string().optional(),
+      target_place: z.string().optional(),
+      families: z.array(assetFamilySchema).optional(),
+      artifact_root: z.string().optional(),
+      max_families: z.number().int().min(1).max(100).optional(),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const plan = buildWorldAssetFamilySweepPlan({
+        project: args.project || "roblox-game",
+        targetPlace: args.target_place || "Place1.rbxl",
+        families: args.families || [],
+        artifactRoot: args.artifact_root,
+        maxFamilies: args.max_families ?? 24,
+      });
+      return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatWorldAssetFamilySweepPlan(plan));
+    }
+  );
+
+  server.tool(
+    "validate_world_asset_family_sweep",
+    "Validate a Roblox world asset-family sweep report. Fails when clean clone before/after screenshots are missing, live player-height proof is missing, canonical up/forward/scale/grounding/pivot metadata is missing, fixes were not propagated to all live visual instances, record_inspection proof is missing, blockers remain, or temporary validation clones were not removed.",
+    {
+      report: z.record(z.any()),
+      plan: z.record(z.any()).optional().describe("Optional plan from plan_world_asset_family_sweep(format='json')."),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const result = validateWorldAssetFamilySweep(args.report, args.plan);
+      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatWorldAssetFamilySweepValidation(result));
     }
   );
 

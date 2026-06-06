@@ -13,6 +13,7 @@ idea
   -> GameKit source adoption
   -> headless Roblox parser/writer build
   -> fragment manifest validation and coordinator merge
+  -> plan_world_asset_family_sweep for repeated world asset orientation/scale fixes
   -> gated StudioMCP batch visual proof through run-studio-batch-visual-gate
   -> validate_ai_game_dev_loop
   -> repair only failed gates
@@ -26,8 +27,8 @@ idea
   screenshot gate, and final release verification requirements.
 - `validate_ai_game_dev_loop` validates the proof report for that packet. It
   requires asset brain, GameKit build, parser/writer generation, fragment
-  manifest validation, custom MCP contract proof, and a passing batch visual
-  gate.
+  manifest validation, custom MCP contract proof, world asset-family sweep
+  tooling, and a passing batch visual gate.
 
 Supporting MCP tools:
 
@@ -48,6 +49,8 @@ Supporting MCP tools:
 - `validate_fragment_manifest`
 - `plan_coordinator_merge`
 - `validate_coordinator_merge`
+- `plan_world_asset_family_sweep`
+- `validate_world_asset_family_sweep`
 - `plan_batch_visual_gate`
 - `validate_batch_visual_gate`
 
@@ -84,6 +87,27 @@ Use Roblox file tooling before Studio:
   command with the same report contract.
 
 Studio opens only after headless validation passes.
+
+## World Asset-Family Sweep Layer
+
+Use `plan_world_asset_family_sweep` for built worlds where imported or staged
+families repeat across the map: ferns, dinos, nests, rocks, ruins, food, trees,
+or NPC/player model variants. This is the gate for problems such as face-down
+dinos or ferns on their side.
+
+The report must prove each family independently:
+
+- clean-spot clone before screenshots: front, back, left, right, overhead, and
+  player-height;
+- canonical `up`, `forward`, scale policy, grounding offset, and pivot policy;
+- propagation to every live visual instance, not only the validation clone;
+- clean-spot after screenshots plus at least one live in-world player-height
+  after screenshot;
+- `record_inspection` metadata or refs with world placement audit fields;
+- removal of the clean clone and temporary probes before the next family.
+
+Run `validate_world_asset_family_sweep` before palette promotion, scoped
+player-angle signoff, or final batch visual proof.
 
 ## Authenticated Asset Delivery Layer
 
@@ -168,6 +192,8 @@ node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs \
         "validate_asset_delivery_receipt",
         "plan_coordinator_merge",
         "validate_coordinator_merge",
+        "plan_world_asset_family_sweep",
+        "validate_world_asset_family_sweep",
         "plan_batch_visual_gate",
         "validate_batch_visual_gate"
       ]

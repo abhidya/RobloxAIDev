@@ -111,6 +111,7 @@ async function main() {
   await add("coordinator_adapter_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:coordinator-adapter"]);
   await add("asset_delivery_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:asset-delivery"]);
   await add("asset_acquisition_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:asset-acquisition"]);
+  await add("world_asset_family_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:world-asset-family"]);
   await add("project_template_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:project-template"]);
   await add("prompt_doc_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:prompt-contracts"]);
 
@@ -168,6 +169,7 @@ async function main() {
       coordinator_adapter_contract: commands.some((entry) => entry.id === "coordinator_adapter_contract" && entry.status === "passed"),
       asset_delivery_contract: commands.some((entry) => entry.id === "asset_delivery_contract" && entry.status === "passed"),
       asset_acquisition_contract: commands.some((entry) => entry.id === "asset_acquisition_contract" && entry.status === "passed"),
+      world_asset_family_contract: commands.some((entry) => entry.id === "world_asset_family_contract" && entry.status === "passed"),
       project_template_contract: commands.some((entry) => entry.id === "project_template_contract" && entry.status === "passed"),
       prompt_doc_contract: commands.some((entry) => entry.id === "prompt_doc_contract" && entry.status === "passed"),
       headless_generation:

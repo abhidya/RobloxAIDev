@@ -217,7 +217,8 @@ order.
 
 The top-level end-to-end game design loop is now a custom MCP contract:
 `plan_ai_game_dev_loop` plans the asset-brain, GameKit, parser/writer,
-headless-merge, gated-Studio, and release-verification phases, while
+headless-merge, world asset-family sweep, gated-Studio, and release-verification
+phases, while
 `validate_ai_game_dev_loop` validates the final proof bundle. See
 [`docs/e2e-roblox-ai-game-design-loop.md`](docs/e2e-roblox-ai-game-design-loop.md).
 The Studio batch wrapper has a mock transport at

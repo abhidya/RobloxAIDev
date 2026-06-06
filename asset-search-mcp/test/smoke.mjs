@@ -39,6 +39,8 @@ for (const requiredTool of [
   "validate_coordinator_merge",
   "plan_playable_space_review",
   "validate_playable_space_review",
+  "plan_world_asset_family_sweep",
+  "validate_world_asset_family_sweep",
   "plan_batch_visual_gate",
   "validate_batch_visual_gate",
   "plan_asset_acquisition",
@@ -144,6 +146,8 @@ const loopValidation = JSON.parse(await call("validate_ai_game_dev_loop", {
           "validate_asset_acquisition",
           "plan_asset_delivery",
           "validate_asset_delivery_receipt",
+          "plan_world_asset_family_sweep",
+          "validate_world_asset_family_sweep",
           "plan_batch_visual_gate",
           "validate_batch_visual_gate",
           "plan_coordinator_merge",
@@ -433,6 +437,91 @@ const badReviewText = await call("validate_playable_space_review", {
 assert.ok(badReviewText.startsWith("FAIL"), "incomplete visual review fails");
 assert.ok(badReviewText.includes("unresolved blocker"), "visual review reports unresolved blocker");
 console.log(badReviewText.split("\n").slice(0, 7).join("\n"));
+
+console.log("\n--- plan_world_asset_family_sweep ---");
+const familyPlan = JSON.parse(await call("plan_world_asset_family_sweep", {
+  project: "eggbreakers",
+  target_place: "eggBreakers3.rbxl",
+  families: [{
+    family_id: "fern_food_and_ground_cover",
+    source_asset_id: 7979002756,
+    slot: "fern_plains.herbivore_food",
+    live_instance_count: 12,
+  }],
+  format: "json",
+}));
+assert.equal(familyPlan.schema, "roblox-world-asset-family-sweep-plan/v1", "MCP family sweep plan schema");
+assert.ok(familyPlan.capture_batch.captures.some((shot) => shot.kind === "live_player_height_after"), "family sweep requires live proof");
+const familyShots = familyPlan.capture_batch.captures.map((shot) => ({
+  capture_id: shot.capture_id,
+  family_id: shot.family_id,
+  kind: shot.kind,
+  phase: shot.phase,
+  image_path: shot.expected_image_path,
+  passed: true,
+}));
+const familyValidation = JSON.parse(await call("validate_world_asset_family_sweep", {
+  plan: familyPlan,
+  report: {
+    schema: "roblox-world-asset-family-sweep-report/v1",
+    project: "eggbreakers",
+    target_place: "eggBreakers3.rbxl",
+    family_reports: [{
+      family_id: "fern_food_and_ground_cover",
+      status: "pass",
+      screenshot_verdict: "pass",
+      inventory: { live_instance_count: 12 },
+      clean_clone: { created: true },
+      canonical: {
+        up: "Y+",
+        forward: "Z- toward path",
+        scale_policy: "preserve source scale",
+        grounding_offset_studs: 0,
+        pivot_policy: "PrimaryPart at visual base",
+      },
+      propagation: { live_instances_total: 12, fixed_live_instances: 12, skipped_non_visual_instances: 0 },
+      cleanup: { clean_clone_removed: true, temporary_models_remaining: 0 },
+      screenshots: familyShots,
+      findings: [],
+      blockers: [],
+      inspection_recorded: true,
+    }],
+    temporary_cleanup: { probes_remaining: 0 },
+    verdict: "signed_off",
+  },
+  format: "json",
+}));
+assert.equal(familyValidation.passed, true, familyValidation.errors.join("; "));
+const badFamilyText = await call("validate_world_asset_family_sweep", {
+  plan: familyPlan,
+  report: {
+    schema: "roblox-world-asset-family-sweep-report/v1",
+    project: "eggbreakers",
+    target_place: "eggBreakers3.rbxl",
+    family_reports: [{
+      family_id: "fern_food_and_ground_cover",
+      status: "pass",
+      screenshot_verdict: "pass",
+      inventory: { live_instance_count: 12 },
+      clean_clone: { created: true },
+      canonical: { up: "Y+", forward: "Z-", scale_policy: "preserve", grounding_offset_studs: 0, pivot_policy: "base" },
+      propagation: { live_instances_total: 12, fixed_live_instances: 1, skipped_non_visual_instances: 0 },
+      cleanup: { clean_clone_removed: false, temporary_models_remaining: 1 },
+      screenshots: familyShots.filter((shot) => shot.kind !== "live_player_height_after"),
+      findings: [],
+      blockers: [],
+      inspection_recorded: false,
+    }],
+    verdict: "signed_off",
+  },
+});
+assert.ok(badFamilyText.startsWith("FAIL"), "temp-only family sweep fails");
+assert.ok(badFamilyText.includes("live_player_height_after"), "family sweep reports missing live proof");
+console.log(JSON.stringify({
+  families: familyPlan.families.length,
+  captures: familyPlan.capture_batch.captures.length,
+  validation: familyValidation.passed,
+}, null, 2));
 
 console.log("\n--- plan_batch_visual_gate ---");
 const batchPlan = JSON.parse(await call("plan_batch_visual_gate", {

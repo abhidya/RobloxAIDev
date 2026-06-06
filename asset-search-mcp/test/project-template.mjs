@@ -45,6 +45,7 @@ try {
   assert.ok(plan.gates.includes("plan_asset_delivery"), "plan includes asset delivery gate");
   assert.ok(plan.gates.includes("plan_coordinator_merge"), "plan includes coordinator gate");
   assert.ok(plan.gates.includes("validate_project_template"), "plan includes template self-validation gate");
+  assert.ok(plan.gates.includes("validate_world_asset_family_sweep"), "plan includes world asset-family gate");
   assert.ok(plan.gates.includes("plan_batch_visual_gate"), "plan includes Studio visual gate");
 
   const publicPlan = publicProjectTemplatePlan(plan);

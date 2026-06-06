@@ -50,6 +50,9 @@ agents need:
 - **`plan_playable_space_review` / `validate_playable_space_review`** — plan
   and enforce the player-height screenshot gate for lobby, rooms, UI states, and
   unresolved visual blockers, including scoped asset-fix passes.
+- **`plan_world_asset_family_sweep` / `validate_world_asset_family_sweep`** —
+  enforce family-by-family orientation, scale, grounding, propagation, and temp
+  clone cleanup proof for repeated world assets.
 - **`plan_batch_visual_gate` / `validate_batch_visual_gate`** — wrap a
   playable-space plan into one StudioMCP batch job with active-place preflight,
   deterministic camera steps, screenshot collation, accessibility fields, and a
@@ -101,6 +104,8 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 | `validate_coordinator_merge(report, plan?, format?)` | Validate a coordinator merge report: process passed, output reload validated, fragments match plan, identity policy is coordinator-owned, and outputs avoid asset-brain. |
 | `plan_playable_space_review(project?, review_mode?, spaces?, include_defaults?, format?)` | Generate the required Studio screenshot queue for lobby/room quadrant review and UI states. `review_mode="player_angle"` emits only player-height quadrant shots for scoped asset-fix passes. |
 | `validate_playable_space_review(report, plan?, format?)` | Fail visual signoff reports that skip spaces, player-height quadrants, required screenshot kinds, or unresolved major/blocker findings. A supplied custom plan is authoritative; otherwise custom/scoped reports are inferred before the default Prop Hunt plan is used. |
+| `plan_world_asset_family_sweep(project?, target_place?, families?, artifact_root?, max_families?, format?)` | Plan a one-family-at-a-time Studio verification pass for sideways, face-down, floating, buried, mis-scaled, or inconsistently placed assets. Requires clean-clone before/after views, live player-height proof, canonical orientation/scale/grounding metadata, propagation to all live instances, and temp cleanup. |
+| `validate_world_asset_family_sweep(report, plan?, format?)` | Fail reports that fix only a temporary clone, skip required clean/live screenshots, omit canonical placement metadata, miss `record_inspection` proof, leave blockers, or leave temporary validation models behind. |
 | `plan_batch_visual_gate(project?, target_place?, review_mode?, spaces?, include_defaults?, adapter?, artifact_root?, max_captures?, format?)` | Turn a playable-space review plan into one serial StudioMCP wrapper packet with active-place preflight, camera Luau, `screen_capture` requests, collation paths, and a report template. |
 | `validate_batch_visual_gate(batch_report, plan?, format?)` | Validate a collated Studio screenshot batch: active-place proof must pass, every planned capture needs an image path, and the embedded playable-space report must pass. |
 | `search_assets(query, max_results?, categories?, verified_only?, extensive?, exclude_terms?, exclude_rejected?, exclude_claimed?, exclude_ids?, exclude_unpublishable?, publish_permission_mode?, require_studio_probe?, require_save_reopen?)` | Ranked search; auto-hides rejected/claimed; `exclude_terms` drops off-theme names; optional release-mode permission filtering uses recorded proof. |
@@ -397,6 +402,30 @@ node scripts/validate-playable-space-review.mjs --file review.json --json
 The report file can be either the report object itself or a `{ "report": ...,
 "plan": ... }` wrapper. Omitting the plan uses custom `spaces` or
 `spaces_reviewed` when present, then defaults to the Prop Hunt capture queue.
+
+## World asset-family sweep gate
+
+Use `plan_world_asset_family_sweep` before full playable-space signoff when
+repeated imported or staged assets may be sideways, face-down, floating, buried,
+mis-scaled, or inconsistently propagated across clones.
+
+```text
+plan_world_asset_family_sweep(
+  project: "eggbreakers",
+  target_place: "eggBreakers3.rbxl",
+  families: [
+    { family_id: "fern_food_and_ground_cover", source_asset_id: 7979002756, live_instance_count: 12 },
+    { family_id: "staged_and_imported_dinosaurs", source_asset_id: 248223518, live_instance_count: 4 }
+  ]
+)
+```
+
+The validator requires clean-spot front/back/left/right/overhead/player-height
+screenshots before and after the canonical fix, at least one live in-world
+player-height after screenshot, canonical `up` / `forward` / scale / grounding /
+pivot metadata, propagation counts for all live visual instances, recorded
+inspection metadata, and proof that clean clones or temporary probes were
+removed. A report that only fixes the validation clone fails.
 
 For lower-churn validation, use `plan_batch_visual_gate`. It emits one wrapper
 packet for a StudioMCP adapter: active-place preflight first, then serial camera

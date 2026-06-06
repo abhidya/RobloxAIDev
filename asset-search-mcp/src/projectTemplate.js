@@ -36,6 +36,8 @@ const DEFAULT_TEMPLATE_GATES = [
   "validate_asset_delivery_receipt",
   "plan_coordinator_merge",
   "validate_coordinator_merge",
+  "plan_world_asset_family_sweep",
+  "validate_world_asset_family_sweep",
   "plan_batch_visual_gate",
   "validate_batch_visual_gate",
   "validate_ai_game_dev_loop",
@@ -94,7 +96,7 @@ function templateFiles({ project, game, targetPlace, themes, outputRoot }) {
     {
       path: "docs/e2e-loop.md",
       role: "loop_contract",
-      content: `# E2E Loop\n\n1. plan_project_template and validate_project_template\n2. plan_ai_game_dev_loop\n3. preprocess_storyboard_asset_cache\n4. plan_asset_acquisition\n5. plan_asset_delivery and validate_asset_delivery_receipt\n6. plan_headless_assembly\n7. plan_coordinator_merge and validate_coordinator_merge\n8. plan_batch_visual_gate and validate_batch_visual_gate\n9. validate_ai_game_dev_loop\n`,
+      content: `# E2E Loop\n\n1. plan_project_template and validate_project_template\n2. plan_ai_game_dev_loop\n3. preprocess_storyboard_asset_cache\n4. plan_asset_acquisition\n5. plan_asset_delivery and validate_asset_delivery_receipt\n6. plan_headless_assembly\n7. plan_coordinator_merge and validate_coordinator_merge\n8. plan_world_asset_family_sweep and validate_world_asset_family_sweep\n9. plan_batch_visual_gate and validate_batch_visual_gate\n10. validate_ai_game_dev_loop\n`,
     },
     {
       path: "asset-brain/v1/manifest.json",

@@ -188,6 +188,35 @@ the agent may edit, what it must prove, and where it hands work back.
 Multi-agent behavior changes are made in prompt files and contracts, not spread
 through ad hoc chat instructions.
 
+### World Asset-Family Sweep Module
+
+**Interface**
+
+- `plan_world_asset_family_sweep`
+- `validate_world_asset_family_sweep`
+- `record_inspection` world placement metadata
+
+**Implementation**
+
+- Planner emits a serial, one-family-at-a-time Studio screenshot contract for
+  repeated imported or staged world assets
+- Validator fails reports that only fix a temporary validation clone, skip
+  clean-spot before/after screenshots, skip live player-height proof, omit
+  canonical up/forward/scale/grounding/pivot metadata, leave blockers, or leave
+  temporary probes in the world
+
+**Depth**
+
+The caller asks to repair a visible world with misoriented asset families such
+as face-down dinos or sideways ferns. The module turns that into a repeatable
+proof packet: inventory, clean clone, canonical fix, propagation, recapture,
+inspection record, and cleanup.
+
+**Locality**
+
+Orientation and placement proof lives in one MCP contract instead of being
+spread across screenshots, chat notes, and informal Studio edits.
+
 ### Project Template Module
 
 **Interface**
@@ -339,6 +368,7 @@ from making the seams executable and smaller.
 | JS-generated and Luau-emitted fragment manifests normalize through one schema | `npm --prefix asset-search-mcp run test:fragment-fixtures` | `asset-search-mcp/fixtures/fragment-manifests/*.json` and `validate_fragment_manifest` |
 | Authenticated asset delivery writes quarantine bytes and redacted receipts | `npm --prefix asset-search-mcp run test:asset-delivery` | `plan_asset_delivery`, `run-asset-delivery.mjs`, `validate_asset_delivery_receipt`, local fake Asset Delivery server |
 | Asset acquisition is a gated seam | `npm --prefix asset-search-mcp run test:asset-acquisition` and `npm --prefix asset-search-mcp run test:smoke` | `plan_asset_acquisition`, `validate_asset_acquisition`, delivery receipts, quarantine metadata, and metadata-only asset-brain checks |
+| World asset-family orientation and placement fixes are contract-gated | `npm --prefix asset-search-mcp run test:world-asset-family` and `npm --prefix asset-search-mcp run test:smoke` | `plan_world_asset_family_sweep`, `validate_world_asset_family_sweep`, clean-clone/live screenshot requirements, propagation and temp-cleanup checks |
 | Studio proof can be batched and adapter-consumed | `npm --prefix asset-search-mcp run test:offline`, `npm --prefix asset-search-mcp run test:studio-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `plan_batch_visual_gate`, mock transport, fake Studio MCP stdio transport, `run-studio-batch-visual-gate.mjs`, and `validate_batch_visual_gate` coverage |
 | Prompts/docs stay present and aligned | `npm --prefix asset-search-mcp run test:prompt-contracts` | prompt and architecture contract test |
 | The full proposed loop has fresh local evidence | `node scripts/run_ai_game_dev_pocs.mjs` | `docs/poc-results/ai-game-dev-poc-latest.json` |
@@ -354,6 +384,9 @@ from making the seams executable and smaller.
   come only from environment variables and receipt validation must stay redacted.
 - The rbx-dom coordinator path is an external-command adapter contract in this
   checkpoint; a real Rust/rbx-dom binary should replace the fake test command.
+- World asset-family sweeps are contract-tested with synthetic reports; real
+  Studio screenshots still depend on the active place, camera paths, and wrapper
+  capture quality.
 - Generated project templates are skeletons; their first real game still needs
   asset curation, headless generation, Studio screenshots, and loop validation.
 - Studio screenshot quality still depends on camera occlusion, lighting, and the

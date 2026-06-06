@@ -39,22 +39,22 @@
         "asset-search-mcp/src",
         "scripts"
       ],
-      "files": 29
+      "files": 30
     }
   ],
   "counts": {
-    "files": 275,
+    "files": 276,
     "byProject": {
       "eggbreakers": 150,
       "groantubehero": 96,
-      "robloxaidev-prophunt": 29
+      "robloxaidev-prophunt": 30
     },
     "byFamily": {
       "test-harness": 89,
       "score-and-timing": 49,
       "asset-audit": 28,
       "life-sim": 23,
-      "world-layout": 19,
+      "world-layout": 20,
       "client-ui": 17,
       "service-lifecycle": 17,
       "config-registry": 8,
@@ -4704,8 +4704,8 @@
       "relativePath": "asset-search-mcp/src/aiGameDevLoop.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 14590,
-      "lines": 412,
+      "bytes": 14754,
+      "lines": 416,
       "exportedFunctions": [
         "slugify",
         "compactToolCall",
@@ -4901,13 +4901,13 @@
       "relativePath": "asset-search-mcp/src/mcpTools/planningTools.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 17252,
-      "lines": 335,
+      "bytes": 20129,
+      "lines": 394,
       "exportedFunctions": [
         "registerPlanningTools"
       ],
       "hasReturn": true,
-      "fallbackSignals": 0
+      "fallbackSignals": 2
     },
     {
       "project": "robloxaidev-prophunt",
@@ -4962,8 +4962,8 @@
       "relativePath": "asset-search-mcp/src/projectTemplate.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 12058,
-      "lines": 308,
+      "bytes": 12205,
+      "lines": 310,
       "exportedFunctions": [
         "slugify",
         "asArray",
@@ -5290,8 +5290,8 @@
       "relativePath": "scripts/run_ai_game_dev_pocs.mjs",
       "scanRoot": "scripts",
       "family": "service-lifecycle",
-      "bytes": 7811,
-      "lines": 189,
+      "bytes": 8064,
+      "lines": 191,
       "exportedFunctions": [
         "tail",
         "exists",
@@ -5361,6 +5361,34 @@
       ],
       "hasReturn": true,
       "fallbackSignals": 1
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/worldAssetFamilySweep.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "world-layout",
+      "bytes": 14427,
+      "lines": 334,
+      "exportedFunctions": [
+        "slugify",
+        "asObject",
+        "asArray",
+        "bool",
+        "numberValue",
+        "normalizeFamily",
+        "normalizeScreenshot",
+        "normalizeFamilyReport",
+        "buildWorldAssetFamilySweepPlan",
+        "expectedFamilies",
+        "viewSetFor",
+        "hasInspectionProof",
+        "validateWorldAssetFamilySweep",
+        "formatWorldAssetFamilySweepPlan",
+        "formatWorldAssetFamilySweepValidation"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 12
     }
   ]
 }
