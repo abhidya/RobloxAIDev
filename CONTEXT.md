@@ -48,6 +48,9 @@ prompts should use consistently.
 - **Reusable GameKit** — `packages/roblox-game-kit`, the source-first Roblox
   module pack distilled from EggBreakers, GroanTubeHero, and RobloxAIDev Prop
   Hunt libraries for faster future game development.
+- **Project template** — a generated Roblox AI game skeleton with metadata-only
+  asset brain, prompt lanes, Rojo source stubs, POC script, and validation gates
+  prewired.
 - **Source library inventory** — the generated metadata file that maps every
   scanned source library from the three games to a reusable GameKit module
   family before any migration rewrites begin.

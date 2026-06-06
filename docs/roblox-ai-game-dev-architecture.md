@@ -188,6 +188,33 @@ the agent may edit, what it must prove, and where it hands work back.
 Multi-agent behavior changes are made in prompt files and contracts, not spread
 through ad hoc chat instructions.
 
+### Project Template Module
+
+**Interface**
+
+- `plan_project_template`
+- `validate_project_template`
+- `asset-search-mcp/scripts/generate-project-template.mjs`
+
+**Implementation**
+
+- Deterministic file-set planner for a new Roblox AI game skeleton
+- CLI materializer that writes `CONTEXT.md`, prompt lanes, Rojo source stubs,
+  metadata-only asset brain manifest, `.gitignore`, docs, and POC script
+- Validator that checks planned files exist, required gates are present, and
+  generated safety policy keeps binaries and credentials out of asset-brain
+
+**Depth**
+
+The caller asks for a new game workspace. The module hides repeated setup for
+asset brain metadata, proof gates, prompt lanes, Rojo structure, and starter
+verification scripts.
+
+**Locality**
+
+Template drift is caught by one contract test instead of being rediscovered in
+every generated Roblox project.
+
 ### Reusable GameKit Module
 
 **Interface**
@@ -316,6 +343,7 @@ from making the seams executable and smaller.
 | Prompts/docs stay present and aligned | `npm --prefix asset-search-mcp run test:prompt-contracts` | prompt and architecture contract test |
 | The full proposed loop has fresh local evidence | `node scripts/run_ai_game_dev_pocs.mjs` | `docs/poc-results/ai-game-dev-poc-latest.json` |
 | Source-game libraries can be converted into reusable module families | `node scripts/inventory_reusable_game_libraries.mjs` and `npm --prefix asset-search-mcp run test:game-kit` | `packages/roblox-game-kit/module-catalog.json`, `packages/roblox-game-kit/inventory/source-library-inventory.json` |
+| New game skeletons can be generated with gates prewired | `npm --prefix asset-search-mcp run test:project-template` | `plan_project_template`, `generate-project-template.mjs`, `validate_project_template` |
 | The e2e game-design loop is a custom MCP contract | `npm --prefix asset-search-mcp run test:offline`, `npm --prefix asset-search-mcp run test:studio-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `plan_ai_game_dev_loop`, `validate_ai_game_dev_loop`, `docs/e2e-roblox-ai-game-design-loop.md` |
 
 ## Open Risks
@@ -326,10 +354,11 @@ from making the seams executable and smaller.
   come only from environment variables and receipt validation must stay redacted.
 - The rbx-dom coordinator path is an external-command adapter contract in this
   checkpoint; a real Rust/rbx-dom binary should replace the fake test command.
+- Generated project templates are skeletons; their first real game still needs
+  asset curation, headless generation, Studio screenshots, and loop validation.
 - Studio screenshot quality still depends on camera occlusion, lighting, and the
   correct active Studio instance.
 
 ## Next Deepening Candidates
 
-1. **Project template module** — generate a new game repo skeleton with asset
-   brain, prompts, POC scripts, and gates prewired.
+No remaining deepening candidates from this architecture report are unimplemented.

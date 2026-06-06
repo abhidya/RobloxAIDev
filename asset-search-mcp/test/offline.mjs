@@ -307,6 +307,8 @@ const loopReport = {
       tools: [
         "plan_ai_game_dev_loop",
         "validate_ai_game_dev_loop",
+        "plan_project_template",
+        "validate_project_template",
         "plan_asset_acquisition",
         "validate_asset_acquisition",
         "plan_asset_delivery",

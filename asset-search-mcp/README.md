@@ -86,6 +86,8 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 |------|---------|
 | `plan_ai_game_dev_loop(project?, game?, target_place?, themes?, include_defaults?, include_lobby?, max_themes?, max_fragments?, assembly_profile?, review_mode?, spaces?, include_default_spaces?, artifact_root?, max_captures?, format?)` | Plan the full AI Roblox game-dev loop across asset brain, GameKit, parser/writer generation, headless merge, gated Studio batch proof, and release verification. |
 | `validate_ai_game_dev_loop(report, plan?, format?)` | Validate the final proof report for the full AI game-dev loop, including custom MCP contract proof and the nested batch visual gate report. |
+| `plan_project_template(project?, game?, target_place?, themes?, output_root?, format?)` | Plan a new Roblox AI game skeleton with asset brain, prompt lanes, Rojo stubs, POC script, and gates prewired. |
+| `validate_project_template(report, plan?, format?)` | Validate a generated project template report and required files. |
 | `plan_asset_acquisition(project?, slot?, query?, asset_ids?, target_place?, delivery_mode?, require_publish_permission?, format?)` | Plan the asset acquisition seam: search/claim, publish permission proof, direct asset delivery parse, Studio insertion fallback, quarantine, manifest validation, and visual proof. |
 | `validate_asset_acquisition(report, plan?, format?)` | Validate an acquisition proof report before an asset can move from quarantine into a palette. |
 | `plan_asset_delivery(project?, slot?, asset_id, version_number?, quarantine_root?, base_url?, api_key_env?, bearer_env?, format?)` | Plan one authenticated Open Cloud Asset Delivery request that writes bytes to quarantine and records only a redacted receipt. |
@@ -269,6 +271,26 @@ writes downloaded bytes under `work/asset-acquisition/.../quarantine`, and
 stores a redacted delivery receipt. Run `validate_asset_delivery_receipt` before
 including that receipt in `validate_asset_acquisition`. Keep the receipt path
 metadata in the asset brain; keep downloaded `.rbxm` bytes out of it.
+
+## Project template generation
+
+Use `plan_project_template` or the CLI to start a new game repo skeleton with
+the current gates prewired:
+
+```bash
+node asset-search-mcp/scripts/generate-project-template.mjs \
+  --project dino-dash \
+  --game "Dino Dash" \
+  --target-place DinoDash.rbxl \
+  --theme "nursery grove" \
+  --out-root work/generated-games/dino-dash \
+  --json
+```
+
+The template includes `CONTEXT.md`, Rojo `default.project.json`, metadata-only
+`asset-brain/v1/manifest.json`, prompt lanes, source stubs, `.gitignore`, and a
+POC script with asset delivery, coordinator, Studio batch, and loop validation
+commands.
 
 ## Headless fragment assembly
 

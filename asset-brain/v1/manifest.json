@@ -1,7 +1,7 @@
 {
   "schema": "robloxaidev-cross-project-asset-brain/v1",
   "project": "RobloxAIDev",
-  "generatedAt": "2026-06-06T00:08:10.525Z",
+  "generatedAt": "2026-06-06T00:18:21.941Z",
   "purpose": "Canonical merged metadata brain for asset-driven Roblox AI game development across RobloxAIDev, EggBreakers, GroanTubeHero, and the shared local MCP store.",
   "policy": {
     "trackedData": "metadata only: asset ids, slots, statuses, inspections, queues, risks, and learnings",

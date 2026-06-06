@@ -31,6 +31,8 @@ idea
 
 Supporting MCP tools:
 
+- `plan_project_template`
+- `validate_project_template`
 - `plan_game_asset_coverage`
 - `preprocess_storyboard_asset_cache`
 - `curate_assets`
@@ -48,6 +50,24 @@ Supporting MCP tools:
 - `validate_coordinator_merge`
 - `plan_batch_visual_gate`
 - `validate_batch_visual_gate`
+
+## Project Template Layer
+
+Use `generate-project-template.mjs` to create a new repo skeleton before the
+first asset pass:
+
+```bash
+node asset-search-mcp/scripts/generate-project-template.mjs \
+  --project dino-dash \
+  --game "Dino Dash" \
+  --target-place DinoDash.rbxl \
+  --theme "nursery grove" \
+  --json
+```
+
+The template prewires `CONTEXT.md`, prompt lanes, asset-brain metadata layout,
+Rojo source stubs, the local POC script, and the delivery/coordinator/Studio
+gate commands.
 
 ## Parser/Writer Layer
 
@@ -140,6 +160,8 @@ node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs \
       "tools": [
         "plan_ai_game_dev_loop",
         "validate_ai_game_dev_loop",
+        "plan_project_template",
+        "validate_project_template",
         "plan_asset_acquisition",
         "validate_asset_acquisition",
         "plan_asset_delivery",

@@ -28,6 +28,8 @@ console.log("TOOLS:", toolNames.join(", "));
 for (const requiredTool of [
   "plan_ai_game_dev_loop",
   "validate_ai_game_dev_loop",
+  "plan_project_template",
+  "validate_project_template",
   "plan_game_asset_coverage",
   "preprocess_storyboard_asset_cache",
   "export_asset_brain_snapshot",
@@ -136,6 +138,8 @@ const loopValidation = JSON.parse(await call("validate_ai_game_dev_loop", {
         tools: [
           "plan_ai_game_dev_loop",
           "validate_ai_game_dev_loop",
+          "plan_project_template",
+          "validate_project_template",
           "plan_asset_acquisition",
           "validate_asset_acquisition",
           "plan_asset_delivery",
@@ -162,6 +166,34 @@ console.log(JSON.stringify({
   captures: loopPlan.batch_visual_gate_plan.capture_batch.captures.length,
   loopValidation: loopValidation.passed,
 }, null, 2));
+
+console.log("\n--- plan_project_template ---");
+const templatePlan = JSON.parse(await call("plan_project_template", {
+  project: "smoke-game",
+  game: "Smoke Game",
+  target_place: "SmokeGame.rbxl",
+  themes: ["sky lobby"],
+  output_root: "work/generated-games/smoke-game",
+  format: "json",
+}));
+assert.equal(templatePlan.schema, "roblox-ai-game-project-template-plan/v1", "MCP project template plan schema");
+assert.ok(templatePlan.files.some((file) => file.path === "asset-brain/v1/manifest.json"), "project template includes asset brain manifest");
+const templateValidation = JSON.parse(await call("validate_project_template", {
+  plan: templatePlan,
+  report: {
+    schema: "roblox-ai-game-project-template-report/v1",
+    project: "smoke-game",
+    output_root: "work/generated-games/smoke-game",
+    written: templatePlan.files,
+    gates: templatePlan.gates,
+    safety: templatePlan.safety,
+    passed: true,
+    blockers: [],
+  },
+  format: "json",
+}));
+assert.equal(templateValidation.passed, false, "MCP template validator requires files to exist when a root is supplied");
+assert.ok(templateValidation.errors.some((error) => error.includes("expected file not written")), "template validator reports missing files");
 
 console.log("\n--- plan_asset_acquisition ---");
 const acquisitionPlan = JSON.parse(await call("plan_asset_acquisition", {

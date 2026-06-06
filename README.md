@@ -180,6 +180,17 @@ Studio, direct asset parsing, and Studio-first alternatives, and defines prompt
 lanes for asset brain, curation, headless fragments, merge coordination,
 gameplay implementation, visual proof, and release verification.
 
+To start a new game skeleton with those gates already wired, use
+`plan_project_template` or:
+
+```bash
+node asset-search-mcp/scripts/generate-project-template.mjs \
+  --project dino-dash \
+  --game "Dino Dash" \
+  --theme "nursery grove" \
+  --json
+```
+
 To refresh the local proof bundle for those claims:
 
 ```bash

@@ -98,6 +98,8 @@ export function buildAiGameDevLoopPlan({
       planner_tool: "plan_ai_game_dev_loop",
       validator_tool: "validate_ai_game_dev_loop",
       supporting_tools: [
+        "plan_project_template",
+        "validate_project_template",
         "plan_game_asset_coverage",
         "preprocess_storyboard_asset_cache",
         "curate_assets",
@@ -316,6 +318,8 @@ export function validateAiGameDevLoopReport(report, plan = null) {
   for (const requiredTool of [
     "plan_ai_game_dev_loop",
     "validate_ai_game_dev_loop",
+    "plan_project_template",
+    "validate_project_template",
     "plan_asset_acquisition",
     "validate_asset_acquisition",
     "plan_asset_delivery",

@@ -39,20 +39,20 @@
         "asset-search-mcp/src",
         "scripts"
       ],
-      "files": 28
+      "files": 29
     }
   ],
   "counts": {
-    "files": 274,
+    "files": 275,
     "byProject": {
       "eggbreakers": 150,
       "groantubehero": 96,
-      "robloxaidev-prophunt": 28
+      "robloxaidev-prophunt": 29
     },
     "byFamily": {
       "test-harness": 89,
       "score-and-timing": 49,
-      "asset-audit": 27,
+      "asset-audit": 28,
       "life-sim": 23,
       "world-layout": 19,
       "client-ui": 17,
@@ -4704,8 +4704,8 @@
       "relativePath": "asset-search-mcp/src/aiGameDevLoop.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 14458,
-      "lines": 408,
+      "bytes": 14590,
+      "lines": 412,
       "exportedFunctions": [
         "slugify",
         "compactToolCall",
@@ -4901,8 +4901,8 @@
       "relativePath": "asset-search-mcp/src/mcpTools/planningTools.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 15376,
-      "lines": 290,
+      "bytes": 17252,
+      "lines": 335,
       "exportedFunctions": [
         "registerPlanningTools"
       ],
@@ -4955,6 +4955,30 @@
       ],
       "hasReturn": true,
       "fallbackSignals": 5
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/projectTemplate.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 12058,
+      "lines": 308,
+      "exportedFunctions": [
+        "slugify",
+        "asArray",
+        "templateFiles",
+        "luauArray",
+        "normalizedTemplateFiles",
+        "buildProjectTemplatePlan",
+        "materializeProjectTemplate",
+        "validateProjectTemplateReport",
+        "publicProjectTemplatePlan",
+        "formatProjectTemplatePlan",
+        "formatProjectTemplateValidation"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 2
     },
     {
       "project": "robloxaidev-prophunt",
@@ -5266,8 +5290,8 @@
       "relativePath": "scripts/run_ai_game_dev_pocs.mjs",
       "scanRoot": "scripts",
       "family": "service-lifecycle",
-      "bytes": 7566,
-      "lines": 187,
+      "bytes": 7811,
+      "lines": 189,
       "exportedFunctions": [
         "tail",
         "exists",

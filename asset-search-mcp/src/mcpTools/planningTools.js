@@ -30,6 +30,13 @@ import {
   formatAiGameDevLoopValidation,
   validateAiGameDevLoopReport,
 } from "../aiGameDevLoop.js";
+import {
+  buildProjectTemplatePlan,
+  formatProjectTemplatePlan,
+  formatProjectTemplateValidation,
+  publicProjectTemplatePlan,
+  validateProjectTemplateReport,
+} from "../projectTemplate.js";
 
 const pointSchema = z.object({ x: z.number(), y: z.number(), z: z.number() });
 const playableSpaceSchema = z.object({
@@ -83,6 +90,44 @@ export function registerPlanningTools(server, { text }) {
         maxCaptures: args.max_captures,
       });
       return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatAiGameDevLoopPlan(plan));
+    }
+  );
+
+  server.tool(
+    "plan_project_template",
+    "Plan a new Roblox AI game repo skeleton with asset brain metadata, prompt lanes, Rojo source stubs, POC script, and the asset delivery/coordinator/Studio gate commands prewired.",
+    {
+      project: z.string().optional(),
+      game: z.string().optional(),
+      target_place: z.string().optional(),
+      themes: z.array(z.string()).optional(),
+      output_root: z.string().optional(),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const plan = buildProjectTemplatePlan({
+        project: args.project || "roblox-ai-game",
+        game: args.game || args.project || "Roblox AI Game",
+        targetPlace: args.target_place || "Place1.rbxl",
+        themes: args.themes || [],
+        outputRoot: args.output_root,
+      });
+      const publicPlan = publicProjectTemplatePlan(plan);
+      return text(args.format === "json" ? JSON.stringify(publicPlan, null, 2) : formatProjectTemplatePlan(publicPlan));
+    }
+  );
+
+  server.tool(
+    "validate_project_template",
+    "Validate a generated Roblox AI game project template report. Requires the planned files, metadata-only asset brain, prompt lanes, POC script, and prewired proof gates.",
+    {
+      report: z.record(z.any()),
+      plan: z.record(z.any()).optional().describe("Optional public plan from plan_project_template(format='json')."),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const result = await validateProjectTemplateReport(args.report, args.plan);
+      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatProjectTemplateValidation(result));
     }
   );
 
