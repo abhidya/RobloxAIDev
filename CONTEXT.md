@@ -24,6 +24,9 @@ prompts should use consistently.
   requires clean-clone before/after screenshots, live in-world player-height
   proof, propagated fixes, recorded inspection metadata, and temporary clone
   cleanup before visual signoff.
+- **Family sweep adapter** — the StudioMCP wrapper that consumes a
+  `plan_world_asset_family_sweep` packet and emits a collated family sweep
+  report, screenshot manifest, alt-text index, and execution log.
 - **Asset delivery receipt** — the redacted proof that an authenticated Open
   Cloud Asset Delivery request wrote candidate bytes to quarantine with a
   sha256 digest; it records credential presence, not credential values.

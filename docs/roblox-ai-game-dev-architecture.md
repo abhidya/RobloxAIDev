@@ -200,6 +200,9 @@ through ad hoc chat instructions.
 
 - Planner emits a serial, one-family-at-a-time Studio screenshot contract for
   repeated imported or staged world assets
+- `asset-search-mcp/scripts/run-studio-world-asset-family-sweep.mjs` consumes
+  that contract through mock or `studio_mcp_stdio` transport and writes one
+  collated report/manifest/alt-text/execution-log bundle
 - Validator fails reports that only fix a temporary validation clone, skip
   clean-spot before/after screenshots, skip live player-height proof, omit
   canonical up/forward/scale/grounding/pivot metadata, leave blockers, or leave
@@ -368,7 +371,7 @@ from making the seams executable and smaller.
 | JS-generated and Luau-emitted fragment manifests normalize through one schema | `npm --prefix asset-search-mcp run test:fragment-fixtures` | `asset-search-mcp/fixtures/fragment-manifests/*.json` and `validate_fragment_manifest` |
 | Authenticated asset delivery writes quarantine bytes and redacted receipts | `npm --prefix asset-search-mcp run test:asset-delivery` | `plan_asset_delivery`, `run-asset-delivery.mjs`, `validate_asset_delivery_receipt`, local fake Asset Delivery server |
 | Asset acquisition is a gated seam | `npm --prefix asset-search-mcp run test:asset-acquisition` and `npm --prefix asset-search-mcp run test:smoke` | `plan_asset_acquisition`, `validate_asset_acquisition`, delivery receipts, quarantine metadata, and metadata-only asset-brain checks |
-| World asset-family orientation and placement fixes are contract-gated | `npm --prefix asset-search-mcp run test:world-asset-family` and `npm --prefix asset-search-mcp run test:smoke` | `plan_world_asset_family_sweep`, `validate_world_asset_family_sweep`, clean-clone/live screenshot requirements, propagation and temp-cleanup checks |
+| World asset-family orientation and placement fixes are contract-gated | `npm --prefix asset-search-mcp run test:world-asset-family`, `npm --prefix asset-search-mcp run test:studio-world-family-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `plan_world_asset_family_sweep`, `validate_world_asset_family_sweep`, `run-studio-world-asset-family-sweep.mjs`, clean-clone/live screenshot requirements, propagation and temp-cleanup checks |
 | Studio proof can be batched and adapter-consumed | `npm --prefix asset-search-mcp run test:offline`, `npm --prefix asset-search-mcp run test:studio-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `plan_batch_visual_gate`, mock transport, fake Studio MCP stdio transport, `run-studio-batch-visual-gate.mjs`, and `validate_batch_visual_gate` coverage |
 | Prompts/docs stay present and aligned | `npm --prefix asset-search-mcp run test:prompt-contracts` | prompt and architecture contract test |
 | The full proposed loop has fresh local evidence | `node scripts/run_ai_game_dev_pocs.mjs` | `docs/poc-results/ai-game-dev-poc-latest.json` |

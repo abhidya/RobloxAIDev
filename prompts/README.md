@@ -10,6 +10,7 @@ Use these prompts with the vocabulary in `CONTEXT.md`:
 - dream queue
 - asset family
 - world asset-family sweep
+- family sweep adapter
 - headless assembly
 - fragment
 - coordinator merge

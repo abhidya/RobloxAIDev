@@ -109,6 +109,20 @@ The report must prove each family independently:
 Run `validate_world_asset_family_sweep` before palette promotion, scoped
 player-angle signoff, or final batch visual proof.
 
+To collapse the screenshot work into one wrapper execution, feed the plan to the
+family sweep adapter:
+
+```bash
+node asset-search-mcp/scripts/run-studio-world-asset-family-sweep.mjs \
+  --plan family-sweep-plan.json \
+  --transport mock \
+  --json
+```
+
+The live `studio_mcp_stdio` mode preserves the same report, manifest, alt-text,
+and execution-log shape after selecting the target Studio instance and running
+all clean/live family captures serially.
+
 ## Authenticated Asset Delivery Layer
 
 Use Open Cloud Asset Delivery before Studio insertion when an asset can be
@@ -137,6 +151,8 @@ Studio work is serial and active-place sensitive. The loop gates it:
 
 - `plan_batch_visual_gate` emits active-place preflight Luau.
 - The Studio wrapper runs camera moves and screenshots serially.
+- `run-studio-world-asset-family-sweep.mjs` consumes
+  `plan_world_asset_family_sweep` packets for clean-clone/live placement proof.
 - `asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs` is the executable
   adapter contract. Its mock transport writes a collated proof bundle, and its
   `studio_mcp_stdio` transport connects to a Studio MCP stdio server while

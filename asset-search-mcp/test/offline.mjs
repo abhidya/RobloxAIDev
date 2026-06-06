@@ -232,6 +232,8 @@ const familySweepPlan = buildWorldAssetFamilySweepPlan({
 assert.equal(familySweepPlan.schema, "roblox-world-asset-family-sweep-plan/v1", "family sweep schema recorded");
 assert.equal(familySweepPlan.capture_batch.serial, true, "family sweep captures are serial");
 assert.ok(familySweepPlan.capture_batch.captures.some((capture) => capture.kind === "live_player_height_after"), "family sweep requires live player-height proof");
+assert.equal(familySweepPlan.studio_preflight.required, true, "family sweep requires active-place preflight");
+assert.ok(familySweepPlan.capture_batch.captures.every((capture) => capture.studio_mcp_steps?.length === 2), "family sweep capture batch is Studio-wrapper consumable");
 const familyScreenshots = familySweepPlan.capture_batch.captures.map((capture) => ({
   capture_id: capture.capture_id,
   family_id: capture.family_id,
@@ -244,6 +246,7 @@ const familySweepReport = {
   schema: "roblox-world-asset-family-sweep-report/v1",
   project: "eggbreakers",
   target_place: "eggBreakers3.rbxl",
+  preflight: { passed: true, placeName: "eggBreakers3.rbxl", placeId: 0 },
   family_reports: [{
     family_id: "fern_food_and_ground_cover",
     status: "pass",

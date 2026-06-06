@@ -52,7 +52,9 @@ agents need:
   unresolved visual blockers, including scoped asset-fix passes.
 - **`plan_world_asset_family_sweep` / `validate_world_asset_family_sweep`** —
   enforce family-by-family orientation, scale, grounding, propagation, and temp
-  clone cleanup proof for repeated world assets.
+  clone cleanup proof for repeated world assets. The generated plan can be run
+  through `scripts/run-studio-world-asset-family-sweep.mjs` to collate all
+  clean/live family screenshots in one wrapper execution.
 - **`plan_batch_visual_gate` / `validate_batch_visual_gate`** — wrap a
   playable-space plan into one StudioMCP batch job with active-place preflight,
   deterministic camera steps, screenshot collation, accessibility fields, and a
@@ -137,6 +139,21 @@ node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs \
 The mock transport writes `batch-report.json`, `batch-manifest.json`,
 `alt-text.json`, and `execution-log.json`; the live Studio MCP transport should
 keep that artifact shape.
+
+World asset-family sweeps have the same wrapper shape for orientation/placement
+passes:
+
+```bash
+node asset-search-mcp/scripts/run-studio-world-asset-family-sweep.mjs \
+  --plan family-sweep-plan.json \
+  --active-place eggBreakers3.rbxl \
+  --json
+```
+
+The mock transport writes `family-sweep-report.json`,
+`family-sweep-manifest.json`, `alt-text.json`, and `execution-log.json`; the
+`studio_mcp_stdio` transport uses the same artifact shape after selecting the
+target Studio instance and running every planned clean/live family capture.
 
 ### How it prevents multi-agent collisions
 

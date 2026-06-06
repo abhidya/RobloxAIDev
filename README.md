@@ -221,10 +221,11 @@ headless-merge, world asset-family sweep, gated-Studio, and release-verification
 phases, while
 `validate_ai_game_dev_loop` validates the final proof bundle. See
 [`docs/e2e-roblox-ai-game-design-loop.md`](docs/e2e-roblox-ai-game-design-loop.md).
-The Studio batch wrapper has a mock transport at
-`asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs`; it consumes
-`plan_batch_visual_gate` packets and emits the same collated proof bundle the
-future live Studio MCP adapter must emit.
+The Studio batch wrappers have mock transports at
+`asset-search-mcp/scripts/run-studio-world-asset-family-sweep.mjs` and
+`asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs`; they consume
+`plan_world_asset_family_sweep` / `plan_batch_visual_gate` packets and emit the
+same collated proof bundles the future live Studio MCP adapter must emit.
 
 If StudioMCP reports a different place than the one you opened, do not capture
 screenshots. See

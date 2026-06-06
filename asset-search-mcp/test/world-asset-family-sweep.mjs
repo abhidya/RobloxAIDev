@@ -30,6 +30,9 @@ assert.equal(plan.families.length, 2);
 assert.equal(plan.capture_batch.serial, true, "family sweep captures are serial");
 assert.equal(plan.capture_batch.captures.length, 26, "each family gets before/after clean views plus live proof");
 assert.ok(plan.capture_batch.captures.some((capture) => capture.kind === "live_player_height_after"), "plan requires in-world player-height proof");
+assert.equal(plan.studio_preflight.required, true, "family sweep has an active-place preflight");
+assert.ok(plan.capture_batch.captures.every((capture) => capture.studio_mcp_steps?.length === 2), "each family capture has camera and screenshot steps");
+assert.ok(plan.capture_batch.captures.every((capture) => capture.result_contract?.image_path), "each family capture declares a result contract");
 
 function screenshotsFor(familyId) {
   return plan.capture_batch.captures
@@ -78,6 +81,7 @@ const goodReport = {
   schema: "roblox-world-asset-family-sweep-report/v1",
   project: "eggbreakers",
   target_place: "eggBreakers3.rbxl",
+  preflight: { passed: true, placeName: "eggBreakers3.rbxl", placeId: 0 },
   family_reports: [
     familyReport("fern_food_and_ground_cover", 12),
     familyReport("staged_and_imported_dinosaurs", 4),
@@ -113,6 +117,19 @@ assert.equal(badValidation.passed, false, "fixing only the clean clone must fail
 assert.ok(badValidation.errors.some((error) => error.includes("propagate")), "missing propagation is explicit");
 assert.ok(badValidation.errors.some((error) => error.includes("clean clone must be removed")), "temp clone cleanup is explicit");
 assert.ok(badValidation.errors.some((error) => error.includes("live_player_height_after")), "missing live player-height proof is explicit");
+
+const blankFindingValidation = validateWorldAssetFamilySweep({
+  ...goodReport,
+  family_reports: [{
+    ...familyReport("fern_food_and_ground_cover", 12),
+    findings: [{ severity: "major", status: "open", description: "" }],
+  }],
+}, {
+  ...plan,
+  families: [plan.families[0]],
+});
+assert.equal(blankFindingValidation.passed, false, "blank findings must fail validation");
+assert.ok(blankFindingValidation.errors.some((error) => error.includes("title/description")), "blank finding error is explicit");
 
 const noPlanValidation = validateWorldAssetFamilySweep({
   ...goodReport,

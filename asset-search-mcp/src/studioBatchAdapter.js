@@ -1,21 +1,16 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import {
+  asObject,
+  callStudioTool,
+  connectStudioMcp,
+  expectedPlaceMatches,
+  maybeSelectStudio,
+  normalizePreflightPayload,
+  preflightPassedFromPayload,
+  responseJson,
+  toolArgsForStep,
+  writeImageContent,
+} from "./studioMcpAdapterCore.js";
 import { validateBatchVisualGateReport } from "./visualBatchGate.js";
-
-function asObject(value) {
-  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
-}
-
-function expectedPlaceMatches(activePlaceName, expectedNames) {
-  const active = String(activePlaceName || "").toLowerCase();
-  if (!Array.isArray(expectedNames) || expectedNames.length === 0) return true;
-  return expectedNames.some((name) => {
-    const expected = String(name || "").toLowerCase();
-    return expected && active.includes(expected);
-  });
-}
 
 function signedOffVerdict(plan, passed) {
   if (!passed) return "not_signed_off";
@@ -49,53 +44,6 @@ function normalizeCaptureResult(capture, passed) {
   };
 }
 
-function responseText(response) {
-  return (response?.content || [])
-    .filter((item) => item.type === "text" && typeof item.text === "string")
-    .map((item) => item.text)
-    .join("\n")
-    .trim();
-}
-
-function responseJson(response) {
-  const text = responseText(response);
-  if (!text) return {};
-  try {
-    return JSON.parse(text);
-  } catch {
-    return { text };
-  }
-}
-
-function toolArgsForStep(step) {
-  if (step.tool === "execute_luau") return { code: step.code || "" };
-  return {};
-}
-
-async function writeImageContent(response, outputPath) {
-  const image = (response?.content || []).find((item) => item.type === "image" && item.data);
-  if (!image || !outputPath) return null;
-  await mkdir(path.dirname(outputPath), { recursive: true });
-  await writeFile(outputPath, Buffer.from(image.data, "base64"));
-  return outputPath;
-}
-
-function preflightPassedFromPayload(payload) {
-  return payload.ok === true || payload.passed === true || payload.success === true;
-}
-
-function normalizePreflightPayload(payload, fallback) {
-  return {
-    passed: preflightPassedFromPayload(payload),
-    ok: preflightPassedFromPayload(payload),
-    placeName: payload.placeName || payload.place_name || fallback.placeName,
-    placeId: payload.placeId || payload.place_id || fallback.placeId,
-    expectedPlaceNames: payload.expectedPlaceNames || payload.expected_place_names || fallback.expectedPlaceNames,
-    transport: fallback.transport,
-    raw: payload.text ? payload.text.slice(0, 1000) : undefined,
-  };
-}
-
 function normalizeLiveScreenshot(capture, response, passed) {
   const payload = responseJson(response);
   const contract = normalizeCaptureResult(capture, passed);
@@ -106,41 +54,6 @@ function normalizeLiveScreenshot(capture, response, passed) {
     passed: payload.passed !== false && passed,
     findings: Array.isArray(payload.findings) ? payload.findings : contract.findings,
   };
-}
-
-async function callStudioTool(client, tool, args) {
-  return await client.callTool({ name: tool, arguments: args });
-}
-
-async function connectStudioMcp({ command, args = [] }) {
-  const transport = new StdioClientTransport({ command, args });
-  const client = new Client({ name: "roblox-studio-batch-adapter", version: "1.0.0" });
-  await client.connect(transport);
-  return client;
-}
-
-async function maybeSelectStudio(client, { studioId, studioName } = {}) {
-  if (!studioId && !studioName) return null;
-  const listed = await callStudioTool(client, "list_roblox_studios", {});
-  const payload = responseJson(listed);
-  const studios = Array.isArray(payload) ? payload : Array.isArray(payload.studios) ? payload.studios : [];
-  const match = studios.find((studio) => {
-    const id = studio.id || studio.studio_id || studio.instanceId;
-    const name = studio.name || studio.placeName || studio.place_name;
-    return (studioId && String(id) === String(studioId))
-      || (studioName && String(name || "").toLowerCase().includes(String(studioName).toLowerCase()));
-  });
-  if (!match) {
-    return { selected: false, studios };
-  }
-  const id = match.id || match.studio_id || match.instanceId;
-  let selected = null;
-  try {
-    selected = await callStudioTool(client, "set_active_studio", { studio_id: id });
-  } catch {
-    selected = await callStudioTool(client, "set_active_studio", { id });
-  }
-  return { selected: true, studio: match, result: responseJson(selected) };
 }
 
 export async function executeStudioMcpBatchVisualGate(plan, {

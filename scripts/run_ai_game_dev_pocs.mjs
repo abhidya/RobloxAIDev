@@ -107,6 +107,7 @@ async function main() {
   await add("asset_brain_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:asset-brain"]);
   await add("batch_visual_gate_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:offline"]);
   await add("studio_batch_adapter_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:studio-adapter"]);
+  await add("studio_world_family_adapter_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:studio-world-family-adapter"]);
   await add("fragment_fixture_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:fragment-fixtures"]);
   await add("coordinator_adapter_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:coordinator-adapter"]);
   await add("asset_delivery_contract", "npm", ["--prefix", "asset-search-mcp", "run", "test:asset-delivery"]);
@@ -165,6 +166,7 @@ async function main() {
       asset_brain_contract: commands.some((entry) => entry.id === "asset_brain_contract" && entry.status === "passed"),
       batch_visual_gate_contract: commands.some((entry) => entry.id === "batch_visual_gate_contract" && entry.status === "passed"),
       studio_batch_adapter_contract: commands.some((entry) => entry.id === "studio_batch_adapter_contract" && entry.status === "passed"),
+      studio_world_family_adapter_contract: commands.some((entry) => entry.id === "studio_world_family_adapter_contract" && entry.status === "passed"),
       fragment_fixture_contract: commands.some((entry) => entry.id === "fragment_fixture_contract" && entry.status === "passed"),
       coordinator_adapter_contract: commands.some((entry) => entry.id === "coordinator_adapter_contract" && entry.status === "passed"),
       asset_delivery_contract: commands.some((entry) => entry.id === "asset_delivery_contract" && entry.status === "passed"),

@@ -11,6 +11,8 @@ Turn playable-space plans into collated screenshot proof and validation reports.
 - Use `plan_playable_space_review` for ordinary review plans.
 - Use `plan_world_asset_family_sweep` before final visual signoff when repeated
   world assets need orientation, scale, grounding, or propagation proof.
+- Run `asset-search-mcp/scripts/run-studio-world-asset-family-sweep.mjs` for
+  those family sweeps when a StudioMCP wrapper is available.
 - Use `plan_batch_visual_gate` for lower-churn Studio batches.
 - Confirm active Studio place before captures.
 - Capture every planned player-height view.

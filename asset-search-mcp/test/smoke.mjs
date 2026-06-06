@@ -452,6 +452,7 @@ const familyPlan = JSON.parse(await call("plan_world_asset_family_sweep", {
 }));
 assert.equal(familyPlan.schema, "roblox-world-asset-family-sweep-plan/v1", "MCP family sweep plan schema");
 assert.ok(familyPlan.capture_batch.captures.some((shot) => shot.kind === "live_player_height_after"), "family sweep requires live proof");
+assert.ok(familyPlan.capture_batch.captures.every((shot) => shot.studio_mcp_steps?.length === 2), "family sweep captures are Studio-wrapper consumable");
 const familyShots = familyPlan.capture_batch.captures.map((shot) => ({
   capture_id: shot.capture_id,
   family_id: shot.family_id,
@@ -466,6 +467,7 @@ const familyValidation = JSON.parse(await call("validate_world_asset_family_swee
     schema: "roblox-world-asset-family-sweep-report/v1",
     project: "eggbreakers",
     target_place: "eggBreakers3.rbxl",
+    preflight: { passed: true, placeName: "eggBreakers3.rbxl", placeId: 0 },
     family_reports: [{
       family_id: "fern_food_and_ground_cover",
       status: "pass",
@@ -498,6 +500,7 @@ const badFamilyText = await call("validate_world_asset_family_sweep", {
     schema: "roblox-world-asset-family-sweep-report/v1",
     project: "eggbreakers",
     target_place: "eggBreakers3.rbxl",
+    preflight: { passed: true, placeName: "eggBreakers3.rbxl", placeId: 0 },
     family_reports: [{
       family_id: "fern_food_and_ground_cover",
       status: "pass",

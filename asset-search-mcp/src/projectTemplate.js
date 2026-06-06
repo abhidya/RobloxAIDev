@@ -49,7 +49,7 @@ function templateFiles({ project, game, targetPlace, themes, outputRoot }) {
     {
       path: "README.md",
       role: "operator_start",
-      content: `# ${game}\n\nGenerated Roblox AI game workspace for ${project}.\n\n## First commands\n\n\`\`\`bash\nnpm --prefix asset-search-mcp test\nnode scripts/run_ai_game_dev_pocs.mjs\nnode asset-search-mcp/scripts/run-headless-coordinator.mjs --adapter lune --place work/headless-poc/${targetPlace} --out work/headless-poc/${slugify(project)}.candidate.rbxl --fragment work/headless-poc/generated-headless-marker.manifest.json --replace-existing --json\nnode asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs --plan work/visual-gate/batch-plan.json --transport mock --json\n\`\`\`\n\nKeep Roblox binaries, screenshots, credentials, and Studio state out of asset-brain metadata.\n`,
+      content: `# ${game}\n\nGenerated Roblox AI game workspace for ${project}.\n\n## First commands\n\n\`\`\`bash\nnpm --prefix asset-search-mcp test\nnode scripts/run_ai_game_dev_pocs.mjs\nnode asset-search-mcp/scripts/run-headless-coordinator.mjs --adapter lune --place work/headless-poc/${targetPlace} --out work/headless-poc/${slugify(project)}.candidate.rbxl --fragment work/headless-poc/generated-headless-marker.manifest.json --replace-existing --json\nnode asset-search-mcp/scripts/run-studio-world-asset-family-sweep.mjs --plan work/visual-gate/family-sweep-plan.json --transport mock --json\nnode asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs --plan work/visual-gate/batch-plan.json --transport mock --json\n\`\`\`\n\nKeep Roblox binaries, screenshots, credentials, and Studio state out of asset-brain metadata.\n`,
     },
     {
       path: "CONTEXT.md",
@@ -127,7 +127,7 @@ function templateFiles({ project, game, targetPlace, themes, outputRoot }) {
     {
       path: "scripts/run_ai_game_dev_pocs.mjs",
       role: "verification",
-      content: `#!/usr/bin/env node\nconst proof = {\n  schema: "generated-roblox-ai-game-poc/v1",\n  project: ${JSON.stringify(project)},\n  target_place: ${JSON.stringify(targetPlace)},\n  required_commands: [\n    "npm --prefix asset-search-mcp test",\n    "node asset-search-mcp/scripts/run-asset-delivery.mjs --asset-id <id> --json",\n    "node asset-search-mcp/scripts/run-headless-coordinator.mjs --adapter lune --place <working.rbxl> --out <candidate.rbxl> --fragment <fragment.manifest.json> --json",\n    "node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs --plan <batch-plan.json> --transport mock --json"\n  ]\n};\nconsole.log(JSON.stringify(proof, null, 2));\n`,
+      content: `#!/usr/bin/env node\nconst proof = {\n  schema: "generated-roblox-ai-game-poc/v1",\n  project: ${JSON.stringify(project)},\n  target_place: ${JSON.stringify(targetPlace)},\n  required_commands: [\n    "npm --prefix asset-search-mcp test",\n    "node asset-search-mcp/scripts/run-asset-delivery.mjs --asset-id <id> --json",\n    "node asset-search-mcp/scripts/run-headless-coordinator.mjs --adapter lune --place <working.rbxl> --out <candidate.rbxl> --fragment <fragment.manifest.json> --json",\n    "node asset-search-mcp/scripts/run-studio-world-asset-family-sweep.mjs --plan <family-sweep-plan.json> --transport mock --json",\n    "node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs --plan <batch-plan.json> --transport mock --json"\n  ]\n};\nconsole.log(JSON.stringify(proof, null, 2));\n`,
     },
     {
       path: "src/shared/init.luau",
