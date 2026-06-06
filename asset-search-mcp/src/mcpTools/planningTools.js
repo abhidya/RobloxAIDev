@@ -7,6 +7,12 @@ import {
   validateFragmentManifest,
 } from "../headlessPipeline.js";
 import {
+  buildCoordinatorMergePlan,
+  formatCoordinatorMergePlan,
+  formatCoordinatorMergeValidation,
+  validateCoordinatorMergeReport,
+} from "../coordinatorAdapter.js";
+import {
   buildPlayableSpaceReviewPlan,
   formatPlayableSpaceReviewPlan,
   formatPlayableSpaceReviewValidation,
@@ -152,6 +158,53 @@ export function registerPlanningTools(server, { text }) {
     async (args) => {
       const result = validateFragmentManifest(args.manifest);
       return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatFragmentManifestReport(result));
+    }
+  );
+
+  server.tool(
+    "plan_coordinator_merge",
+    "Plan a replaceable headless Roblox coordinator merge. Adapter 'lune' wraps the proven Lune script; adapter 'rbx_dom' targets an external production rbx-dom coordinator command with the same report contract.",
+    {
+      adapter: z.enum(["lune", "rbx_dom"]).optional(),
+      place: z.string().optional().describe("Copied source place path."),
+      out: z.string().optional().describe("Candidate output place path."),
+      fragments: z.array(z.string()).optional().describe("Fragment manifest paths."),
+      replace_existing: z.boolean().optional(),
+      create_missing_targets: z.boolean().optional(),
+      report_path: z.string().optional(),
+      lune_command: z.string().optional(),
+      rbx_dom_command: z.string().optional(),
+      rbx_dom_args: z.array(z.string()).optional(),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const plan = buildCoordinatorMergePlan({
+        adapter: args.adapter,
+        place: args.place,
+        out: args.out,
+        fragments: args.fragments,
+        replaceExisting: args.replace_existing,
+        createMissingTargets: args.create_missing_targets,
+        reportPath: args.report_path,
+        luneCommand: args.lune_command,
+        rbxDomCommand: args.rbx_dom_command,
+        rbxDomArgs: args.rbx_dom_args,
+      });
+      return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatCoordinatorMergePlan(plan));
+    }
+  );
+
+  server.tool(
+    "validate_coordinator_merge",
+    "Validate a headless coordinator merge report from the Lune or rbx-dom adapter. Requires passed process proof, reload validation, coordinator-owned identity policy, non-empty fragments, and non-asset-brain output paths.",
+    {
+      report: z.record(z.any()),
+      plan: z.record(z.any()).optional().describe("Optional plan from plan_coordinator_merge(format='json')."),
+      format: z.enum(["text", "json"]).optional(),
+    },
+    async (args) => {
+      const result = validateCoordinatorMergeReport(args.report, args.plan);
+      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatCoordinatorMergeValidation(result));
     }
   );
 

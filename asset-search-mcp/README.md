@@ -95,6 +95,8 @@ Or run it directly: `node src/index.js` (speaks MCP over stdio).
 | `export_asset_brain_snapshot(project?, include_search_cache?, max_queries?, max_results_per_query?, format?)` | Export small metadata-only snapshot for GitHub Pages or handoff; no binaries/screenshots. |
 | `plan_headless_assembly(project?, target_place?, themes?, include_lobby?, max_fragments?, format?)` | Generate parallel headless fragment packets, merge contract, endpoints, Rojo/Lune validation commands, and Studio visual gate. |
 | `validate_fragment_manifest(manifest, format?)` | Reject unsafe or under-specified `.rbxm` fragment manifests before coordinator merge. |
+| `plan_coordinator_merge(adapter?, place?, out?, fragments?, replace_existing?, create_missing_targets?, report_path?, lune_command?, rbx_dom_command?, rbx_dom_args?, format?)` | Plan a replaceable headless merge through the proven Lune adapter or an external rbx-dom coordinator command. |
+| `validate_coordinator_merge(report, plan?, format?)` | Validate a coordinator merge report: process passed, output reload validated, fragments match plan, identity policy is coordinator-owned, and outputs avoid asset-brain. |
 | `plan_playable_space_review(project?, review_mode?, spaces?, include_defaults?, format?)` | Generate the required Studio screenshot queue for lobby/room quadrant review and UI states. `review_mode="player_angle"` emits only player-height quadrant shots for scoped asset-fix passes. |
 | `validate_playable_space_review(report, plan?, format?)` | Fail visual signoff reports that skip spaces, player-height quadrants, required screenshot kinds, or unresolved major/blocker findings. A supplied custom plan is authoritative; otherwise custom/scoped reports are inferred before the default Prop Hunt plan is used. |
 | `plan_batch_visual_gate(project?, target_place?, review_mode?, spaces?, include_defaults?, adapter?, artifact_root?, max_captures?, format?)` | Turn a playable-space review plan into one serial StudioMCP wrapper packet with active-place preflight, camera Luau, `screen_capture` requests, collation paths, and a report template. |
@@ -279,6 +281,7 @@ subtrees without serializing every mutation through Studio. The tool returns:
   Studio-specific logic
 - the coordinator merge steps for remapping referents, stripping/regenerating
   identity fields, resolving parent links, and writing a merged `.rbxl`
+- a `coordinator_merge_plan` with `lune` and `rbx_dom` adapter options
 - validation commands for Lune, Rojo, the Prop Hunt gate, and the final Studio
   visual review
 
@@ -289,7 +292,31 @@ referent remapping and strips or regenerates unique IDs. The validator also
 flags risky script loaders such as `require(assetId)`, `InsertService:LoadAsset`,
 `loadstring`, and `HttpService` requests.
 
-The coordinator entrypoint is:
+The replaceable coordinator entrypoint is:
+
+```bash
+node asset-search-mcp/scripts/run-headless-coordinator.mjs \
+  --adapter lune \
+  --place work/headless-poc/Place1.headless-working.rbxl \
+  --out work/headless-poc/Place1.headless-merged.rbxl \
+  --fragment work/headless-poc/generated-headless-marker.manifest.json \
+  --replace-existing \
+  --json
+```
+
+For the production rbx-dom path, provide an external command:
+
+```bash
+node asset-search-mcp/scripts/run-headless-coordinator.mjs \
+  --adapter rbx_dom \
+  --rbx-dom-command "$RBX_DOM_COORDINATOR_CMD" \
+  --place work/headless-poc/Place1.headless-working.rbxl \
+  --out work/headless-poc/Place1.rbx-dom.rbxl \
+  --fragment work/headless-poc/generated-headless-marker.manifest.json \
+  --json
+```
+
+The underlying Lune script remains available directly:
 
 ```bash
 lune run scripts/headless_fragment_merge.luau \

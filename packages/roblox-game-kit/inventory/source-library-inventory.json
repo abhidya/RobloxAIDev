@@ -39,20 +39,20 @@
         "asset-search-mcp/src",
         "scripts"
       ],
-      "files": 27
+      "files": 28
     }
   ],
   "counts": {
-    "files": 273,
+    "files": 274,
     "byProject": {
       "eggbreakers": 150,
       "groantubehero": 96,
-      "robloxaidev-prophunt": 27
+      "robloxaidev-prophunt": 28
     },
     "byFamily": {
       "test-harness": 89,
       "score-and-timing": 49,
-      "asset-audit": 26,
+      "asset-audit": 27,
       "life-sim": 23,
       "world-layout": 19,
       "client-ui": 17,
@@ -4704,8 +4704,8 @@
       "relativePath": "asset-search-mcp/src/aiGameDevLoop.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 14322,
-      "lines": 404,
+      "bytes": 14458,
+      "lines": 408,
       "exportedFunctions": [
         "slugify",
         "compactToolCall",
@@ -4727,8 +4727,8 @@
       "relativePath": "asset-search-mcp/src/assetAcquisition.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 11138,
-      "lines": 280,
+      "bytes": 11276,
+      "lines": 281,
       "exportedFunctions": [
         "slugify",
         "uniqueIds",
@@ -4782,6 +4782,34 @@
     {
       "project": "robloxaidev-prophunt",
       "projectName": "RobloxAIDev Prop Hunt",
+      "relativePath": "asset-search-mcp/src/coordinatorAdapter.js",
+      "scanRoot": "asset-search-mcp/src",
+      "family": "asset-audit",
+      "bytes": 10600,
+      "lines": 302,
+      "exportedFunctions": [
+        "asObject",
+        "asArray",
+        "normalizeAdapter",
+        "mergeFlags",
+        "luneCommand",
+        "rbxDomCommand",
+        "buildCoordinatorMergePlan",
+        "tail",
+        "firstJsonObject",
+        "runCommand",
+        "reportFromProcess",
+        "executeCoordinatorMergePlan",
+        "validateCoordinatorMergeReport",
+        "formatCoordinatorMergePlan",
+        "formatCoordinatorMergeValidation"
+      ],
+      "hasReturn": true,
+      "fallbackSignals": 0
+    },
+    {
+      "project": "robloxaidev-prophunt",
+      "projectName": "RobloxAIDev Prop Hunt",
       "relativePath": "asset-search-mcp/src/gameCoverage.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
@@ -4804,8 +4832,8 @@
       "relativePath": "asset-search-mcp/src/headlessPipeline.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 20008,
-      "lines": 496,
+      "bytes": 21256,
+      "lines": 524,
       "exportedFunctions": [
         "slugify",
         "clampInt",
@@ -4873,8 +4901,8 @@
       "relativePath": "asset-search-mcp/src/mcpTools/planningTools.js",
       "scanRoot": "asset-search-mcp/src",
       "family": "asset-audit",
-      "bytes": 13004,
-      "lines": 237,
+      "bytes": 15376,
+      "lines": 290,
       "exportedFunctions": [
         "registerPlanningTools"
       ],
@@ -5238,8 +5266,8 @@
       "relativePath": "scripts/run_ai_game_dev_pocs.mjs",
       "scanRoot": "scripts",
       "family": "service-lifecycle",
-      "bytes": 7256,
-      "lines": 183,
+      "bytes": 7566,
+      "lines": 187,
       "exportedFunctions": [
         "tail",
         "exists",

@@ -80,13 +80,18 @@ rejections, missing permission proof, and cross-project memory drift.
 - `plan_headless_assembly`
 - `validate_fragment_manifest`
 - `scripts/headless_fragment_merge.luau`
+- `plan_coordinator_merge`
+- `validate_coordinator_merge`
+- `asset-search-mcp/scripts/run-headless-coordinator.mjs`
 
 **Implementation**
 
-- Lune scripts for current POCs and coordinator merge
+- Lune adapter wrapping the current proven coordinator merge script
+- rbx-dom external-command adapter with the same merge report contract
 - Manifest rules for fragment identity, digest, target parent, external anchors,
   script-loader rejection, and parent assignment
-- Future production adapter can be Rust/rbx-dom without changing worker prompts
+- Coordinator report validation for process success, reload proof, fragment
+  count, non-asset-brain outputs, and coordinator-owned identity policy
 
 **Depth**
 
@@ -303,6 +308,7 @@ from making the seams executable and smaller.
 | Cross-project asset memory can be canonicalized | `node scripts/merge_asset_brain_sources.mjs` and `npm --prefix asset-search-mcp run test:asset-brain` | `asset-brain/v1/manifest.json`, `asset-brain/v1/indexes/merged-project-assets.ndjson` |
 | Roblox files can be created/mutated outside Studio | `lune run scripts/headless_place_insert_poc.luau` and `lune run scripts/headless_place_verify_poc.luau` | ignored files under `work/headless-poc/`, console `HEADLESS_*_OK` |
 | Fragment fan-in can be coordinator-gated | `lune run scripts/headless_fragment_merge.luau ...` | manifest digest validation and reload of merged place |
+| Production coordinator adapter seam exists | `npm --prefix asset-search-mcp run test:coordinator-adapter` | `plan_coordinator_merge`, `validate_coordinator_merge`, Lune adapter command, fake rbx-dom external command adapter |
 | JS-generated and Luau-emitted fragment manifests normalize through one schema | `npm --prefix asset-search-mcp run test:fragment-fixtures` | `asset-search-mcp/fixtures/fragment-manifests/*.json` and `validate_fragment_manifest` |
 | Authenticated asset delivery writes quarantine bytes and redacted receipts | `npm --prefix asset-search-mcp run test:asset-delivery` | `plan_asset_delivery`, `run-asset-delivery.mjs`, `validate_asset_delivery_receipt`, local fake Asset Delivery server |
 | Asset acquisition is a gated seam | `npm --prefix asset-search-mcp run test:asset-acquisition` and `npm --prefix asset-search-mcp run test:smoke` | `plan_asset_acquisition`, `validate_asset_acquisition`, delivery receipts, quarantine metadata, and metadata-only asset-brain checks |
@@ -318,14 +324,12 @@ from making the seams executable and smaller.
   stdio against a fake Studio MCP server, not a real open Studio session.
 - Direct asset delivery is executable and auth-sensitive; real credentials still
   come only from environment variables and receipt validation must stay redacted.
-- Lune is good for the current coordinator POC, but rbx-dom should be evaluated
-  for a production merge engine when fragment complexity grows.
+- The rbx-dom coordinator path is an external-command adapter contract in this
+  checkpoint; a real Rust/rbx-dom binary should replace the fake test command.
 - Studio screenshot quality still depends on camera occlusion, lighting, and the
   correct active Studio instance.
 
 ## Next Deepening Candidates
 
-1. **Production coordinator module** — move from Lune-only scripts to an adapter
-   interface with Lune and rbx-dom implementations.
-2. **Project template module** — generate a new game repo skeleton with asset
+1. **Project template module** — generate a new game repo skeleton with asset
    brain, prompts, POC scripts, and gates prewired.

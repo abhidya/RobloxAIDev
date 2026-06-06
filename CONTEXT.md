@@ -31,6 +31,9 @@ prompts should use consistently.
 - **Coordinator merge** — the owner-controlled process that validates fragments,
   remaps identity/referents, assigns parents, writes the candidate place, and
   reload-validates it before Studio opens.
+- **Coordinator adapter** — a replaceable merge implementation. The current
+  adapter set is Lune for the proven path and an external rbx-dom command seam
+  for the production Rust path.
 - **Studio gate** — the small set of tasks Studio must still own: active-place
   confirmation, Creator Store insertion when direct download is unavailable,
   geometry measurement, playtesting, screenshots, and final visual signoff.

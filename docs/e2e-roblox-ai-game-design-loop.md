@@ -44,6 +44,8 @@ Supporting MCP tools:
 - `validate_asset_delivery_receipt`
 - `plan_headless_assembly`
 - `validate_fragment_manifest`
+- `plan_coordinator_merge`
+- `validate_coordinator_merge`
 - `plan_batch_visual_gate`
 - `validate_batch_visual_gate`
 
@@ -56,6 +58,10 @@ Use Roblox file tooling before Studio:
 - **Rojo** for deterministic source-tree assembly into `.rbxlx`/`.rbxmx`.
 - **rbx-dom** as the long-term production adapter and binary/XML format
   authority for deterministic referent, property, and identity handling.
+- **Coordinator adapter CLI** for replaceable fan-in:
+  `run-headless-coordinator.mjs --adapter lune|rbx_dom`. The `lune` adapter
+  wraps the proven script; the `rbx_dom` adapter targets an external production
+  command with the same report contract.
 
 Studio opens only after headless validation passes.
 
@@ -138,6 +144,8 @@ node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs \
         "validate_asset_acquisition",
         "plan_asset_delivery",
         "validate_asset_delivery_receipt",
+        "plan_coordinator_merge",
+        "validate_coordinator_merge",
         "plan_batch_visual_gate",
         "validate_batch_visual_gate"
       ]

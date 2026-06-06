@@ -79,6 +79,8 @@ assert.ok(headlessPlan.agent_work_packets.some((packet) => packet.fragment_id.in
 assert.ok(headlessPlan.agent_work_packets.some((packet) => packet.theme === "underwater reef"), "underwater fragment packet generated");
 assert.ok(headlessPlan.fragment_contract.required_fields.includes("source_digest"), "fragment contract requires digest");
 assert.ok(headlessPlan.coordinator_merge_steps.some((step) => step.includes("remap all referents")), "coordinator owns referent remap");
+assert.equal(headlessPlan.coordinator_merge_plan.schema, "roblox-headless-coordinator-merge-plan/v1", "headless plan includes coordinator adapter contract");
+assert.ok(headlessPlan.coordinator_adapters.some((adapter) => adapter.adapter === "rbx_dom"), "headless plan exposes rbx-dom adapter seam");
 
 const concertHeadlessPlan = buildHeadlessAssemblyPlan({
   project: "groan-tube-hero",
@@ -311,6 +313,8 @@ const loopReport = {
         "validate_asset_delivery_receipt",
         "plan_batch_visual_gate",
         "validate_batch_visual_gate",
+        "plan_coordinator_merge",
+        "validate_coordinator_merge",
       ],
     },
     batch_visual_gate: {

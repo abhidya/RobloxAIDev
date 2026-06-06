@@ -89,19 +89,26 @@ What this proves:
   before Studio is opened for player-angle screenshots and final validation.
 
 To test the coordinator merge path, use the manifest emitted next to the
-generated `.rbxm` and run:
+generated `.rbxm` and run the adapter CLI:
 
 ```bash
-lune run scripts/headless_fragment_merge.luau \
+node asset-search-mcp/scripts/run-headless-coordinator.mjs \
+  --adapter lune \
   --place work/headless-poc/Place1.headless-working.rbxl \
   --out work/headless-poc/Place1.headless-merged.rbxl \
   --fragment work/headless-poc/generated-headless-marker.manifest.json \
-  --replace-existing
+  --replace-existing \
+  --json
 ```
+
+The `lune` adapter wraps `scripts/headless_fragment_merge.luau`. The `rbx_dom`
+adapter targets an external command supplied through `RBX_DOM_COORDINATOR_CMD`
+or `--rbx-dom-command` and preserves the same report contract.
 
 The coordinator verifies the model hash, rejects risky script loaders, enforces
 one root, inserts fragments in deterministic target/order/id order, writes the
-merged place, and reloads it without Studio before reporting success.
+merged place, reloads it without Studio, and reports through
+`validate_coordinator_merge`.
 
 POC caveat:
 
@@ -171,8 +178,9 @@ Each parallel agent emits:
 2. Validate single-root tree shape, acyclic parents, schema support, and
    referent closure.
 3. Sort fragments by `(target_parent, order_key, fragment_id)`.
-4. Run `scripts/headless_fragment_merge.luau` for the Lune coordinator path, or
-   the equivalent rbx-dom implementation for production-scale merges.
+4. Run `asset-search-mcp/scripts/run-headless-coordinator.mjs --adapter lune`
+   for the proven path, or `--adapter rbx_dom` with `RBX_DOM_COORDINATOR_CMD`
+   for the production external-command seam.
 5. Allocate coordinator-global referents in deterministic preorder.
 6. Rewrite every object reference through the local-to-global map:
    - `PRNT`
@@ -487,8 +495,8 @@ Phase 1:
 
 Phase 2:
 
-- Implement coordinator merge in Rust on rbx-dom, or in Lune if speed matters
-  more than deepest control.
+- Replace the fake/test rbx-dom coordinator command with the production Rust
+  binary while preserving the report contract.
 - Add deterministic ID/referent rewriting tests.
 - Add script/source/asset URI policy checks.
 

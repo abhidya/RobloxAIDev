@@ -131,6 +131,10 @@ and room fragment packets, then reject every fragment manifest that fails
 `validate_fragment_manifest` before merge. This keeps referent remapping,
 `UniqueId`/`HistoryId` stripping, parent assignment, and risky script screening
 owned by the coordinator instead of scattered across agents.
+Use `plan_coordinator_merge` or
+`node asset-search-mcp/scripts/run-headless-coordinator.mjs` to run the same
+merge contract through either the proven `lune` adapter or a configured
+`rbx_dom` command.
 
 For non-Prop-Hunt games, pass an assembly profile instead of accepting the
 default room target. For GroanTubeHero / WorldV2 concert-defense arenas:

@@ -10,11 +10,13 @@ Studio, then prove the candidate place reloads.
 ## Responsibilities
 
 - Run `validate_fragment_manifest` on every manifest.
+- Use `plan_coordinator_merge` to choose the `lune` or `rbx_dom` adapter.
 - Verify model digest and single-root shape.
 - Sort fragments deterministically.
 - Remap identity/referents and assign parents.
 - Write the candidate place.
 - Reload/serialize/reload when available.
+- Run `validate_coordinator_merge` on the merge report.
 - Produce the Studio gate target for the visual runner.
 
 ## Guardrails

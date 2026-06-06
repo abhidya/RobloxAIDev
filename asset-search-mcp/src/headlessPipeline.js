@@ -1,4 +1,5 @@
 import { buildGameAssetCoverage } from "./gameCoverage.js";
+import { buildCoordinatorMergePlan } from "./coordinatorAdapter.js";
 
 export const DANGEROUS_SCRIPT_PATTERNS = [
   {
@@ -67,7 +68,7 @@ export const OPEN_CLOUD_ENDPOINTS = [
 
 export const VALIDATION_COMMANDS = [
   "lune run scripts/headless_place_insert_poc.luau",
-  "lune run scripts/headless_fragment_merge.luau --place work/headless-poc/Place1.headless-working.rbxl --out work/headless-poc/Place1.headless-merged.rbxl --fragment work/headless-poc/generated-headless-marker.manifest.json --replace-existing",
+  "node asset-search-mcp/scripts/run-headless-coordinator.mjs --adapter lune --place work/headless-poc/Place1.headless-working.rbxl --out work/headless-poc/Place1.headless-merged.rbxl --fragment work/headless-poc/generated-headless-marker.manifest.json --replace-existing --json",
   "lune run scripts/headless_place_verify_poc.luau work/headless-poc/Place1.headless-merged.rbxl",
   "rojo build default.project.json -o /tmp/RobloxAIDevPropHunt.rbxlx",
   "cd asset-search-mcp && npm run gate:prop-hunt",
@@ -275,6 +276,13 @@ export function buildHeadlessAssemblyPlan({
     assemblyProfile: normalizedProfile,
   });
   const profile = profileSettings(normalizedProfile);
+  const coordinatorMergePlan = buildCoordinatorMergePlan({
+    adapter: "lune",
+    place: `work/rojo-working/${targetPlace.replace(/\.rbxlx?$/i, "")}.working.rbxl`,
+    out: `work/rojo-working/${targetPlace.replace(/\.rbxlx?$/i, "")}.coordinated.rbxl`,
+    fragments: packets.map((packet) => packet.output_manifest),
+    replaceExisting: true,
+  });
 
   return {
     project,
@@ -286,6 +294,19 @@ export function buildHeadlessAssemblyPlan({
     endpoints: OPEN_CLOUD_ENDPOINTS,
     fragment_contract: FRAGMENT_CONTRACT,
     agent_work_packets: packets,
+    coordinator_merge_plan: coordinatorMergePlan,
+    coordinator_adapters: [
+      {
+        adapter: "lune",
+        status: "implemented",
+        command: "lune run scripts/headless_fragment_merge.luau",
+      },
+      {
+        adapter: "rbx_dom",
+        status: "external_command_adapter",
+        command_env: "RBX_DOM_COORDINATOR_CMD",
+      },
+    ],
     coordinator_merge_steps: [
       "Copy the target place to a scratch rbxl before mutation.",
       "For each packet, validate the manifest before loading the rbxm subtree.",
@@ -474,6 +495,13 @@ export function formatHeadlessAssemblyPlan(plan) {
   for (const field of plan.fragment_contract.required_fields) lines.push(`- required: ${field}`);
   lines.push(`- referents: ${plan.fragment_contract.identity_policy.referents}`);
   lines.push(`- unique ids: ${plan.fragment_contract.identity_policy.unique_ids}`);
+  lines.push("", "Coordinator adapters:");
+  for (const adapter of plan.coordinator_adapters || []) {
+    lines.push(`- ${adapter.adapter}: ${adapter.status}${adapter.command ? ` (${adapter.command})` : adapter.command_env ? ` (${adapter.command_env})` : ""}`);
+  }
+  if (plan.coordinator_merge_plan) {
+    lines.push(`- merge plan: ${plan.coordinator_merge_plan.adapter} -> ${plan.coordinator_merge_plan.outputs.place_path}`);
+  }
   lines.push("", "Headless validation commands:");
   for (const command of plan.validation_commands) lines.push(`- ${command}`);
   lines.push("", "External endpoints to keep separated from Studio:");

@@ -33,6 +33,8 @@ for (const requiredTool of [
   "export_asset_brain_snapshot",
   "plan_headless_assembly",
   "validate_fragment_manifest",
+  "plan_coordinator_merge",
+  "validate_coordinator_merge",
   "plan_playable_space_review",
   "validate_playable_space_review",
   "plan_batch_visual_gate",
@@ -140,6 +142,8 @@ const loopValidation = JSON.parse(await call("validate_ai_game_dev_loop", {
           "validate_asset_delivery_receipt",
           "plan_batch_visual_gate",
           "validate_batch_visual_gate",
+          "plan_coordinator_merge",
+          "validate_coordinator_merge",
         ],
       },
       batch_visual_gate: {
@@ -258,6 +262,34 @@ const headlessJson = JSON.parse(await call("plan_headless_assembly", {
 assert.equal(headlessJson.mode, "headless-fragment-fanout", "headless assembly plan mode");
 assert.ok(headlessJson.agent_work_packets.some((packet) => packet.fragment_id.includes("lobby_shell")), "headless plan includes lobby packet");
 assert.ok(headlessJson.coordinator_merge_steps.some((step) => step.includes("referents")), "headless plan includes referent merge steps");
+assert.equal(headlessJson.coordinator_merge_plan.schema, "roblox-headless-coordinator-merge-plan/v1", "headless plan includes coordinator merge plan");
+const coordinatorPlan = JSON.parse(await call("plan_coordinator_merge", {
+  adapter: "rbx_dom",
+  place: "work/headless-poc/Place1.headless-working.rbxl",
+  out: "work/headless-poc/Place1.rbx-dom.rbxl",
+  fragments: ["work/headless-poc/generated-headless-marker.manifest.json"],
+  format: "json",
+}));
+assert.equal(coordinatorPlan.adapter, "rbx_dom", "MCP coordinator planner supports rbx-dom adapter");
+const coordinatorValidation = JSON.parse(await call("validate_coordinator_merge", {
+  plan: coordinatorPlan,
+  report: {
+    schema: "roblox-headless-coordinator-report/v1",
+    adapter: "rbx_dom",
+    passed: true,
+    status: "passed",
+    output: {
+      place_path: coordinatorPlan.outputs.place_path,
+      reload_validated: true,
+    },
+    identity_policy: coordinatorPlan.identity_policy,
+    fragments: [{ manifest_path: coordinatorPlan.inputs.fragments[0] }],
+    process: { exit_code: 0 },
+    blockers: [],
+  },
+  format: "json",
+}));
+assert.equal(coordinatorValidation.passed, true, coordinatorValidation.errors.join("; "));
 console.log(JSON.stringify({
   packets: headlessJson.agent_work_packets.map((packet) => packet.fragment_id),
   validation: headlessJson.validation_commands,

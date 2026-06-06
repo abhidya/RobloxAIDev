@@ -111,6 +111,8 @@ export function buildAiGameDevLoopPlan({
         "validate_publish_permissions",
         "plan_headless_assembly",
         "validate_fragment_manifest",
+        "plan_coordinator_merge",
+        "validate_coordinator_merge",
         "plan_batch_visual_gate",
         "validate_batch_visual_gate",
       ],
@@ -320,6 +322,8 @@ export function validateAiGameDevLoopReport(report, plan = null) {
     "validate_asset_delivery_receipt",
     "plan_batch_visual_gate",
     "validate_batch_visual_gate",
+    "plan_coordinator_merge",
+    "validate_coordinator_merge",
   ]) {
     if (!customTools.includes(requiredTool)) {
       errors.push(`custom MCP proof must include tool '${requiredTool}'`);
