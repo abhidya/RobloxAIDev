@@ -172,7 +172,9 @@ The adapter reads `ROBLOX_OPEN_CLOUD_API_KEY` or
 a redacted receipt for `validate_asset_delivery_receipt`.
 
 For the larger AI game-dev process, use
-[`CONTEXT.md`](CONTEXT.md),
+[`CONTEXT.md`](CONTEXT.md) (domain vocabulary),
+[`docs/asset-search-mcp-modules.md`](docs/asset-search-mcp-modules.md) (the
+module map — each module's interface, seam, and test),
 [`docs/roblox-ai-game-dev-architecture.md`](docs/roblox-ai-game-dev-architecture.md),
 and [`prompts/`](prompts/) as the operator surface. The architecture keeps
 Studio as the gated validator, compares Lune, rbx-dom, Rojo, Docker-wrapped
