@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { createFindings, passLabel, renderFindings, sealVerdict, withCounts } from "./proofBundle.js";
 
 export const ASSET_DELIVERY_BASE_URL = "https://apis.roblox.com/asset-delivery-api/v1";
 export const DEFAULT_API_KEY_ENV = "ROBLOX_OPEN_CLOUD_API_KEY";
@@ -95,7 +96,7 @@ export function buildAssetDeliveryRequest({
       asset_brain_metadata_only: true,
       quarantine_before_palette: true,
       receipt_must_be_redacted: true,
-      followup_validation: ["validate_asset_delivery_receipt", "validate_fragment_manifest", "validate_batch_visual_gate"],
+      followup_validation: ["roblox_validate_asset_delivery_receipt", "roblox_validate_fragment_manifest", "roblox_validate_batch_visual_gate"],
     },
   };
 }
@@ -110,7 +111,13 @@ function redactAuthProof({ mode, sourceEnv, headerName, present }) {
   };
 }
 
-export function resolveAssetDeliveryAuth({
+// Resolve an Open Cloud credential into a sealed handle. The secret value is
+// captured in the `apply` closure and never returned as data, so the only thing
+// that crosses this seam is the redacted `proof`. This is the credential
+// boundary: callers can authenticate a request (apply headers in place) and
+// prove a credential was present, but cannot read the credential itself.
+// Deliberately not exported — the authenticated request is the public seam.
+function resolveDeliveryCredential({
   apiKey,
   bearerToken,
   apiKeyEnv = DEFAULT_API_KEY_ENV,
@@ -120,7 +127,9 @@ export function resolveAssetDeliveryAuth({
   const resolvedApiKey = apiKey || env?.[apiKeyEnv];
   if (resolvedApiKey) {
     return {
-      headers: { "x-api-key": resolvedApiKey },
+      apply(headers) {
+        headers["x-api-key"] = resolvedApiKey;
+      },
       proof: redactAuthProof({
         mode: "api_key",
         sourceEnv: apiKey ? "runtime_option" : apiKeyEnv,
@@ -132,7 +141,9 @@ export function resolveAssetDeliveryAuth({
   const resolvedBearer = bearerToken || env?.[bearerEnv];
   if (resolvedBearer) {
     return {
-      headers: { Authorization: `Bearer ${resolvedBearer}` },
+      apply(headers) {
+        headers.Authorization = `Bearer ${resolvedBearer}`;
+      },
       proof: redactAuthProof({
         mode: "oauth_bearer",
         sourceEnv: bearerToken ? "runtime_option" : bearerEnv,
@@ -142,7 +153,7 @@ export function resolveAssetDeliveryAuth({
     };
   }
   return {
-    headers: {},
+    apply() {},
     proof: redactAuthProof({
       mode: "missing",
       sourceEnv: `${apiKeyEnv}|${bearerEnv}`,
@@ -206,14 +217,14 @@ export async function executeAssetDeliveryRequest(request, {
   writeReceiptFile = true,
 } = {}) {
   const startedAt = new Date().toISOString();
-  const auth = resolveAssetDeliveryAuth({
+  const credential = resolveDeliveryCredential({
     apiKey,
     bearerToken,
     apiKeyEnv: apiKeyEnv || request?.auth?.api_key_env || DEFAULT_API_KEY_ENV,
     bearerEnv: bearerEnv || request?.auth?.bearer_env || DEFAULT_BEARER_ENV,
     env,
   });
-  const receipt = receiptBase(request, auth.proof, startedAt);
+  const receipt = receiptBase(request, credential.proof, startedAt);
 
   if (!receipt.auth.credential_present) {
     receipt.status = "blocked";
@@ -226,13 +237,12 @@ export async function executeAssetDeliveryRequest(request, {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
+    const headers = { accept: "application/octet-stream, application/json;q=0.8, */*;q=0.5" };
+    credential.apply(headers);
     const response = await fetchImpl(receipt.request.url, {
       method: receipt.request.method,
       signal: controller.signal,
-      headers: {
-        accept: "application/octet-stream, application/json;q=0.8, */*;q=0.5",
-        ...auth.headers,
-      },
+      headers,
     });
     const contentType = response.headers.get("content-type") || "application/octet-stream";
     receipt.http = {
@@ -284,8 +294,8 @@ function receiptHasSecretLeak(value) {
 }
 
 export function validateAssetDeliveryReceipt(receipt, request = null) {
-  const errors = [];
-  const warnings = [];
+  const findings = createFindings();
+  const { errors, warnings } = findings;
   const raw = asObject(receipt);
   const expected = asObject(request);
 
@@ -322,20 +332,15 @@ export function validateAssetDeliveryReceipt(receipt, request = null) {
   const blockers = Array.isArray(raw.blockers) ? raw.blockers : [];
   if (blockers.length) errors.push(`asset delivery blockers remain: ${blockers.join("; ")}`);
 
-  return {
+  return sealVerdict(findings, {
     schema: "roblox-asset-delivery-validation/v1",
-    passed: errors.length === 0,
-    project: raw.project || expected.project || "unknown",
-    slot: raw.slot || expected.slot || "unknown",
-    asset_id: assetId || expected.asset_id || null,
-    errors,
-    warnings,
-    counts: {
-      bytes: Number(raw.output?.bytes || 0),
-      errors: errors.length,
-      warnings: warnings.length,
+    fields: {
+      project: raw.project || expected.project || "unknown",
+      slot: raw.slot || expected.slot || "unknown",
+      asset_id: assetId || expected.asset_id || null,
     },
-  };
+    counts: withCounts(findings, { bytes: Number(raw.output?.bytes || 0) }),
+  });
 }
 
 export function formatAssetDeliveryRequest(request) {
@@ -351,10 +356,9 @@ export function formatAssetDeliveryRequest(request) {
 
 export function formatAssetDeliveryValidation(result) {
   const lines = [
-    `${result.passed ? "PASS" : "FAIL"} asset delivery '${result.project}' slot=${result.slot} asset=${result.asset_id}`,
+    `${passLabel(result.passed)} asset delivery '${result.project}' slot=${result.slot} asset=${result.asset_id}`,
     `bytes=${result.counts.bytes} warnings=${result.counts.warnings} errors=${result.counts.errors}`,
   ];
-  if (result.errors.length) lines.push("", "Errors:", ...result.errors.map((error) => `- ${error}`));
-  if (result.warnings.length) lines.push("", "Warnings:", ...result.warnings.map((warning) => `- ${warning}`));
+  lines.push(...renderFindings(result));
   return lines.join("\n");
 }

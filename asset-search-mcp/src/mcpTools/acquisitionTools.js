@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ANNOTATIONS, createToolRegistrar, planSchema, rendered, reportSchema } from "./registry.js";
 import {
   buildAssetAcquisitionPlan,
   formatAssetAcquisitionPlan,
@@ -12,9 +13,13 @@ import {
   validateAssetDeliveryReceipt,
 } from "../assetDelivery.js";
 
-export function registerAcquisitionTools(server, { text }) {
-  server.tool(
-    "plan_asset_acquisition",
+export function registerAcquisitionTools(server) {
+  // Planners and validators only — these never call the network themselves.
+  const tool = createToolRegistrar(server, ANNOTATIONS.READ_LOCAL);
+
+  tool(
+    "roblox_plan_asset_acquisition",
+    "Plan an asset acquisition",
     "Plan the explicit Roblox asset acquisition seam: search/claim, publish-permission proof, direct asset delivery parse, Studio insertion fallback, quarantine scan, fragment manifest validation, and visual proof before palette promotion.",
     {
       project: z.string().optional().describe("Project/cache name."),
@@ -36,27 +41,29 @@ export function registerAcquisitionTools(server, { text }) {
         deliveryMode: args.delivery_mode || "direct_or_studio_fallback",
         requirePublishPermission: args.require_publish_permission !== false,
       });
-      return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatAssetAcquisitionPlan(plan));
+      return rendered(plan, args.format, formatAssetAcquisitionPlan);
     }
   );
 
-  server.tool(
-    "validate_asset_acquisition",
+  tool(
+    "roblox_validate_asset_acquisition",
+    "Validate an asset acquisition report",
     "Validate the proof report for an asset acquisition packet. Requires search/claim, permission proof, a direct-delivery or Studio-fallback path, quarantine scan, fragment manifest validation, visual proof, and metadata-only asset-brain outputs.",
     {
-      report: z.record(z.any()),
-      plan: z.record(z.any()).optional().describe("Optional plan from plan_asset_acquisition(format='json')."),
+      report: reportSchema,
+      plan: planSchema.optional().describe("Optional plan from roblox_plan_asset_acquisition(format='json')."),
       format: z.enum(["text", "json"]).optional(),
     },
     async (args) => {
-      const result = validateAssetAcquisitionReport(args.report, args.plan);
-      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatAssetAcquisitionValidation(result));
+      const out = validateAssetAcquisitionReport(args.report, args.plan);
+      return rendered(out, args.format, formatAssetAcquisitionValidation);
     }
   );
 
-  server.tool(
-    "plan_asset_delivery",
-    "Plan one authenticated Open Cloud Asset Delivery request for a candidate asset. The request writes downloaded bytes to quarantine and records only a redacted receipt.",
+  tool(
+    "roblox_plan_asset_delivery",
+    "Plan an asset delivery request",
+    "Plan one authenticated Open Cloud Asset Delivery request for a candidate asset. The request writes downloaded bytes to quarantine and records only a redacted receipt (credential env var NAMES, never values).",
     {
       project: z.string().optional().describe("Project/cache name."),
       slot: z.string().optional().describe("Storyboard or palette slot."),
@@ -79,21 +86,22 @@ export function registerAcquisitionTools(server, { text }) {
         apiKeyEnv: args.api_key_env,
         bearerEnv: args.bearer_env,
       });
-      return text(args.format === "json" ? JSON.stringify(request, null, 2) : formatAssetDeliveryRequest(request));
+      return rendered(request, args.format, formatAssetDeliveryRequest);
     }
   );
 
-  server.tool(
-    "validate_asset_delivery_receipt",
+  tool(
+    "roblox_validate_asset_delivery_receipt",
+    "Validate an asset delivery receipt",
     "Validate an authenticated Asset Delivery receipt before downloaded bytes can leave quarantine. Requires redacted auth proof, 2xx delivery, sha256 digest, non-empty bytes, and no asset-brain binary paths.",
     {
-      receipt: z.record(z.any()),
-      request: z.record(z.any()).optional().describe("Optional request from plan_asset_delivery(format='json')."),
+      receipt: reportSchema,
+      request: planSchema.optional().describe("Optional request from roblox_plan_asset_delivery(format='json')."),
       format: z.enum(["text", "json"]).optional(),
     },
     async (args) => {
-      const result = validateAssetDeliveryReceipt(args.receipt, args.request);
-      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatAssetDeliveryValidation(result));
+      const out = validateAssetDeliveryReceipt(args.receipt, args.request);
+      return rendered(out, args.format, formatAssetDeliveryValidation);
     }
   );
 }

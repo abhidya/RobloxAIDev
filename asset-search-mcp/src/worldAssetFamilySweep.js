@@ -1,3 +1,5 @@
+import { createFindings, passLabel, renderFindings, sealVerdict, withCounts } from "./proofBundle.js";
+
 const REQUIRED_CLEAN_VIEWS = [
   "clean_front",
   "clean_back",
@@ -377,7 +379,7 @@ export function buildWorldAssetFamilySweepPlan({
       pass_rule: "pass requires all required screenshots with image paths, all visual live instances fixed or explicitly skipped as non-visual, no temporary clone remaining, and inspection metadata recorded.",
     },
     validation: {
-      mcp_tool: "validate_world_asset_family_sweep",
+      mcp_tool: "roblox_validate_world_asset_family_sweep",
       rule: "The sweep only passes when active-place preflight passes, all planned family screenshots have image paths, and each family report proves canonical metadata, propagation, inspection refs, and cleanup.",
     },
     next: [
@@ -388,7 +390,7 @@ export function buildWorldAssetFamilySweepPlan({
       "Recapture clean after views plus an in-world player-height after view.",
       "Record inspection metadata with worldPlacementAudit and screenshot refs.",
       "Destroy the clean clone and temporary probes before moving to the next family.",
-      "Run validate_world_asset_family_sweep before palette commit, visual signoff, or release-ready claims.",
+      "Run roblox_validate_world_asset_family_sweep before palette commit, visual signoff, or release-ready claims.",
     ],
   };
 }
@@ -416,8 +418,8 @@ function hasInspectionProof(familyReport) {
 }
 
 export function validateWorldAssetFamilySweep(report, plan = null) {
-  const errors = [];
-  const warnings = [];
+  const findings = createFindings();
+  const { errors, warnings } = findings;
   const raw = asObject(report);
   if (!raw) {
     return {
@@ -522,22 +524,19 @@ export function validateWorldAssetFamilySweep(report, plan = null) {
     errors.push("signed_off verdict is invalid while family sweep errors are present");
   }
 
-  return {
+  return sealVerdict(findings, {
     schema: "roblox-world-asset-family-sweep-validation/v1",
-    passed: errors.length === 0,
-    project: raw.project || plan?.project || "unknown",
-    target_place: raw.target_place || raw.targetPlace || plan?.target_place || "unknown",
-    verdict,
-    errors,
-    warnings,
-    counts: {
+    fields: {
+      project: raw.project || plan?.project || "unknown",
+      target_place: raw.target_place || raw.targetPlace || plan?.target_place || "unknown",
+      verdict,
+    },
+    counts: withCounts(findings, {
       families_required: expected.length,
       family_reports: reports.length,
       families_passed: passedFamilies,
-      errors: errors.length,
-      warnings: warnings.length,
-    },
-  };
+    }),
+  });
 }
 
 export function formatWorldAssetFamilySweepPlan(plan) {
@@ -558,10 +557,9 @@ export function formatWorldAssetFamilySweepPlan(plan) {
 
 export function formatWorldAssetFamilySweepValidation(result) {
   const lines = [
-    result.passed ? "PASS world asset-family sweep" : "FAIL world asset-family sweep",
+    `${passLabel(result.passed)} world asset-family sweep`,
     `families=${result.counts.families_passed || 0}/${result.counts.families_required || 0} reports=${result.counts.family_reports || 0} verdict=${result.verdict || "unknown"}`,
   ];
-  for (const error of result.errors) lines.push(`ERROR: ${error}`);
-  for (const warning of result.warnings) lines.push(`WARN: ${warning}`);
+  lines.push(...renderFindings(result, { style: "inline" }));
   return lines.join("\n");
 }

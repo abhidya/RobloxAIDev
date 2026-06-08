@@ -1,4 +1,4 @@
-// The "asset brain": shared state for parallel agents doing asset-driven design.
+// The "asset brain" service layer for parallel agents doing asset-driven design.
 //
 //   * search cache (TTL)  — so N parallel agents don't re-hit the Toolbox API
 //   * single-flight       — identical in-flight searches collapse to one call
@@ -7,15 +7,15 @@
 //   * claims              — an asset reserved for a slot is hidden from other
 //                           agents, so two agents never pick / preview the same one
 //   * palette             — the chosen asset per design slot, frozen for build
-//   * inspections         — StudioMCP-measured geometry and safety facts for a
-//                           shortlisted or committed asset
+//   * inspections         — StudioMCP-measured geometry and safety facts
 //   * publish permissions — owner/access/dependency proof for release palettes
 //
-// Persistence is plain JSON under ~/.roblox-asset-brain/ — no native deps.
+// Persistence is SQLite (node:sqlite, WAL) under ~/.roblox-asset-brain/ via the
+// DAL in src/dal/ — cross-process safe for concurrent agent sessions, with
+// transactional (race-free) claims. Legacy JSON brain files are imported once
+// automatically. The public API is unchanged from the JSON-file era.
 
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import os from "node:os";
+import { createDal } from "./dal/index.js";
 import {
   evaluatePublishPermission,
   normalizePublishPermission,
@@ -32,50 +32,20 @@ export {
 
 const DAY = 24 * 60 * 60 * 1000;
 export const SEARCH_TTL_MS = DAY;
-
-function brainDir() {
-  return process.env.ASSET_BRAIN_DIR || path.join(os.homedir(), ".roblox-asset-brain");
-}
-async function readJson(file, fallback) {
-  try { return JSON.parse(await fs.readFile(file, "utf8")); } catch { return fallback; }
-}
-async function writeJsonAtomic(file, data) {
-  const tmp = `${file}.${process.pid}.tmp`;
-  await fs.writeFile(tmp, JSON.stringify(data, null, 2));
-  await fs.rename(tmp, file);
-}
+/** Claims older than this are treated as stale by release_stale_claims defaults. */
+export const DEFAULT_STALE_CLAIM_MS = 7 * DAY;
 
 export class Store {
   constructor() {
-    this.dir = brainDir();
-    this.files = {
-      search: path.join(this.dir, "search-cache.json"),
-      reviews: path.join(this.dir, "reviews.json"),
-      palette: path.join(this.dir, "palette.json"),
-      claims: path.join(this.dir, "claims.json"),
-      inspections: path.join(this.dir, "inspections.json"),
-      permissions: path.join(this.dir, "publish-permissions.json"),
-    };
-    this.searchCache = {};
-    this.reviews = {};   // assetId -> [review]
-    this.palette = {};   // project -> { slot -> {assetId,name} }
-    this.claims = {};    // assetId -> { slot, reviewer, project, at }
-    this.inspections = {}; // assetId -> latest StudioMCP inspection record
-    this.permissions = {}; // assetId -> latest publish permission proof
+    this.dal = createDal();
+    this.dir = this.dal.dir;
     this._inflight = new Map();
-    this._ready = this._load();
+    // Drop expired search-cache rows on startup so the cache can't grow forever.
+    this.dal.searchCache.prune(SEARCH_TTL_MS);
   }
 
-  async _load() {
-    await fs.mkdir(this.dir, { recursive: true });
-    this.searchCache = await readJson(this.files.search, {});
-    this.reviews = await readJson(this.files.reviews, {});
-    this.palette = await readJson(this.files.palette, {});
-    this.claims = await readJson(this.files.claims, {});
-    this.inspections = await readJson(this.files.inspections, {});
-    this.permissions = await readJson(this.files.permissions, {});
-  }
-  async ready() { await this._ready; }
+  /** Kept for API compatibility; SQLite opens synchronously. */
+  async ready() {}
 
   // --- search cache (keyed WITHOUT excludes, so the raw pool is reused) ---
   static searchKey({ query, categories, verifiedOnly, extensive }) {
@@ -83,54 +53,19 @@ export class Store {
     return [`q=${String(query).trim().toLowerCase()}`, `cats=${cats}`, `verified=${Boolean(verifiedOnly)}`, `ext=${Boolean(extensive)}`].join("|");
   }
   getCachedSearch(key, ttlMs = SEARCH_TTL_MS) {
-    const hit = this.searchCache[key];
-    if (hit && Date.now() - hit.createdAt <= ttlMs) return hit.ranked;
-    return null;
+    return this.dal.searchCache.get(key, ttlMs);
   }
   async putCachedSearch(key, ranked) {
-    this.searchCache[key] = { ranked, createdAt: Date.now() };
-    await writeJsonAtomic(this.files.search, this.searchCache);
+    this.dal.searchCache.put(key, ranked);
   }
   searchCacheStatus(ttlMs = SEARCH_TTL_MS, now = Date.now()) {
-    let fresh = 0;
-    let stale = 0;
-    let oldestAgeMs = 0;
-    let newestAgeMs = null;
-    for (const entry of Object.values(this.searchCache)) {
-      const ageMs = Math.max(0, now - Number(entry.createdAt || 0));
-      if (ageMs <= ttlMs) fresh += 1;
-      else stale += 1;
-      oldestAgeMs = Math.max(oldestAgeMs, ageMs);
-      newestAgeMs = newestAgeMs == null ? ageMs : Math.min(newestAgeMs, ageMs);
-    }
-    return {
-      entries: Object.keys(this.searchCache).length,
-      fresh,
-      stale,
-      ttlHours: Math.round((ttlMs / 60 / 60 / 1000) * 100) / 100,
-      oldestAgeHours: Math.round((oldestAgeMs / 60 / 60 / 1000) * 100) / 100,
-      newestAgeHours: newestAgeMs == null ? 0 : Math.round((newestAgeMs / 60 / 60 / 1000) * 100) / 100,
-    };
+    return this.dal.searchCache.status(ttlMs, now);
   }
   async pruneSearchCache(ttlMs = SEARCH_TTL_MS, dryRun = false, now = Date.now()) {
-    const kept = {};
-    const removedKeys = [];
-    for (const [key, entry] of Object.entries(this.searchCache)) {
-      const ageMs = Math.max(0, now - Number(entry.createdAt || 0));
-      if (ageMs <= ttlMs) kept[key] = entry;
-      else removedKeys.push(key);
-    }
-    if (!dryRun && removedKeys.length) {
-      this.searchCache = kept;
-      await writeJsonAtomic(this.files.search, this.searchCache);
-    }
-    return {
-      dryRun,
-      removed: removedKeys.length,
-      kept: Object.keys(kept).length,
-      removedKeys,
-      ttlHours: Math.round((ttlMs / 60 / 60 / 1000) * 100) / 100,
-    };
+    return this.dal.searchCache.prune(ttlMs, dryRun, now);
+  }
+  searchCacheEntries(limit = 100) {
+    return this.dal.searchCache.entries(limit);
   }
   async coalesce(key, produce) {
     if (this._inflight.has(key)) return this._inflight.get(key);
@@ -141,73 +76,67 @@ export class Store {
 
   // --- reviews + rejection memory --------------------------------------
   async addReview(assetId, review) {
-    const id = String(assetId);
-    if (!this.reviews[id]) this.reviews[id] = [];
-    this.reviews[id].push({ ...review, createdAt: Date.now() });
-    await writeJsonAtomic(this.files.reviews, this.reviews);
+    this.dal.reviews.add(assetId, review);
   }
-  getReviews(assetId) { return this.reviews[String(assetId)] || []; }
-
+  getReviews(assetId) {
+    return this.dal.reviews.listFor(assetId);
+  }
   /** True if any persisted review verdict for this asset is a rejection. */
   isRejected(assetId) {
-    const rs = this.reviews[String(assetId)] || [];
-    return rs.some((r) => String(r.verdict || "").toLowerCase().startsWith("rej"));
+    return this.dal.reviews.listFor(assetId).some((r) => String(r.verdict || "").toLowerCase().startsWith("rej"));
   }
   rejectedIdSet() {
-    const set = new Set();
-    for (const id of Object.keys(this.reviews)) if (this.isRejected(id)) set.add(Number(id));
-    return set;
+    return new Set(this.dal.reviews.rejectedAssetIds());
+  }
+  reviewedAssetIds() {
+    return this.dal.reviews.assetIds();
   }
 
   // --- claims (reservations so agents don't collide) -------------------
   isClaimed(assetId) {
-    const c = this.claims[String(assetId)];
-    return c ? c.slot : null;
+    const claim = this.dal.claims.get(assetId);
+    return claim ? claim.slot : null;
+  }
+  getClaim(assetId) {
+    return this.dal.claims.get(assetId);
   }
   claimedIdSet() {
-    return new Set(Object.keys(this.claims).map(Number));
+    return new Set(this.dal.claims.assetIds());
   }
+  claimedAssetIds() {
+    return this.dal.claims.assetIds();
+  }
+  /** Transactional: two parallel agent processes can never claim the same asset. */
   async claimAssets(project, slot, assetIds, reviewer) {
-    const now = Date.now();
-    const claimed = [];
-    const skipped = [];
-    for (const id of assetIds) {
-      const key = String(id);
-      const existing = this.claims[key];
-      if (existing && existing.slot !== slot) { skipped.push({ id, by: existing.slot }); continue; }
-      this.claims[key] = { slot, reviewer: reviewer || null, project: project || null, at: now };
-      claimed.push(id);
-    }
-    await writeJsonAtomic(this.files.claims, this.claims);
-    return { claimed, skipped };
+    return this.dal.claims.claimMany(project, slot, assetIds, reviewer);
   }
   async releaseClaim(assetId) {
-    delete this.claims[String(assetId)];
-    await writeJsonAtomic(this.files.claims, this.claims);
+    return this.dal.claims.release(assetId);
+  }
+  async releaseStaleClaims(maxAgeMs = DEFAULT_STALE_CLAIM_MS, now = Date.now()) {
+    return this.dal.claims.releaseStale(maxAgeMs, now);
   }
 
   // --- StudioMCP inspection memory ------------------------------------
   async recordInspection(assetId, inspection) {
-    const id = String(assetId);
-    this.inspections[id] = {
-      ...inspection,
-      assetId: Number(assetId),
-      recordedAt: Date.now(),
-    };
-    await writeJsonAtomic(this.files.inspections, this.inspections);
+    this.dal.inspections.set(assetId, { ...inspection, assetId: Number(assetId), recordedAt: Date.now() });
   }
   getInspection(assetId) {
-    return this.inspections[String(assetId)] || null;
+    return this.dal.inspections.get(assetId);
+  }
+  inspectedAssetIds() {
+    return this.dal.inspections.assetIds();
   }
 
   // --- publish permission memory --------------------------------------
   async recordPublishPermission(assetId, permission) {
-    const id = String(assetId);
-    this.permissions[id] = normalizePublishPermission(assetId, permission);
-    await writeJsonAtomic(this.files.permissions, this.permissions);
+    this.dal.permissions.set(assetId, normalizePublishPermission(assetId, permission));
   }
   getPublishPermission(assetId) {
-    return this.permissions[String(assetId)] || null;
+    return this.dal.permissions.get(assetId);
+  }
+  permissionAssetIds() {
+    return this.dal.permissions.assetIds();
   }
   evaluatePublishPermission(assetId, options = {}) {
     return evaluatePublishPermission(this.getPublishPermission(assetId), options);
@@ -223,42 +152,42 @@ export class Store {
 
   /** Per-candidate annotation other agents should see before acting. */
   annotate(assetId) {
-    const rs = this.getReviews(assetId);
+    const claim = this.dal.claims.get(assetId);
     return {
-      claimedBy: this.isClaimed(assetId),
+      claimedBy: claim ? claim.slot : null,
+      claimedAt: claim ? claim.at : null,
       rejected: this.isRejected(assetId),
       inspection: this.getInspection(assetId),
       publishPermission: summarizePublishPermission(this.getPublishPermission(assetId)),
-      reviews: rs.map((r) => ({ verdict: r.verdict, notes: r.notes, slot: r.slot, reviewer: r.reviewer })),
+      reviews: this.getReviews(assetId).map((r) => ({ verdict: r.verdict, notes: r.notes, slot: r.slot, reviewer: r.reviewer })),
     };
   }
 
   // --- palette ----------------------------------------------------------
   async commitPalette(project, slot, assetId, name) {
-    if (!this.palette[project]) this.palette[project] = {};
-    this.palette[project][slot] = { assetId: Number(assetId), name: name || null };
-    await writeJsonAtomic(this.files.palette, this.palette);
+    this.dal.palette.commit(project, slot, assetId, name);
     // committing implies a claim
     await this.claimAssets(project, slot, [assetId], "commit");
   }
-  getPalette(project) { return this.palette[project] || {}; }
+  getPalette(project) {
+    return this.dal.palette.get(project);
+  }
 
   brainStatus(ttlMs = SEARCH_TTL_MS) {
-    const paletteByProject = {};
-    for (const [project, slots] of Object.entries(this.palette)) {
-      paletteByProject[project] = Object.keys(slots || {}).length;
-    }
-    const reviewCounts = Object.values(this.reviews).map((reviews) => Array.isArray(reviews) ? reviews.length : 0);
+    const reviewCounts = this.dal.reviews.counts();
+    const paletteByProject = this.dal.palette.countByProject();
     return {
+      backend: "sqlite",
+      dir: this.dir,
       searchCache: this.searchCacheStatus(ttlMs),
       counts: {
-        reviewedAssets: Object.keys(this.reviews).length,
-        reviews: reviewCounts.reduce((sum, count) => sum + count, 0),
-        rejectedAssets: this.rejectedIdSet().size,
-        claims: Object.keys(this.claims).length,
-        inspections: Object.keys(this.inspections).length,
-        publishPermissions: Object.keys(this.permissions).length,
-        paletteProjects: Object.keys(this.palette).length,
+        reviewedAssets: reviewCounts.assets,
+        reviews: reviewCounts.reviews,
+        rejectedAssets: this.dal.reviews.rejectedAssetIds().length,
+        claims: this.dal.claims.count(),
+        inspections: this.dal.inspections.count(),
+        publishPermissions: this.dal.permissions.count(),
+        paletteProjects: Object.keys(paletteByProject).length,
         paletteAssets: Object.values(paletteByProject).reduce((sum, count) => sum + count, 0),
       },
       paletteByProject,

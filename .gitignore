@@ -4,6 +4,9 @@ roblox-studio-rust-mcp-server/
 # Node
 node_modules/
 
+# JetBrains IDE
+.idea/
+
 # Asset-brain persistence (local cache, not source)
 .roblox-asset-brain/
 

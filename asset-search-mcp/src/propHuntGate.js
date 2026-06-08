@@ -5,6 +5,8 @@
 // round loop. The point here is to make the asset palette fail fast before a
 // live Studio build spends time on bad or under-specified props.
 
+import { createFindings, passLabel, renderFindings, sealVerdict } from "./proofBundle.js";
+
 export const PROP_HUNT_GATE_DEFAULTS = {
   min_areas: 3,
   min_hideable_total: 20,
@@ -108,8 +110,8 @@ export function validatePropHuntGate({ project = "prophunt", palette, getInspect
     ...classifySlot(slot),
   }));
 
-  const errors = [];
-  const warnings = [];
+  const findings = createFindings();
+  const { errors, warnings } = findings;
   const areaStats = new Map();
 
   for (const entry of entries) {
@@ -185,34 +187,21 @@ export function validatePropHuntGate({ project = "prophunt", palette, getInspect
   }
 
   const areas = Object.fromEntries([...areaStats.entries()].sort(([a], [b]) => a.localeCompare(b)));
-  return {
-    project,
-    passed: errors.length === 0,
-    options: opts,
+  return sealVerdict(findings, {
+    fields: { project, options: opts, areas },
     counts,
-    areas,
-    errors,
-    warnings,
-  };
+  });
 }
 
 export function formatPropHuntGateReport(result) {
-  const status = result.passed ? "PASS" : "FAIL";
   const lines = [
-    `${status} Prop Hunt asset gate for '${result.project}'`,
+    `${passLabel(result.passed)} Prop Hunt asset gate for '${result.project}'`,
     `areas=${result.counts.areas} hideables=${result.counts.hideable_total} setpieces=${result.counts.setpiece_total} palette_assets=${result.counts.palette_assets}`,
   ];
   for (const [area, stats] of Object.entries(result.areas)) {
     lines.push(`- ${area}: hideable=${stats.hideable} setpiece=${stats.setpiece} other=${stats.other}`);
   }
-  if (result.errors.length) {
-    lines.push("", "Errors:");
-    for (const error of result.errors) lines.push(`- ${error}`);
-  }
-  if (result.warnings.length) {
-    lines.push("", "Warnings:");
-    for (const warning of result.warnings) lines.push(`- ${warning}`);
-  }
+  lines.push(...renderFindings(result));
   if (result.passed) {
     lines.push("", "Studio-only next checks: insert/build in edit mode, populate Workspace.HideableProps, then run the round loop playtest.");
   }

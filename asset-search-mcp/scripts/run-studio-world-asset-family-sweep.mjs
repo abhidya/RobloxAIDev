@@ -73,7 +73,7 @@ function usage() {
   return `Usage: node scripts/run-studio-world-asset-family-sweep.mjs --plan family-plan.json [options]
 
 Options:
-  --plan <path>          JSON plan from plan_world_asset_family_sweep(format='json')
+  --plan <path>          JSON plan from roblox_plan_world_asset_family_sweep(format='json')
   --out <path>           Sweep report path (default: <artifact_root>/family-sweep-report.json)
   --active-place <name>  Mock active Studio place name (default: plan target_place)
   --place-id <id>        Mock place id

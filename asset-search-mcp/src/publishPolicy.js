@@ -1,3 +1,5 @@
+import { createFindings, sealVerdict } from "./proofBundle.js";
+
 export const PUBLISH_PERMISSION_MODES = ["grantable_only", "grantable_or_open_use"];
 
 const OPEN_USE_ACCESS = new Set(["open_use", "open_use_dependency"]);
@@ -72,8 +74,8 @@ export function evaluatePublishPermission(record, options = {}) {
   const mode = options.mode || "grantable_or_open_use";
   const requireStudioProbe = Boolean(options.requireStudioProbe ?? options.require_studio_probe);
   const requireSaveReopen = Boolean(options.requireSaveReopen ?? options.require_save_reopen);
-  const errors = [];
-  const warnings = [];
+  const findings = createFindings();
+  const { errors, warnings } = findings;
   if (!record) {
     return {
       passed: false,
@@ -112,18 +114,17 @@ export function evaluatePublishPermission(record, options = {}) {
     warnings.push("asset is Open Use, not grantable by target publisher; keep dependency proof fresh");
   }
 
-  return {
-    passed: errors.length === 0,
-    mode,
-    assetId: record.assetId,
-    access,
-    grantableByUs: record.grantableByUs,
-    experienceHasAccess: record.experienceHasAccess,
-    publishPolicy: record.publishPolicy,
-    dependencyCount: (record.dependencies || []).length,
-    errors,
-    warnings,
-  };
+  return sealVerdict(findings, {
+    fields: {
+      mode,
+      assetId: record.assetId,
+      access,
+      grantableByUs: record.grantableByUs,
+      experienceHasAccess: record.experienceHasAccess,
+      publishPolicy: record.publishPolicy,
+      dependencyCount: (record.dependencies || []).length,
+    },
+  });
 }
 
 export function summarizePublishPermission(record) {

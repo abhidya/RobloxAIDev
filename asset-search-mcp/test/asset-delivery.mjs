@@ -10,6 +10,7 @@ import {
   executeAssetDeliveryRequest,
   validateAssetDeliveryReceipt,
 } from "../src/assetDelivery.js";
+import * as assetDeliveryModule from "../src/assetDelivery.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, "..");
@@ -80,6 +81,11 @@ try {
   assert.equal(await fs.readFile(receipt.output.asset_path, "utf8"), payload.toString("utf8"));
   const receiptJson = await fs.readFile(receipt.output.receipt_path, "utf8");
   assert.ok(!receiptJson.includes("test-open-cloud-key"), "receipt must not leak API key");
+  // Credential seam: only the redacted receipt crosses the boundary. The live
+  // headers stay inside the authenticated request, and the live-headers resolver
+  // is no longer part of the module interface.
+  assert.ok(!JSON.stringify(receipt).includes("test-open-cloud-key"), "in-memory receipt must not carry the credential across the seam");
+  assert.equal(typeof assetDeliveryModule.resolveAssetDeliveryAuth, "undefined", "live-headers resolver is no longer exported");
   const validation = validateAssetDeliveryReceipt(receipt, request);
   assert.equal(validation.passed, true, validation.errors.join("; "));
   assert.equal(requests.at(-1).url, "/asset-delivery-api/v1/assetId/123/version/7");

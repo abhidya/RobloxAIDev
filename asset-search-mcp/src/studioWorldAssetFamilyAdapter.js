@@ -1,14 +1,9 @@
 import {
   asObject,
-  callStudioTool,
   connectStudioMcp,
-  expectedPlaceMatches,
-  maybeSelectStudio,
-  normalizePreflightPayload,
-  preflightPassedFromPayload,
   responseJson,
-  toolArgsForStep,
-  writeImageContent,
+  runMockStudioCaptureBatch,
+  runStudioCaptureBatch,
 } from "./studioMcpAdapterCore.js";
 import { validateWorldAssetFamilySweep } from "./worldAssetFamilySweep.js";
 
@@ -94,7 +89,7 @@ function familyReport(family, screenshots, failedCaptureIds) {
       : [],
     blockers: [],
     inspection_recorded: !familyFailed,
-    record_inspection_refs: familyFailed ? [] : [`record_inspection:${family.family_id}`],
+    record_inspection_refs: familyFailed ? [] : [`roblox_record_inspection:${family.family_id}`],
   };
 }
 
@@ -137,6 +132,18 @@ function buildReport(plan, {
   };
 }
 
+function familyResultEnvelope(familyPlan, transport, report, executionLog, validation) {
+  return {
+    schema: "roblox-studio-world-family-adapter-result/v1",
+    adapter: familyPlan.adapter || "studio_mcp_proxy",
+    transport,
+    artifact_root: familyPlan.artifact_root,
+    report,
+    execution_log: executionLog,
+    validation,
+  };
+}
+
 export async function executeStudioMcpWorldAssetFamilySweep(plan, {
   command = "/Applications/RobloxStudio.app/Contents/MacOS/StudioMCP",
   args = [],
@@ -146,10 +153,6 @@ export async function executeStudioMcpWorldAssetFamilySweep(plan, {
   studioName,
 } = {}) {
   const familyPlan = asObject(plan);
-  const expectedNames = familyPlan.studio_preflight?.expected_place_names || [];
-  const executionLog = [];
-  const failedCaptureIds = new Set();
-  const liveResponses = new Map();
   const client = await connectStudioMcp({
     command,
     args,
@@ -157,105 +160,28 @@ export async function executeStudioMcpWorldAssetFamilySweep(plan, {
     clientVersion: "1.0.0",
   });
   try {
-    const selection = await maybeSelectStudio(client, { studioId, studioName });
-    if (selection) {
-      executionLog.push({
-        sequence: executionLog.length,
-        tool: "set_active_studio",
-        purpose: "Select the requested Studio instance before family sweep preflight.",
-        ok: selection.selected === true,
-        result: selection,
-      });
-    }
-
-    let preflightPayload = {};
-    try {
-      const preflightResponse = await callStudioTool(client, familyPlan.studio_preflight?.studio_mcp_tool || "execute_luau", {
-        code: familyPlan.studio_preflight?.code || "",
-      });
-      preflightPayload = responseJson(preflightResponse);
-      executionLog.push({
-        sequence: executionLog.length,
-        tool: familyPlan.studio_preflight?.studio_mcp_tool || "execute_luau",
-        purpose: "Active-place preflight.",
-        ok: preflightPassedFromPayload(preflightPayload),
-        result: preflightPayload,
-      });
-    } catch (error) {
-      preflightPayload = { ok: false, error: error.message };
-      executionLog.push({
-        sequence: executionLog.length,
-        tool: familyPlan.studio_preflight?.studio_mcp_tool || "execute_luau",
-        purpose: "Active-place preflight.",
-        ok: false,
-        error: error.message,
-      });
-    }
-
-    const preflight = normalizePreflightPayload(preflightPayload, {
-      placeName: activePlaceName || familyPlan.target_place || "Unknown",
+    const run = await runStudioCaptureBatch(client, familyPlan, {
+      activePlaceName,
       placeId,
-      expectedPlaceNames: expectedNames,
+      studioId,
+      studioName,
       transport: "studio_mcp_stdio",
     });
-
-    if (preflight.passed) {
-      for (const capture of familyPlan.capture_batch?.captures || []) {
-        let capturePassed = true;
-        let captureResponse = null;
-        for (const step of capture.studio_mcp_steps || []) {
-          try {
-            const response = await callStudioTool(client, step.tool, toolArgsForStep(step));
-            executionLog.push({
-              sequence: executionLog.length,
-              capture_id: capture.capture_id,
-              family_id: capture.family_id,
-              tool: step.tool,
-              purpose: step.purpose,
-              ok: true,
-              result: responseJson(response),
-            });
-            if (step.tool === "screen_capture") {
-              await writeImageContent(response, capture.expected_image_path);
-              captureResponse = response;
-            }
-          } catch (error) {
-            capturePassed = false;
-            failedCaptureIds.add(capture.capture_id);
-            executionLog.push({
-              sequence: executionLog.length,
-              capture_id: capture.capture_id,
-              family_id: capture.family_id,
-              tool: step.tool,
-              purpose: step.purpose,
-              ok: false,
-              error: error.message,
-            });
-          }
-        }
-        if (!capturePassed) failedCaptureIds.add(capture.capture_id);
-        if (captureResponse) liveResponses.set(capture.capture_id, captureResponse);
-      }
-    }
-
     const report = buildReport(familyPlan, {
-      preflight,
+      preflight: run.preflight,
       transport: "studio_mcp_stdio",
-      placeName: preflight.placeName,
-      placeId: preflight.placeId,
-      failedCaptureIds,
-      liveResponses,
+      placeName: run.preflight.placeName,
+      placeId: run.preflight.placeId,
+      failedCaptureIds: run.failedCaptureIds,
+      liveResponses: run.liveResponses,
     });
-    const validation = validateWorldAssetFamilySweep(report, familyPlan);
-    return {
-      schema: "roblox-studio-world-family-adapter-result/v1",
-      adapter: familyPlan.adapter || "studio_mcp_proxy",
-      transport: "studio_mcp_stdio",
-      artifact_root: familyPlan.artifact_root,
+    return familyResultEnvelope(
+      familyPlan,
+      "studio_mcp_stdio",
       report,
-      execution_log: executionLog,
-      validation,
-    };
+      run.executionLog,
+      validateWorldAssetFamilySweep(report, familyPlan),
+    );
   } finally {
     await client.close?.();
   }
@@ -267,67 +193,22 @@ export function executeMockStudioWorldAssetFamilySweep(plan, {
   failCaptures = [],
 } = {}) {
   const familyPlan = asObject(plan);
-  const expectedNames = familyPlan.studio_preflight?.expected_place_names || [];
-  const placeName = activePlaceName || familyPlan.target_place || "MockPlace.rbxl";
-  const preflightPassed = expectedPlaceMatches(placeName, expectedNames);
-  const failedCaptureIds = new Set(failCaptures);
-  const executionLog = [];
-
-  executionLog.push({
-    sequence: 0,
-    tool: familyPlan.studio_preflight?.studio_mcp_tool || "execute_luau",
-    purpose: "Active-place preflight.",
-    ok: preflightPassed,
-    result: {
-      placeName,
-      placeId,
-      expectedPlaceNames: expectedNames,
-    },
-  });
-
-  if (preflightPassed) {
-    for (const capture of familyPlan.capture_batch?.captures || []) {
-      const failed = failedCaptureIds.has(capture.capture_id);
-      for (const step of capture.studio_mcp_steps || []) {
-        executionLog.push({
-          sequence: executionLog.length,
-          capture_id: capture.capture_id,
-          family_id: capture.family_id,
-          tool: step.tool,
-          purpose: step.purpose,
-          ok: !failed,
-          suggested_output_path: step.suggested_output_path || null,
-        });
-      }
-    }
-  }
-
-  const preflight = {
-    passed: preflightPassed,
-    ok: preflightPassed,
-    placeName,
-    placeId,
-    expectedPlaceNames: expectedNames,
-    transport: "mock",
-  };
+  const run = runMockStudioCaptureBatch(familyPlan, { activePlaceName, placeId, failCaptures });
   const report = buildReport(familyPlan, {
-    preflight,
+    preflight: run.preflight,
     transport: "mock",
-    placeName,
-    placeId,
-    failedCaptureIds,
+    placeName: run.preflight.placeName,
+    placeId: run.preflight.placeId,
+    failedCaptureIds: run.failedCaptureIds,
+    liveResponses: run.liveResponses,
   });
-  const validation = validateWorldAssetFamilySweep(report, familyPlan);
-
-  return {
-    schema: "roblox-studio-world-family-adapter-result/v1",
-    adapter: familyPlan.adapter || "studio_mcp_proxy",
-    transport: "mock",
-    artifact_root: familyPlan.artifact_root,
+  return familyResultEnvelope(
+    familyPlan,
+    "mock",
     report,
-    execution_log: executionLog,
-    validation,
-  };
+    run.executionLog,
+    validateWorldAssetFamilySweep(report, familyPlan),
+  );
 }
 
 export function formatStudioWorldAssetFamilyAdapterResult(result) {

@@ -95,36 +95,36 @@ export function buildAiGameDevLoopPlan({
     artifacts,
     custom_mcp: {
       server: "asset-search-mcp",
-      planner_tool: "plan_ai_game_dev_loop",
-      validator_tool: "validate_ai_game_dev_loop",
+      planner_tool: "roblox_plan_ai_game_dev_loop",
+      validator_tool: "roblox_validate_ai_game_dev_loop",
       supporting_tools: [
-        "plan_project_template",
-        "validate_project_template",
-        "plan_game_asset_coverage",
-        "preprocess_storyboard_asset_cache",
-        "curate_assets",
-        "claim_assets",
-        "plan_asset_acquisition",
-        "validate_asset_acquisition",
-        "plan_asset_delivery",
-        "validate_asset_delivery_receipt",
-        "record_inspection",
-        "commit_palette",
-        "validate_publish_permissions",
-        "plan_world_asset_family_sweep",
-        "validate_world_asset_family_sweep",
-        "plan_headless_assembly",
-        "validate_fragment_manifest",
-        "plan_coordinator_merge",
-        "validate_coordinator_merge",
-        "plan_batch_visual_gate",
-        "validate_batch_visual_gate",
+        "roblox_plan_project_template",
+        "roblox_validate_project_template",
+        "roblox_plan_game_asset_coverage",
+        "roblox_preprocess_storyboard_asset_cache",
+        "roblox_curate_assets",
+        "roblox_claim_assets",
+        "roblox_plan_asset_acquisition",
+        "roblox_validate_asset_acquisition",
+        "roblox_plan_asset_delivery",
+        "roblox_validate_asset_delivery_receipt",
+        "roblox_record_inspection",
+        "roblox_commit_palette",
+        "roblox_validate_publish_permissions",
+        "roblox_plan_world_asset_family_sweep",
+        "roblox_validate_world_asset_family_sweep",
+        "roblox_plan_headless_assembly",
+        "roblox_validate_fragment_manifest",
+        "roblox_plan_coordinator_merge",
+        "roblox_validate_coordinator_merge",
+        "roblox_plan_batch_visual_gate",
+        "roblox_validate_batch_visual_gate",
       ],
     },
     studio_adapter: {
       cli: "node asset-search-mcp/scripts/run-studio-batch-visual-gate.mjs",
       transports: ["mock", "studio_mcp_stdio"],
-      purpose: "Consume a batch visual gate plan, execute Studio MCP steps serially, collate screenshots/alt text/execution logs, and return the report validated by validate_batch_visual_gate.",
+      purpose: "Consume a batch visual gate plan, execute Studio MCP steps serially, collate screenshots/alt text/execution logs, and return the report validated by roblox_validate_batch_visual_gate.",
     },
     phases: [
       {
@@ -132,7 +132,7 @@ export function buildAiGameDevLoopPlan({
         owner: "roblox-game-director",
         goal: "Convert the game idea into slots and acceptance screenshots.",
         tool_calls: [
-          compactToolCall("plan_game_asset_coverage", {
+          compactToolCall("roblox_plan_game_asset_coverage", {
             game,
             themes: coverage.roomThemes,
             include_defaults: false,
@@ -147,7 +147,7 @@ export function buildAiGameDevLoopPlan({
         owner: "roblox-asset-brain",
         goal: "Warm/merge metadata, curate candidates, claim shortlists, and commit only proven palette assets.",
         tool_calls: [
-          compactToolCall("preprocess_storyboard_asset_cache", {
+          compactToolCall("roblox_preprocess_storyboard_asset_cache", {
             project,
             game,
             themes: coverage.roomThemes,
@@ -156,13 +156,13 @@ export function buildAiGameDevLoopPlan({
             warm_search_cache: false,
             format: "json",
           }),
-          compactToolCall("curate_assets", {
+          compactToolCall("roblox_curate_assets", {
             project,
             slots: coverage.slots.slice(0, 12).map((slot) => ({ slot: slot.slot, query: slot.query })),
             per_slot: 3,
             extensive: true,
           }),
-          compactToolCall("plan_asset_acquisition", {
+          compactToolCall("roblox_plan_asset_acquisition", {
             project,
             slot: "<claimed-slot>",
             query: "<claimed-slot-query>",
@@ -170,7 +170,7 @@ export function buildAiGameDevLoopPlan({
             delivery_mode: "direct_or_studio_fallback",
             format: "json",
           }),
-          compactToolCall("plan_asset_delivery", {
+          compactToolCall("roblox_plan_asset_delivery", {
             project,
             slot: "<claimed-slot>",
             asset_id: "<claimed-asset-id>",
@@ -269,7 +269,7 @@ export function buildAiGameDevLoopPlan({
         "custom_mcp_contract",
         "batch_visual_gate",
       ],
-      validation_tool: "validate_ai_game_dev_loop",
+      validation_tool: "roblox_validate_ai_game_dev_loop",
     },
   };
 }
@@ -318,20 +318,20 @@ export function validateAiGameDevLoopReport(report, plan = null) {
 
   const customTools = raw.gates?.custom_mcp_contract?.tools || raw.custom_mcp_tools || [];
   for (const requiredTool of [
-    "plan_ai_game_dev_loop",
-    "validate_ai_game_dev_loop",
-    "plan_project_template",
-    "validate_project_template",
-    "plan_asset_acquisition",
-    "validate_asset_acquisition",
-    "plan_asset_delivery",
-    "validate_asset_delivery_receipt",
-    "plan_world_asset_family_sweep",
-    "validate_world_asset_family_sweep",
-    "plan_batch_visual_gate",
-    "validate_batch_visual_gate",
-    "plan_coordinator_merge",
-    "validate_coordinator_merge",
+    "roblox_plan_ai_game_dev_loop",
+    "roblox_validate_ai_game_dev_loop",
+    "roblox_plan_project_template",
+    "roblox_validate_project_template",
+    "roblox_plan_asset_acquisition",
+    "roblox_validate_asset_acquisition",
+    "roblox_plan_asset_delivery",
+    "roblox_validate_asset_delivery_receipt",
+    "roblox_plan_world_asset_family_sweep",
+    "roblox_validate_world_asset_family_sweep",
+    "roblox_plan_batch_visual_gate",
+    "roblox_validate_batch_visual_gate",
+    "roblox_plan_coordinator_merge",
+    "roblox_validate_coordinator_merge",
   ]) {
     if (!customTools.includes(requiredTool)) {
       errors.push(`custom MCP proof must include tool '${requiredTool}'`);

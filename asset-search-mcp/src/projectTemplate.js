@@ -1,5 +1,6 @@
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { createFindings, passLabel, renderFindings, sealVerdict, withCounts } from "./proofBundle.js";
 
 function slugify(value) {
   const slug = String(value || "")
@@ -29,18 +30,18 @@ const REQUIRED_TEMPLATE_PATHS = [
 ];
 
 const DEFAULT_TEMPLATE_GATES = [
-  "plan_project_template",
-  "validate_project_template",
-  "plan_ai_game_dev_loop",
-  "plan_asset_delivery",
-  "validate_asset_delivery_receipt",
-  "plan_coordinator_merge",
-  "validate_coordinator_merge",
-  "plan_world_asset_family_sweep",
-  "validate_world_asset_family_sweep",
-  "plan_batch_visual_gate",
-  "validate_batch_visual_gate",
-  "validate_ai_game_dev_loop",
+  "roblox_plan_project_template",
+  "roblox_validate_project_template",
+  "roblox_plan_ai_game_dev_loop",
+  "roblox_plan_asset_delivery",
+  "roblox_validate_asset_delivery_receipt",
+  "roblox_plan_coordinator_merge",
+  "roblox_validate_coordinator_merge",
+  "roblox_plan_world_asset_family_sweep",
+  "roblox_validate_world_asset_family_sweep",
+  "roblox_plan_batch_visual_gate",
+  "roblox_validate_batch_visual_gate",
+  "roblox_validate_ai_game_dev_loop",
 ];
 
 function templateFiles({ project, game, targetPlace, themes, outputRoot }) {
@@ -96,7 +97,7 @@ function templateFiles({ project, game, targetPlace, themes, outputRoot }) {
     {
       path: "docs/e2e-loop.md",
       role: "loop_contract",
-      content: `# E2E Loop\n\n1. plan_project_template and validate_project_template\n2. plan_ai_game_dev_loop\n3. preprocess_storyboard_asset_cache\n4. plan_asset_acquisition\n5. plan_asset_delivery and validate_asset_delivery_receipt\n6. plan_headless_assembly\n7. plan_coordinator_merge and validate_coordinator_merge\n8. plan_world_asset_family_sweep and validate_world_asset_family_sweep\n9. plan_batch_visual_gate and validate_batch_visual_gate\n10. validate_ai_game_dev_loop\n`,
+      content: `# E2E Loop\n\n1. roblox_plan_project_template and roblox_validate_project_template\n2. roblox_plan_ai_game_dev_loop\n3. roblox_preprocess_storyboard_asset_cache\n4. roblox_plan_asset_acquisition\n5. roblox_plan_asset_delivery and roblox_validate_asset_delivery_receipt\n6. roblox_plan_headless_assembly\n7. roblox_plan_coordinator_merge and roblox_validate_coordinator_merge\n8. roblox_plan_world_asset_family_sweep and roblox_validate_world_asset_family_sweep\n9. roblox_plan_batch_visual_gate and roblox_validate_batch_visual_gate\n10. roblox_validate_ai_game_dev_loop\n`,
     },
     {
       path: "asset-brain/v1/manifest.json",
@@ -122,7 +123,7 @@ function templateFiles({ project, game, targetPlace, themes, outputRoot }) {
     {
       path: "prompts/README.md",
       role: "prompt_lanes",
-      content: `# Prompt Lanes\n\n- roblox-game-director: owns brief and acceptance proof.\n- roblox-asset-brain: owns metadata, claims, rejections, permissions.\n- roblox-headless-merge-coordinator: owns fragments, identity, and candidate place writes.\n- roblox-visual-gate-runner: owns Studio screenshot proof.\n\n## Shared Stop Rule\n\nDo not claim readiness until validate_ai_game_dev_loop passes.\n`,
+      content: `# Prompt Lanes\n\n- roblox-game-director: owns brief and acceptance proof.\n- roblox-asset-brain: owns metadata, claims, rejections, permissions.\n- roblox-headless-merge-coordinator: owns fragments, identity, and candidate place writes.\n- roblox-visual-gate-runner: owns Studio screenshot proof.\n\n## Shared Stop Rule\n\nDo not claim readiness until roblox_validate_ai_game_dev_loop passes.\n`,
     },
     {
       path: "scripts/run_ai_game_dev_pocs.mjs",
@@ -228,9 +229,30 @@ export async function materializeProjectTemplate(plan) {
   };
 }
 
-export async function validateProjectTemplateReport(report, plan = null) {
+// The on-disk verification seam: confirm each expected file was actually
+// written and is non-empty. Returns its own error strings so the I/O can be
+// swapped (real filesystem in production, a fake in tests) and so a failure
+// pins to the materialize layer rather than the report-shape checks.
+export async function verifyTemplateFilesOnDisk(root, expectedFiles) {
   const errors = [];
-  const warnings = [];
+  if (!root) return errors;
+  for (const file of expectedFiles) {
+    const fullPath = path.join(root, file.path);
+    try {
+      const info = await stat(fullPath);
+      if (!info.isFile()) errors.push(`${file.path} is not a file`);
+      const text = await readFile(fullPath, "utf8");
+      if (!text.trim()) errors.push(`${file.path} is empty`);
+    } catch {
+      errors.push(`expected file not written: ${file.path}`);
+    }
+  }
+  return errors;
+}
+
+export async function validateProjectTemplateReport(report, plan = null, { verifyOnDisk = verifyTemplateFilesOnDisk } = {}) {
+  const findings = createFindings();
+  const { errors, warnings } = findings;
   const raw = report && typeof report === "object" && !Array.isArray(report) ? report : {};
   const expected = plan && typeof plan === "object" && !Array.isArray(plan) ? plan : {};
   const root = raw.output_root || expected.output_root;
@@ -251,35 +273,16 @@ export async function validateProjectTemplateReport(report, plan = null) {
   for (const gate of expectedGates) {
     if (!asArray(raw.gates).includes(gate)) errors.push(`template report missing gate ${gate}`);
   }
-  if (root) {
-    for (const file of expectedFiles) {
-      const fullPath = path.join(root, file.path);
-      try {
-        const info = await stat(fullPath);
-        if (!info.isFile()) errors.push(`${file.path} is not a file`);
-        const text = await readFile(fullPath, "utf8");
-        if (!text.trim()) errors.push(`${file.path} is empty`);
-      } catch {
-        errors.push(`expected file not written: ${file.path}`);
-      }
-    }
-  }
+  for (const error of await verifyOnDisk(root, expectedFiles)) errors.push(error);
   if (!raw.safety?.asset_brain_metadata_only) errors.push("template safety must keep asset brain metadata-only");
   if (!raw.safety?.credentials_from_environment_only) errors.push("template safety must keep credentials environment-only");
   if (!writtenPaths.has(".gitignore")) warnings.push("template should include .gitignore");
   for (const blocker of asArray(raw.blockers)) errors.push(`template blocker remains: ${blocker}`);
-  return {
+  return sealVerdict(findings, {
     schema: "roblox-ai-game-project-template-validation/v1",
-    passed: errors.length === 0,
-    project: raw.project || expected.project || "unknown",
-    errors,
-    warnings,
-    counts: {
-      files: written.length,
-      errors: errors.length,
-      warnings: warnings.length,
-    },
-  };
+    fields: { project: raw.project || expected.project || "unknown" },
+    counts: withCounts(findings, { files: written.length }),
+  });
 }
 
 export function publicProjectTemplatePlan(plan) {
@@ -300,10 +303,9 @@ export function formatProjectTemplatePlan(plan) {
 
 export function formatProjectTemplateValidation(result) {
   const lines = [
-    `${result.passed ? "PASS" : "FAIL"} project template '${result.project}'`,
+    `${passLabel(result.passed)} project template '${result.project}'`,
     `files=${result.counts.files} warnings=${result.counts.warnings} errors=${result.counts.errors}`,
   ];
-  if (result.errors.length) lines.push("", "Errors:", ...result.errors.map((error) => `- ${error}`));
-  if (result.warnings.length) lines.push("", "Warnings:", ...result.warnings.map((warning) => `- ${warning}`));
+  lines.push(...renderFindings(result));
   return lines.join("\n");
 }

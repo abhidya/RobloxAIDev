@@ -78,6 +78,31 @@ prompts should use consistently.
 - **Locality** — what maintainers gain when behavior, tests, and bugs are
   concentrated in one module instead of scattered across agents.
 
+## Shared Modules (deepened seams)
+
+These are the named seams introduced by the 2026-06-08 deepening pass. Use these
+names; do not reinvent per-gate copies of what they own.
+
+- **Proof-bundle module** — `asset-search-mcp/src/proofBundle.js`. The one
+  definition of a validation verdict: the findings accumulator
+  (`createFindings`), the verdict seal (`sealVerdict`/`withCounts`), and the two
+  render dialects (`renderFindings` in `bullets` or `inline`). Every gate
+  validator and formatter routes through it; gates supply only domain checks.
+- **Studio capture driver** — the deep core in
+  `asset-search-mcp/src/studioMcpAdapterCore.js`
+  (`runStudioCaptureBatch`/`runMockStudioCaptureBatch`). Owns the
+  select → preflight → serial capture loop and execution log. The batch visual
+  gate adapter and family sweep adapter sit behind it.
+- **Tool registry** — `asset-search-mcp/src/mcpTools/registry.js`. Owns the MCP
+  response envelope (`text`/`result`/`errorText`), annotation presets, the
+  `rendered()` format selector, and the registrar factory. `index.js` and every
+  cluster register through it.
+- **Asset delivery credential seam** — inside
+  `asset-search-mcp/src/assetDelivery.js`. The Open Cloud credential is sealed in
+  a closure that applies headers to a request; only the redacted asset delivery
+  receipt crosses the seam. Live credential values are never returned or
+  exported.
+
 ## Non-Negotiables
 
 - Studio is a validator and importer of last resort, not the default construction

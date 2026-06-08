@@ -1,5 +1,6 @@
 import { OPEN_CLOUD_ENDPOINTS } from "./headlessPipeline.js";
 import { buildAssetDeliveryRequest, validateAssetDeliveryReceipt } from "./assetDelivery.js";
+import { createFindings, passLabel, renderFindings, sealVerdict, withCounts } from "./proofBundle.js";
 
 function slugify(value) {
   const slug = String(value || "")
@@ -75,13 +76,13 @@ export function buildAssetAcquisitionPlan({
       {
         id: "search_claim",
         goal: "Find, shortlist, and claim candidates before any file or Studio work.",
-        tools: ["search_assets", "curate_assets", "claim_assets", "reject_asset"],
+        tools: ["roblox_search_assets", "roblox_curate_assets", "roblox_claim_assets", "roblox_reject_asset"],
         outputs: ["claims", "rejections", "shortlist"],
       },
       {
         id: "permission_proof",
         goal: "Record target publisher, target experience, dependency, Studio insert, and save/reopen proof.",
-        tools: ["record_asset_permission", "record_asset_permissions", "validate_publish_permissions"],
+        tools: ["roblox_record_asset_permission", "roblox_record_asset_permissions", "roblox_validate_publish_permissions"],
         required: requirePublishPermission,
         outputs: ["publish-permission records"],
       },
@@ -90,7 +91,7 @@ export function buildAssetAcquisitionPlan({
         goal: "Try asset delivery outside Studio, parse the serialized model, and write quarantine metadata.",
         endpoints: [endpoint("Asset Delivery"), endpoint("Toolbox asset metadata")].filter(Boolean),
         executable_adapter: "node asset-search-mcp/scripts/run-asset-delivery.mjs --asset-id <asset-id> --project <project> --slot <slot>",
-        tools: ["plan_asset_delivery", "validate_asset_delivery_receipt"],
+        tools: ["roblox_plan_asset_delivery", "roblox_validate_asset_delivery_receipt"],
         parsers: [
           "Lune @lune/roblox for current Luau-native parse/serialize POC",
           "rbx-dom for production binary/XML authority",
@@ -100,20 +101,20 @@ export function buildAssetAcquisitionPlan({
       {
         id: "studio_insert_fallback",
         goal: "If direct delivery is unavailable or permission-gated, insert through the active-place-gated Studio adapter and preserve the same report shape.",
-        tools: ["record_inspection", "record_asset_permission", "plan_batch_visual_gate"],
+        tools: ["roblox_record_inspection", "roblox_record_asset_permission", "roblox_plan_batch_visual_gate"],
         required_when: "direct_delivery_parse fails or delivery_mode is studio_only",
         outputs: [artifacts.studio_fallback_report],
       },
       {
         id: "quarantine_scan",
         goal: "Reject scripts, remote loaders, unsafe dependencies, missing roots, and unreviewed permissions before palette commit.",
-        tools: ["record_inspection", "validate_fragment_manifest"],
+        tools: ["roblox_record_inspection", "roblox_validate_fragment_manifest"],
         outputs: [artifacts.fragment_manifest],
       },
       {
         id: "visual_gate",
         goal: "Capture clean-spot/player-angle proof before the asset can be promoted from quarantine to palette.",
-        tools: ["plan_batch_visual_gate", "validate_batch_visual_gate", "commit_palette"],
+        tools: ["roblox_plan_batch_visual_gate", "roblox_validate_batch_visual_gate", "roblox_commit_palette"],
         outputs: [artifacts.visual_gate_report],
       },
     ],
@@ -149,8 +150,8 @@ function artifact(gateValue) {
 }
 
 export function validateAssetAcquisitionReport(report, plan = null) {
-  const errors = [];
-  const warnings = [];
+  const findings = createFindings();
+  const { errors, warnings } = findings;
   const raw = asObject(report);
   const expectedPlan = asObject(plan);
   const requiredGateIds = expectedPlan.validation_contract?.required_gate_ids || [
@@ -223,21 +224,18 @@ export function validateAssetAcquisitionReport(report, plan = null) {
   const blockers = Array.isArray(raw.open_blockers) ? raw.open_blockers : [];
   if (blockers.length) errors.push(`open blockers remain: ${blockers.join("; ")}`);
 
-  return {
+  return sealVerdict(findings, {
     schema: "roblox-asset-acquisition-validation/v1",
-    passed: errors.length === 0,
-    project: raw.project || expectedPlan.project || "unknown",
-    slot: raw.slot || expectedPlan.slot || "unknown",
-    counts: {
+    fields: {
+      project: raw.project || expectedPlan.project || "unknown",
+      slot: raw.slot || expectedPlan.slot || "unknown",
+    },
+    counts: withCounts(findings, {
       required_gates: requiredGateIds.length,
       gates_passed: requiredGateIds.filter((gateId) => passed(raw, gateId)).length,
       quarantined_assets: quarantined.length,
-      warnings: warnings.length,
-      errors: errors.length,
-    },
-    errors,
-    warnings,
-  };
+    }),
+  });
 }
 
 export function formatAssetAcquisitionPlan(plan) {
@@ -271,10 +269,9 @@ export function formatAssetAcquisitionPlan(plan) {
 
 export function formatAssetAcquisitionValidation(result) {
   const lines = [
-    `${result.passed ? "PASS" : "FAIL"} asset acquisition '${result.project}' slot=${result.slot}`,
+    `${passLabel(result.passed)} asset acquisition '${result.project}' slot=${result.slot}`,
     `gates=${result.counts.gates_passed}/${result.counts.required_gates} quarantined=${result.counts.quarantined_assets} warnings=${result.counts.warnings} errors=${result.counts.errors}`,
   ];
-  if (result.errors.length) lines.push("", "Errors:", ...result.errors.map((error) => `- ${error}`));
-  if (result.warnings.length) lines.push("", "Warnings:", ...result.warnings.map((warning) => `- ${warning}`));
+  lines.push(...renderFindings(result));
   return lines.join("\n");
 }

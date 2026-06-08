@@ -26,35 +26,35 @@ const tools = await client.listTools();
 const toolNames = tools.tools.map((t) => t.name);
 console.log("TOOLS:", toolNames.join(", "));
 for (const requiredTool of [
-  "plan_ai_game_dev_loop",
-  "validate_ai_game_dev_loop",
-  "plan_project_template",
-  "validate_project_template",
-  "plan_game_asset_coverage",
-  "preprocess_storyboard_asset_cache",
-  "export_asset_brain_snapshot",
-  "plan_headless_assembly",
-  "validate_fragment_manifest",
-  "plan_coordinator_merge",
-  "validate_coordinator_merge",
-  "plan_playable_space_review",
-  "validate_playable_space_review",
-  "plan_world_asset_family_sweep",
-  "validate_world_asset_family_sweep",
-  "plan_batch_visual_gate",
-  "validate_batch_visual_gate",
-  "plan_asset_acquisition",
-  "validate_asset_acquisition",
-  "plan_asset_delivery",
-  "validate_asset_delivery_receipt",
-  "record_inspection",
-  "record_inspections",
-  "get_inspection",
-  "record_asset_permission",
-  "record_asset_permissions",
-  "get_asset_permission",
-  "validate_publish_permissions",
-  "validate_prop_hunt_gate",
+  "roblox_plan_ai_game_dev_loop",
+  "roblox_validate_ai_game_dev_loop",
+  "roblox_plan_project_template",
+  "roblox_validate_project_template",
+  "roblox_plan_game_asset_coverage",
+  "roblox_preprocess_storyboard_asset_cache",
+  "roblox_export_asset_brain_snapshot",
+  "roblox_plan_headless_assembly",
+  "roblox_validate_fragment_manifest",
+  "roblox_plan_coordinator_merge",
+  "roblox_validate_coordinator_merge",
+  "roblox_plan_playable_space_review",
+  "roblox_validate_playable_space_review",
+  "roblox_plan_world_asset_family_sweep",
+  "roblox_validate_world_asset_family_sweep",
+  "roblox_plan_batch_visual_gate",
+  "roblox_validate_batch_visual_gate",
+  "roblox_plan_asset_acquisition",
+  "roblox_validate_asset_acquisition",
+  "roblox_plan_asset_delivery",
+  "roblox_validate_asset_delivery_receipt",
+  "roblox_record_inspection",
+  "roblox_record_inspections",
+  "roblox_get_inspection",
+  "roblox_record_asset_permission",
+  "roblox_record_asset_permissions",
+  "roblox_get_asset_permission",
+  "roblox_validate_publish_permissions",
+  "roblox_validate_prop_hunt_gate",
 ]) {
   assert.ok(toolNames.includes(requiredTool), `${requiredTool} is listed`);
 }
@@ -64,11 +64,11 @@ async function call(name, args) {
   return r.content?.[0]?.text ?? "";
 }
 
-console.log("\n--- search_assets ---");
-console.log((await call("search_assets", { query: "wooden barrel", max_results: 3 })).slice(0, 700));
+console.log("\n--- roblox_search_assets ---");
+console.log((await call("roblox_search_assets", { query: "wooden barrel", max_results: 3 })).slice(0, 700));
 
-console.log("\n--- plan_game_asset_coverage ---");
-const coverageText = await call("plan_game_asset_coverage", {
+console.log("\n--- roblox_plan_game_asset_coverage ---");
+const coverageText = await call("roblox_plan_game_asset_coverage", {
   game: "party prop hunt",
   themes: ["underwater reef", "space station"],
   include_defaults: false,
@@ -77,8 +77,8 @@ assert.ok(coverageText.includes("lobby.portal.room_queue"), "coverage includes l
 assert.ok(coverageText.includes("underwater_reef.hideable.prop_pack"), "coverage includes underwater room props");
 console.log(coverageText.slice(0, 900));
 
-console.log("\n--- preprocess_storyboard_asset_cache ---");
-const cachePlan = JSON.parse(await call("preprocess_storyboard_asset_cache", {
+console.log("\n--- roblox_preprocess_storyboard_asset_cache ---");
+const cachePlan = JSON.parse(await call("roblox_preprocess_storyboard_asset_cache", {
   project: "prophunt-smoke",
   game: "party prop hunt",
   themes: ["underwater reef"],
@@ -96,8 +96,8 @@ console.log(JSON.stringify({
   pages: cachePlan.pagesLayout.manifest,
 }, null, 2));
 
-console.log("\n--- plan_ai_game_dev_loop ---");
-const loopPlan = JSON.parse(await call("plan_ai_game_dev_loop", {
+console.log("\n--- roblox_plan_ai_game_dev_loop ---");
+const loopPlan = JSON.parse(await call("roblox_plan_ai_game_dev_loop", {
   project: "groan-tube-hero",
   game: "concert defense rhythm arena",
   target_place: "GroanTubeHero.rbxl",
@@ -110,9 +110,9 @@ const loopPlan = JSON.parse(await call("plan_ai_game_dev_loop", {
   format: "json",
 }));
 assert.equal(loopPlan.schema, "roblox-ai-game-dev-loop/v1", "MCP e2e loop plan schema");
-assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_headless_assembly"), "MCP e2e loop includes headless tool");
-assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_asset_acquisition"), "MCP e2e loop includes acquisition tool");
-assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_batch_visual_gate"), "MCP e2e loop includes batch visual gate");
+assert.ok(loopPlan.custom_mcp.supporting_tools.includes("roblox_plan_headless_assembly"), "MCP e2e loop includes headless tool");
+assert.ok(loopPlan.custom_mcp.supporting_tools.includes("roblox_plan_asset_acquisition"), "MCP e2e loop includes acquisition tool");
+assert.ok(loopPlan.custom_mcp.supporting_tools.includes("roblox_plan_batch_visual_gate"), "MCP e2e loop includes batch visual gate");
 assert.ok(loopPlan.phases.some((phase) => phase.id === "parser_writer_generation"), "MCP e2e loop includes parser/writer phase");
 assert.ok(loopPlan.studio_adapter.cli.includes("run-studio-batch-visual-gate"), "MCP e2e loop includes Studio adapter CLI");
 const loopBatchReport = {
@@ -125,7 +125,7 @@ const loopBatchReport = {
   })),
   verdict: "player_angle_signed_off",
 };
-const loopValidation = JSON.parse(await call("validate_ai_game_dev_loop", {
+const loopValidation = JSON.parse(await call("roblox_validate_ai_game_dev_loop", {
   plan: loopPlan,
   report: {
     schema: "roblox-ai-game-dev-loop-report/v1",
@@ -138,20 +138,20 @@ const loopValidation = JSON.parse(await call("validate_ai_game_dev_loop", {
       custom_mcp_contract: {
         passed: true,
         tools: [
-          "plan_ai_game_dev_loop",
-          "validate_ai_game_dev_loop",
-          "plan_project_template",
-          "validate_project_template",
-          "plan_asset_acquisition",
-          "validate_asset_acquisition",
-          "plan_asset_delivery",
-          "validate_asset_delivery_receipt",
-          "plan_world_asset_family_sweep",
-          "validate_world_asset_family_sweep",
-          "plan_batch_visual_gate",
-          "validate_batch_visual_gate",
-          "plan_coordinator_merge",
-          "validate_coordinator_merge",
+          "roblox_plan_ai_game_dev_loop",
+          "roblox_validate_ai_game_dev_loop",
+          "roblox_plan_project_template",
+          "roblox_validate_project_template",
+          "roblox_plan_asset_acquisition",
+          "roblox_validate_asset_acquisition",
+          "roblox_plan_asset_delivery",
+          "roblox_validate_asset_delivery_receipt",
+          "roblox_plan_world_asset_family_sweep",
+          "roblox_validate_world_asset_family_sweep",
+          "roblox_plan_batch_visual_gate",
+          "roblox_validate_batch_visual_gate",
+          "roblox_plan_coordinator_merge",
+          "roblox_validate_coordinator_merge",
         ],
       },
       batch_visual_gate: {
@@ -171,8 +171,8 @@ console.log(JSON.stringify({
   loopValidation: loopValidation.passed,
 }, null, 2));
 
-console.log("\n--- plan_project_template ---");
-const templatePlan = JSON.parse(await call("plan_project_template", {
+console.log("\n--- roblox_plan_project_template ---");
+const templatePlan = JSON.parse(await call("roblox_plan_project_template", {
   project: "smoke-game",
   game: "Smoke Game",
   target_place: "SmokeGame.rbxl",
@@ -182,7 +182,7 @@ const templatePlan = JSON.parse(await call("plan_project_template", {
 }));
 assert.equal(templatePlan.schema, "roblox-ai-game-project-template-plan/v1", "MCP project template plan schema");
 assert.ok(templatePlan.files.some((file) => file.path === "asset-brain/v1/manifest.json"), "project template includes asset brain manifest");
-const templateValidation = JSON.parse(await call("validate_project_template", {
+const templateValidation = JSON.parse(await call("roblox_validate_project_template", {
   plan: templatePlan,
   report: {
     schema: "roblox-ai-game-project-template-report/v1",
@@ -199,8 +199,8 @@ const templateValidation = JSON.parse(await call("validate_project_template", {
 assert.equal(templateValidation.passed, false, "MCP template validator requires files to exist when a root is supplied");
 assert.ok(templateValidation.errors.some((error) => error.includes("expected file not written")), "template validator reports missing files");
 
-console.log("\n--- plan_asset_acquisition ---");
-const acquisitionPlan = JSON.parse(await call("plan_asset_acquisition", {
+console.log("\n--- roblox_plan_asset_acquisition ---");
+const acquisitionPlan = JSON.parse(await call("roblox_plan_asset_acquisition", {
   project: "eggbreakers",
   slot: "nursery_grove.dino_fern",
   query: "roblox fern dinosaur nursery",
@@ -212,7 +212,7 @@ assert.equal(acquisitionPlan.schema, "roblox-asset-acquisition-plan/v1", "MCP as
 assert.ok(acquisitionPlan.phases.some((phase) => phase.id === "direct_delivery_parse"), "MCP acquisition includes direct delivery");
 assert.ok(acquisitionPlan.phases.some((phase) => phase.id === "studio_insert_fallback"), "MCP acquisition includes Studio fallback");
 assert.equal(acquisitionPlan.direct_delivery_requests.length, 2, "MCP acquisition includes per-asset delivery requests");
-const deliveryRequest = JSON.parse(await call("plan_asset_delivery", {
+const deliveryRequest = JSON.parse(await call("roblox_plan_asset_delivery", {
   project: "eggbreakers",
   slot: "nursery_grove.dino_fern",
   asset_id: 101,
@@ -246,13 +246,13 @@ const deliveryReceipt = {
   },
   blockers: [],
 };
-const deliveryValidation = JSON.parse(await call("validate_asset_delivery_receipt", {
+const deliveryValidation = JSON.parse(await call("roblox_validate_asset_delivery_receipt", {
   request: deliveryRequest,
   receipt: deliveryReceipt,
   format: "json",
 }));
 assert.equal(deliveryValidation.passed, true, deliveryValidation.errors.join("; "));
-const acquisitionValidation = JSON.parse(await call("validate_asset_acquisition", {
+const acquisitionValidation = JSON.parse(await call("roblox_validate_asset_acquisition", {
   plan: acquisitionPlan,
   report: {
     schema: "roblox-asset-acquisition-report/v1",
@@ -286,8 +286,8 @@ console.log(JSON.stringify({
   acquisitionValidation: acquisitionValidation.passed,
 }, null, 2));
 
-console.log("\n--- plan_headless_assembly ---");
-const headlessJson = JSON.parse(await call("plan_headless_assembly", {
+console.log("\n--- roblox_plan_headless_assembly ---");
+const headlessJson = JSON.parse(await call("roblox_plan_headless_assembly", {
   project: "prophunt",
   target_place: "Place1.rbxl",
   themes: ["underwater reef", "space station"],
@@ -299,7 +299,7 @@ assert.equal(headlessJson.mode, "headless-fragment-fanout", "headless assembly p
 assert.ok(headlessJson.agent_work_packets.some((packet) => packet.fragment_id.includes("lobby_shell")), "headless plan includes lobby packet");
 assert.ok(headlessJson.coordinator_merge_steps.some((step) => step.includes("referents")), "headless plan includes referent merge steps");
 assert.equal(headlessJson.coordinator_merge_plan.schema, "roblox-headless-coordinator-merge-plan/v1", "headless plan includes coordinator merge plan");
-const coordinatorPlan = JSON.parse(await call("plan_coordinator_merge", {
+const coordinatorPlan = JSON.parse(await call("roblox_plan_coordinator_merge", {
   adapter: "rbx_dom",
   place: "work/headless-poc/Place1.headless-working.rbxl",
   out: "work/headless-poc/Place1.rbx-dom.rbxl",
@@ -307,7 +307,7 @@ const coordinatorPlan = JSON.parse(await call("plan_coordinator_merge", {
   format: "json",
 }));
 assert.equal(coordinatorPlan.adapter, "rbx_dom", "MCP coordinator planner supports rbx-dom adapter");
-const coordinatorValidation = JSON.parse(await call("validate_coordinator_merge", {
+const coordinatorValidation = JSON.parse(await call("roblox_validate_coordinator_merge", {
   plan: coordinatorPlan,
   report: {
     schema: "roblox-headless-coordinator-report/v1",
@@ -330,7 +330,7 @@ console.log(JSON.stringify({
   packets: headlessJson.agent_work_packets.map((packet) => packet.fragment_id),
   validation: headlessJson.validation_commands,
 }, null, 2));
-const concertHeadlessJson = JSON.parse(await call("plan_headless_assembly", {
+const concertHeadlessJson = JSON.parse(await call("roblox_plan_headless_assembly", {
   project: "groan-tube-hero",
   target_place: "GroanTubeHero.rbxl",
   themes: ["volcano concert arena"],
@@ -345,8 +345,8 @@ assert.ok(
   "concert profile targets WorldV2"
 );
 
-console.log("\n--- validate_fragment_manifest ---");
-const manifestJson = JSON.parse(await call("validate_fragment_manifest", {
+console.log("\n--- roblox_validate_fragment_manifest ---");
+const manifestJson = JSON.parse(await call("roblox_validate_fragment_manifest", {
   format: "json",
   manifest: {
     version: "roblox-fragment-manifest/v1",
@@ -365,7 +365,7 @@ const manifestJson = JSON.parse(await call("validate_fragment_manifest", {
   },
 }));
 assert.equal(manifestJson.passed, true, "safe manifest passes");
-const badManifestText = await call("validate_fragment_manifest", {
+const badManifestText = await call("roblox_validate_fragment_manifest", {
   manifest: {
     fragment_id: "bad",
     target_parent: "Workspace",
@@ -381,8 +381,8 @@ assert.ok(badManifestText.startsWith("FAIL"), "unsafe manifest fails");
 assert.ok(badManifestText.includes("require(assetId)"), "unsafe manifest reports numeric require");
 console.log(badManifestText.split("\n").slice(0, 5).join("\n"));
 
-console.log("\n--- plan_playable_space_review ---");
-const reviewPlan = JSON.parse(await call("plan_playable_space_review", {
+console.log("\n--- roblox_plan_playable_space_review ---");
+const reviewPlan = JSON.parse(await call("roblox_plan_playable_space_review", {
   project: "prophunt",
   format: "json",
 }));
@@ -392,7 +392,7 @@ console.log(JSON.stringify({
   spaces: reviewPlan.spaces.map((space) => space.id),
   captures: reviewPlan.captures.length,
 }, null, 2));
-const playerAnglePlan = JSON.parse(await call("plan_playable_space_review", {
+const playerAnglePlan = JSON.parse(await call("roblox_plan_playable_space_review", {
   project: "eggbreakers",
   review_mode: "player_angle",
   include_defaults: false,
@@ -402,7 +402,7 @@ const playerAnglePlan = JSON.parse(await call("plan_playable_space_review", {
 assert.equal(playerAnglePlan.review_mode, "player_angle", "MCP plan supports scoped player-angle mode");
 assert.ok(playerAnglePlan.captures.every((shot) => shot.kind === "player_height_quadrant"), "scoped MCP plan only emits player-height shots");
 
-console.log("\n--- validate_playable_space_review ---");
+console.log("\n--- roblox_validate_playable_space_review ---");
 const reviewReport = {
   project: "prophunt",
   spaces_reviewed: reviewPlan.spaces.map((space) => space.id),
@@ -418,13 +418,13 @@ const reviewReport = {
   fixes: [],
   verdict: "signed_off",
 };
-const reviewValidation = JSON.parse(await call("validate_playable_space_review", {
+const reviewValidation = JSON.parse(await call("roblox_validate_playable_space_review", {
   report: reviewReport,
   plan: reviewPlan,
   format: "json",
 }));
 assert.equal(reviewValidation.passed, true, "complete visual report passes");
-const badReviewText = await call("validate_playable_space_review", {
+const badReviewText = await call("roblox_validate_playable_space_review", {
   report: {
     project: "prophunt",
     spaces_reviewed: ["lobby"],
@@ -438,8 +438,8 @@ assert.ok(badReviewText.startsWith("FAIL"), "incomplete visual review fails");
 assert.ok(badReviewText.includes("unresolved blocker"), "visual review reports unresolved blocker");
 console.log(badReviewText.split("\n").slice(0, 7).join("\n"));
 
-console.log("\n--- plan_world_asset_family_sweep ---");
-const familyPlan = JSON.parse(await call("plan_world_asset_family_sweep", {
+console.log("\n--- roblox_plan_world_asset_family_sweep ---");
+const familyPlan = JSON.parse(await call("roblox_plan_world_asset_family_sweep", {
   project: "eggbreakers",
   target_place: "eggBreakers3.rbxl",
   families: [{
@@ -461,7 +461,7 @@ const familyShots = familyPlan.capture_batch.captures.map((shot) => ({
   image_path: shot.expected_image_path,
   passed: true,
 }));
-const familyValidation = JSON.parse(await call("validate_world_asset_family_sweep", {
+const familyValidation = JSON.parse(await call("roblox_validate_world_asset_family_sweep", {
   plan: familyPlan,
   report: {
     schema: "roblox-world-asset-family-sweep-report/v1",
@@ -494,7 +494,7 @@ const familyValidation = JSON.parse(await call("validate_world_asset_family_swee
   format: "json",
 }));
 assert.equal(familyValidation.passed, true, familyValidation.errors.join("; "));
-const badFamilyText = await call("validate_world_asset_family_sweep", {
+const badFamilyText = await call("roblox_validate_world_asset_family_sweep", {
   plan: familyPlan,
   report: {
     schema: "roblox-world-asset-family-sweep-report/v1",
@@ -526,8 +526,8 @@ console.log(JSON.stringify({
   validation: familyValidation.passed,
 }, null, 2));
 
-console.log("\n--- plan_batch_visual_gate ---");
-const batchPlan = JSON.parse(await call("plan_batch_visual_gate", {
+console.log("\n--- roblox_plan_batch_visual_gate ---");
+const batchPlan = JSON.parse(await call("roblox_plan_batch_visual_gate", {
   project: "groan-tube-hero",
   target_place: "GroanTubeHero.rbxl",
   review_mode: "player_angle",
@@ -548,7 +548,7 @@ const batchReport = {
   })),
   verdict: "player_angle_signed_off",
 };
-const batchValidation = JSON.parse(await call("validate_batch_visual_gate", {
+const batchValidation = JSON.parse(await call("roblox_validate_batch_visual_gate", {
   batch_report: batchReport,
   plan: batchPlan,
   format: "json",
@@ -559,17 +559,17 @@ console.log(JSON.stringify({
   serialSteps: batchPlan.agent_call_reduction.serial_studio_steps,
 }, null, 2));
 
-console.log("\n--- curate_assets ---");
+console.log("\n--- roblox_curate_assets ---");
 console.log(
-  (await call("curate_assets", {
+  (await call("roblox_curate_assets", {
     slots: [{ slot: "barrel", query: "medieval barrel" }],
     per_slot: 2,
   })).slice(0, 500)
 );
 
-console.log("\n--- review_asset + palette ---");
-console.log(await call("review_asset", { asset_id: 12345, verdict: "keep", notes: "smoke test", slot: "barrel" }));
-console.log(await call("record_inspection", {
+console.log("\n--- roblox_review_asset + palette ---");
+console.log(await call("roblox_review_asset", { asset_id: 12345, verdict: "keep", notes: "smoke test", slot: "barrel" }));
+console.log(await call("roblox_record_inspection", {
   asset_id: 12345,
   slot: "medieval_market.hideable.barrel",
   size_studs: { x: 2, y: 3, z: 2 },
@@ -583,7 +583,7 @@ console.log(await call("record_inspection", {
   screenshot_verdict: "fix",
   source: "smoke",
 }));
-console.log(await call("record_asset_permission", {
+console.log(await call("roblox_record_asset_permission", {
   asset_id: 12345,
   access: "grantable",
   grantable_by_us: true,
@@ -595,7 +595,7 @@ console.log(await call("record_asset_permission", {
   evidence: ["smoke-dashboard-export", "smoke-save-reopen"],
   source: "smoke",
 }));
-console.log(await call("commit_palette", {
+console.log(await call("roblox_commit_palette", {
   project: "prophunt-smoke",
   slot: "medieval_market.hideable.barrel",
   asset_id: 12345,
@@ -605,7 +605,7 @@ console.log(await call("commit_palette", {
   require_studio_probe: true,
   require_save_reopen: true,
 }));
-console.log(await call("record_inspections", {
+console.log(await call("roblox_record_inspections", {
   inspections: [{
     asset_id: 34567,
     slot: "medieval_market.hideable.crate",
@@ -618,7 +618,7 @@ console.log(await call("record_inspections", {
     source: "smoke-bulk",
   }],
 }));
-console.log(await call("record_asset_permissions", {
+console.log(await call("roblox_record_asset_permissions", {
   permissions: [{
     asset_id: 23456,
     access: "open_use",
@@ -630,7 +630,7 @@ console.log(await call("record_asset_permissions", {
     source: "smoke-bulk-permission",
   }],
 }));
-console.log(await call("commit_palette", {
+console.log(await call("roblox_commit_palette", {
   project: "prophunt-smoke",
   slot: "medieval_market.setpiece.market_stall",
   asset_id: 23456,
@@ -639,7 +639,7 @@ console.log(await call("commit_palette", {
   publish_permission_mode: "grantable_or_open_use",
   require_studio_probe: true,
 }));
-const refusedCommit = await call("commit_palette", {
+const refusedCommit = await call("roblox_commit_palette", {
   project: "prophunt-smoke",
   slot: "medieval_market.hideable.bad_permission",
   asset_id: 99999,
@@ -648,7 +648,7 @@ const refusedCommit = await call("commit_palette", {
   publish_permission_mode: "grantable_only",
 });
 assert.ok(refusedCommit.startsWith("Refused to commit"), "strict palette commit refuses missing permission proof");
-console.log(await call("record_inspection", {
+console.log(await call("roblox_record_inspection", {
   asset_id: 23456,
   slot: "medieval_market.setpiece.market_stall",
   size_studs: { x: 12, y: 8, z: 10 },
@@ -659,22 +659,22 @@ console.log(await call("record_inspection", {
   primary_part: true,
   source: "smoke",
 }));
-console.log(await call("get_palette", { project: "prophunt-smoke" }));
-const permissionJson = JSON.parse(await call("get_asset_permission", {
+console.log(await call("roblox_get_palette", { project: "prophunt-smoke" }));
+const permissionJson = JSON.parse(await call("roblox_get_asset_permission", {
   asset_id: 12345,
   publish_permission_mode: "grantable_only",
   require_studio_probe: true,
   require_save_reopen: true,
 }));
 assert.equal(permissionJson.evaluation.passed, true, "asset permission evaluates as publish-ready");
-const publishGateJson = JSON.parse(await call("validate_publish_permissions", {
+const publishGateJson = JSON.parse(await call("roblox_validate_publish_permissions", {
   project: "prophunt-smoke",
   publish_permission_mode: "grantable_or_open_use",
   require_studio_probe: true,
   format: "json",
 }));
 assert.equal(publishGateJson.passed, true, "palette publish permission gate passes");
-const paletteCurate = await call("curate_assets", {
+const paletteCurate = await call("roblox_curate_assets", {
   project: "prophunt-smoke",
   include_palette: true,
   slots: [{ slot: "medieval_market.hideable.barrel", query: "query that should not be needed for committed palette fallback" }],
@@ -682,7 +682,7 @@ const paletteCurate = await call("curate_assets", {
 });
 assert.ok(paletteCurate.includes("PALETTE:medieval_market.hideable.barrel"), "curate can surface committed palette fallback");
 assert.ok(paletteCurate.includes("diagnostics:"), "curate includes diagnostics");
-const gateText = await call("validate_prop_hunt_gate", {
+const gateText = await call("roblox_validate_prop_hunt_gate", {
   project: "prophunt-smoke",
   min_areas: 1,
   min_hideable_total: 1,
@@ -690,7 +690,7 @@ const gateText = await call("validate_prop_hunt_gate", {
 });
 assert.ok(gateText.startsWith("PASS"), "text gate passes");
 console.log(gateText);
-const gateJson = JSON.parse(await call("validate_prop_hunt_gate", {
+const gateJson = JSON.parse(await call("roblox_validate_prop_hunt_gate", {
   project: "prophunt-smoke",
   min_areas: 1,
   min_hideable_total: 1,
@@ -700,8 +700,8 @@ const gateJson = JSON.parse(await call("validate_prop_hunt_gate", {
 assert.equal(gateJson.passed, true, "json gate passes");
 assert.equal(gateJson.counts.hideable_total, 1, "json gate returns counts");
 
-console.log("\n--- export_asset_brain_snapshot ---");
-const snapshot = JSON.parse(await call("export_asset_brain_snapshot", {
+console.log("\n--- roblox_export_asset_brain_snapshot ---");
+const snapshot = JSON.parse(await call("roblox_export_asset_brain_snapshot", {
   project: "prophunt-smoke",
   include_search_cache: false,
   format: "json",

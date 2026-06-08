@@ -3,6 +3,7 @@ import {
   formatPlayableSpaceReviewValidation,
   validatePlayableSpaceReview,
 } from "./playableSpaceReview.js";
+import { createFindings, passLabel, renderFindings, sealVerdict } from "./proofBundle.js";
 
 const DEFAULT_ADAPTER = "studio_mcp_proxy";
 const ADAPTERS = new Set(["studio_mcp_proxy", "manual_studio_mcp"]);
@@ -197,8 +198,8 @@ export function buildBatchVisualGatePlan({
       verdict: reviewPlan.review_mode === "player_angle" ? "not_signed_off" : "not_signed_off",
     },
     validation: {
-      mcp_tool: "validate_batch_visual_gate",
-      rule: "The batch only passes when active-place preflight passes, every planned screenshot has an image path, and validate_playable_space_review passes.",
+      mcp_tool: "roblox_validate_batch_visual_gate",
+      rule: "The batch only passes when active-place preflight passes, every planned screenshot has an image path, and roblox_validate_playable_space_review passes.",
     },
   };
 }
@@ -214,8 +215,8 @@ function normalizeScreenshotResult(value) {
 }
 
 export function validateBatchVisualGateReport(batchReport, plan) {
-  const errors = [];
-  const warnings = [];
+  const findings = createFindings();
+  const { errors, warnings } = findings;
   const raw = batchReport && typeof batchReport === "object" && !Array.isArray(batchReport)
     ? batchReport
     : null;
@@ -250,17 +251,14 @@ export function validateBatchVisualGateReport(batchReport, plan) {
   for (const error of playable.errors) errors.push(error);
   for (const warning of playable.warnings) warnings.push(warning);
 
-  return {
-    passed: errors.length === 0,
-    errors,
-    warnings,
-    playable_space: playable,
+  return sealVerdict(findings, {
+    fields: { playable_space: playable },
     counts: {
       planned_captures: plannedIds.size,
       screenshots: screenshots.length,
       findings: Array.isArray(reviewReport.findings) ? reviewReport.findings.length : 0,
     },
-  };
+  });
 }
 
 export function formatBatchVisualGatePlan(plan) {
@@ -289,10 +287,11 @@ export function formatBatchVisualGatePlan(plan) {
 }
 
 export function formatBatchVisualGateValidation(result) {
-  const lines = [result.passed ? "PASS batch visual gate" : "FAIL batch visual gate"];
-  lines.push(`captures=${result.counts?.screenshots || 0}/${result.counts?.planned_captures || 0} findings=${result.counts?.findings || 0}`);
-  for (const error of result.errors || []) lines.push(`ERROR: ${error}`);
-  for (const warning of result.warnings || []) lines.push(`WARN: ${warning}`);
+  const lines = [
+    `${passLabel(result.passed)} batch visual gate`,
+    `captures=${result.counts?.screenshots || 0}/${result.counts?.planned_captures || 0} findings=${result.counts?.findings || 0}`,
+  ];
+  lines.push(...renderFindings(result, { style: "inline" }));
   if (result.playable_space) {
     lines.push("");
     lines.push(formatPlayableSpaceReviewValidation(result.playable_space));

@@ -53,20 +53,33 @@ async function mapLimit(items, limit, fn) {
   return results;
 }
 
-async function fetchJson(url, timeoutMs) {
+// Distinguish "the API answered with no results" from "the request failed".
+// Swallowing failures here used to poison the 24h shared cache with false
+// empty results during outages/rate limiting.
+async function fetchJson(url, timeoutMs, fetchImpl = fetch) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, {
+    const res = await fetchImpl(url, {
       signal: controller.signal,
       headers: { accept: "application/json" },
     });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
+    if (!res.ok) return { ok: false, status: res.status, error: `HTTP ${res.status}` };
+    return { ok: true, data: await res.json() };
+  } catch (error) {
+    const aborted = error?.name === "AbortError";
+    return { ok: false, status: null, error: aborted ? `timeout after ${timeoutMs}ms` : (error?.message || "network error") };
   } finally {
     clearTimeout(timer);
+  }
+}
+
+/** Error thrown when EVERY category/variant fetch failed (do not cache!). */
+export class ToolboxSearchError extends Error {
+  constructor(message, failures) {
+    super(message);
+    this.name = "ToolboxSearchError";
+    this.failures = failures;
   }
 }
 
@@ -125,7 +138,7 @@ export function normalizeAsset(category, item) {
 }
 
 /** Search one query across the given categories in parallel. */
-async function fetchOneQuery(query, categories, verifiedOnly, pageSize, timeoutMs) {
+async function fetchOneQuery(query, categories, verifiedOnly, pageSize, timeoutMs, fetchImpl) {
   const perCategory = await mapLimit(categories, 8, async (category) => {
     const params = new URLSearchParams({
       searchCategoryType: category,
@@ -135,11 +148,16 @@ async function fetchOneQuery(query, categories, verifiedOnly, pageSize, timeoutM
       sortCategory: "Relevance",
     });
     if (verifiedOnly) params.set("includeOnlyVerifiedCreators", "true");
-    const data = await fetchJson(`${TOOLBOX_URL}?${params.toString()}`, timeoutMs);
-    const assets = (data && data.creatorStoreAssets) || [];
-    return assets.map((item) => normalizeAsset(category, item)).filter(Boolean);
+    const result = await fetchJson(`${TOOLBOX_URL}?${params.toString()}`, timeoutMs, fetchImpl);
+    if (!result.ok) return { assets: [], failure: { query, category, error: result.error, status: result.status } };
+    const assets = (result.data && result.data.creatorStoreAssets) || [];
+    return { assets: assets.map((item) => normalizeAsset(category, item)).filter(Boolean), failure: null };
   });
-  return perCategory.flat();
+  return {
+    assets: perCategory.flatMap((r) => r.assets),
+    failures: perCategory.map((r) => r.failure).filter(Boolean),
+    attempts: categories.length,
+  };
 }
 
 /**
@@ -151,7 +169,9 @@ async function fetchOneQuery(query, categories, verifiedOnly, pageSize, timeoutM
  * @param {number}   [opts.maxResults]
  * @param {boolean}  [opts.extensive]  expand the query into variants
  * @param {number}   [opts.timeoutMs]
- * @returns {Promise<object[]>} ranked assets
+ * @param {Function} [opts.fetchImpl]  injectable fetch for tests
+ * @returns {Promise<{assets: object[], meta: {attempts: number, failures: object[]}}>}
+ * @throws {ToolboxSearchError} when EVERY fetch failed (network/API outage)
  */
 export async function searchAssets(opts) {
   const query = String(opts.query || "").trim();
@@ -167,16 +187,27 @@ export async function searchAssets(opts) {
   const queries = extensive ? expandQuery(query) : [query];
 
   const perQuery = await mapLimit(queries, 4, (q) =>
-    fetchOneQuery(q, categories, verifiedOnly, maxResults, timeoutMs)
+    fetchOneQuery(q, categories, verifiedOnly, maxResults, timeoutMs, opts.fetchImpl)
   );
+
+  const failures = perQuery.flatMap((r) => r.failures);
+  const attempts = perQuery.reduce((sum, r) => sum + r.attempts, 0);
+  if (attempts > 0 && failures.length >= attempts) {
+    const sample = failures.slice(0, 3).map((f) => `${f.category}: ${f.error}`).join("; ");
+    throw new ToolboxSearchError(
+      `Creator Store search failed for '${query}' — all ${attempts} fetches failed (${sample}). ` +
+      "This is an API/network failure, NOT an empty result. Retry shortly; nothing was cached.",
+      failures
+    );
+  }
 
   // Merge + de-dup by asset id, keeping the highest-scoring occurrence.
   const byId = new Map();
-  for (const asset of perQuery.flat()) {
+  for (const asset of perQuery.flatMap((r) => r.assets)) {
     const existing = byId.get(asset.id);
     if (!existing || asset.score > existing.score) byId.set(asset.id, asset);
   }
 
   const ranked = [...byId.values()].sort((a, b) => b.score - a.score);
-  return ranked.slice(0, maxResults);
+  return { assets: ranked.slice(0, maxResults), meta: { attempts, failures } };
 }

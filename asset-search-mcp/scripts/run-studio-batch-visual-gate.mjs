@@ -68,7 +68,7 @@ function usage() {
   return `Usage: node scripts/run-studio-batch-visual-gate.mjs --plan batch-plan.json [options]
 
 Options:
-  --plan <path>          JSON plan from plan_batch_visual_gate(format='json')
+  --plan <path>          JSON plan from roblox_plan_batch_visual_gate(format='json')
   --out <path>           Batch report path (default: <artifact_root>/batch-report.json)
   --active-place <name>  Mock active Studio place name (default: plan target_place)
   --place-id <id>        Mock place id

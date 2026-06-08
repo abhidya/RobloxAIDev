@@ -50,8 +50,8 @@ Repo evidence:
 
 **Interface**
 
-- `search_assets`, `curate_assets`, `claim_assets`, `review_asset`,
-  `record_inspection`, `commit_palette`, `export_asset_brain_snapshot`
+- `roblox_search_assets`, `roblox_curate_assets`, `roblox_claim_assets`, `roblox_review_asset`,
+  `roblox_record_inspection`, `roblox_commit_palette`, `roblox_export_asset_brain_snapshot`
 - `scripts/merge_asset_brain_sources.mjs`
 - `asset-brain/v1/manifest.json`
 
@@ -77,11 +77,11 @@ rejections, missing permission proof, and cross-project memory drift.
 
 **Interface**
 
-- `plan_headless_assembly`
-- `validate_fragment_manifest`
+- `roblox_plan_headless_assembly`
+- `roblox_validate_fragment_manifest`
 - `scripts/headless_fragment_merge.luau`
-- `plan_coordinator_merge`
-- `validate_coordinator_merge`
+- `roblox_plan_coordinator_merge`
+- `roblox_validate_coordinator_merge`
 - `asset-search-mcp/scripts/run-headless-coordinator.mjs`
 
 **Implementation**
@@ -110,15 +110,18 @@ gate plans and Studio MCP execution.
 
 **Interface**
 
-- `plan_playable_space_review`
-- `validate_playable_space_review`
-- `plan_batch_visual_gate`
-- `validate_batch_visual_gate`
+- `roblox_plan_playable_space_review`
+- `roblox_validate_playable_space_review`
+- `roblox_plan_batch_visual_gate`
+- `roblox_validate_batch_visual_gate`
 
 **Implementation**
 
 - MCP-visible plans that produce camera queues and validation contracts
-- A mockable StudioMCP adapter CLI that executes `studio_mcp_steps` serially
+- One shared Studio capture driver (`runStudioCaptureBatch` /
+  `runMockStudioCaptureBatch` in `studioMcpAdapterCore.js`) that owns the
+  select → preflight → serial `studio_mcp_steps` loop; the batch visual gate and
+  world asset-family sweep adapters sit behind it and only shape their reports
 - Batch reports that include active-place proof, screenshots, alt text,
   findings, fixes, and verdict
 
@@ -136,10 +139,10 @@ prompt.
 
 **Interface**
 
-- `plan_ai_game_dev_loop`
-- `validate_ai_game_dev_loop`
-- `plan_asset_delivery`
-- `validate_asset_delivery_receipt`
+- `roblox_plan_ai_game_dev_loop`
+- `roblox_validate_ai_game_dev_loop`
+- `roblox_plan_asset_delivery`
+- `roblox_validate_asset_delivery_receipt`
 - `asset-search-mcp/scripts/run-asset-delivery.mjs`
 - `docs/e2e-roblox-ai-game-design-loop.md`
 
@@ -192,9 +195,9 @@ through ad hoc chat instructions.
 
 **Interface**
 
-- `plan_world_asset_family_sweep`
-- `validate_world_asset_family_sweep`
-- `record_inspection` world placement metadata
+- `roblox_plan_world_asset_family_sweep`
+- `roblox_validate_world_asset_family_sweep`
+- `roblox_record_inspection` world placement metadata
 
 **Implementation**
 
@@ -224,8 +227,8 @@ spread across screenshots, chat notes, and informal Studio edits.
 
 **Interface**
 
-- `plan_project_template`
-- `validate_project_template`
+- `roblox_plan_project_template`
+- `roblox_validate_project_template`
 - `asset-search-mcp/scripts/generate-project-template.mjs`
 
 **Implementation**
@@ -283,7 +286,7 @@ contract tests instead of being re-created across every generated Roblox game.
    - Output: `docs/brief.md` or a project-specific brief.
 
 2. **Asset brain planning**
-   - Run `plan_game_asset_coverage` and `preprocess_storyboard_asset_cache`.
+   - Run `roblox_plan_game_asset_coverage` and `roblox_preprocess_storyboard_asset_cache`.
    - Merge existing brain sources with `node scripts/merge_asset_brain_sources.mjs`.
    - Output: coverage slots, dream queues, known rejected/accepted assets.
 
@@ -305,9 +308,9 @@ contract tests instead of being re-created across every generated Roblox game.
    - Output: candidate place and proof that file writes work without Studio.
 
 6. **Batch Studio proof**
-   - Plan the capture batch with `plan_batch_visual_gate`.
+   - Plan the capture batch with `roblox_plan_batch_visual_gate`.
    - Adapter verifies active Studio place, then captures every planned view.
-   - Validate the collated report with `validate_batch_visual_gate`.
+   - Validate the collated report with `roblox_validate_batch_visual_gate`.
    - Output: proof bundle and blocker list.
 
 7. **Repair loop**
@@ -338,7 +341,7 @@ contract tests instead of being re-created across every generated Roblox game.
   manifests and proof reports, not raw mental state.
 - **Keep identity coordinator-owned.** Fragment agents do not own referents,
   parent assignment, `UniqueId`, or `HistoryId`.
-- **Make Studio adapters replaceable.** `plan_batch_visual_gate` returns a
+- **Make Studio adapters replaceable.** `roblox_plan_batch_visual_gate` returns a
   wrapper contract that can be executed manually, by the official Studio MCP, or
   by a future proxy.
 - **Keep prompt lanes narrow.** The asset curator does not build files. The
@@ -353,11 +356,11 @@ from making the seams executable and smaller.
 
 | Finding | Why It Matters | Hardening Step |
 | --- | --- | --- |
-| Planning/visual and policy tool registration has been split out of `index.js` | A change to visual gates, headless contracts, e2e planning, or release policy should not collide with asset memory transport boot | Keep `asset-search-mcp/src/mcpTools/planningTools.js` and `asset-search-mcp/src/mcpTools/policyTools.js` focused; move remaining asset-memory tools only when a clear cluster is ready |
+| Planning/visual and policy tool registration has been split out of `index.js` and the clusters register through one shared `mcpTools/registry.js` (response envelope, annotation presets, format selector, registrar) | A change to visual gates, headless contracts, e2e planning, or release policy should not collide with asset memory transport boot, and result/error shapes should not drift between clusters | Keep `asset-search-mcp/src/mcpTools/planningTools.js` and `asset-search-mcp/src/mcpTools/policyTools.js` focused; register new tools through `registry.js`; move remaining asset-memory tools only when a clear cluster is ready |
 | Publish policy is separated from persistence | JSON IO, reviews, claims, publish permissions, palettes, and inspection memory change for different reasons | Keep atomic persistence in `store.js`; keep release-readiness rules in `asset-search-mcp/src/publishPolicy.js` and MCP policy wiring in `mcpTools/policyTools.js` |
 | Batch visual gate has mock and stdio Studio MCP executors | It reduces agent churn only if something can consume the packet and return a collated proof bundle | Keep `run-studio-batch-visual-gate.mjs` preserving one artifact contract across mock, fake-MCP, and live Studio MCP transports |
 | Fragment manifest aliases have canonical fixtures | Alias tolerance helps migration but can hide drift between JS validators and Luau writers | Keep `asset-search-mcp/fixtures/fragment-manifests` and `test:fragment-fixtures` as the cross-writer schema guard |
-| Authenticated Asset Delivery has an executable adapter | Search, permission proof, delivery, Studio fallback, quarantine, manifests, and screenshots can otherwise drift across agents | Use `plan_asset_delivery`, `run-asset-delivery.mjs`, `validate_asset_delivery_receipt`, then `validate_asset_acquisition` before promoting delivered assets into palettes |
+| Authenticated Asset Delivery has an executable adapter | Search, permission proof, delivery, Studio fallback, quarantine, manifests, and screenshots can otherwise drift across agents | Use `roblox_plan_asset_delivery`, `run-asset-delivery.mjs`, `roblox_validate_asset_delivery_receipt`, then `roblox_validate_asset_acquisition` before promoting delivered assets into palettes |
 | Operator handoff must live in files | Chat-only workflow memory gets lost across agents and sessions | Keep `prompts/*.md` and test them with `test:prompt-contracts` |
 
 ## POC Matrix
@@ -367,17 +370,17 @@ from making the seams executable and smaller.
 | Cross-project asset memory can be canonicalized | `node scripts/merge_asset_brain_sources.mjs` and `npm --prefix asset-search-mcp run test:asset-brain` | `asset-brain/v1/manifest.json`, `asset-brain/v1/indexes/merged-project-assets.ndjson` |
 | Roblox files can be created/mutated outside Studio | `lune run scripts/headless_place_insert_poc.luau` and `lune run scripts/headless_place_verify_poc.luau` | ignored files under `work/headless-poc/`, console `HEADLESS_*_OK` |
 | Fragment fan-in can be coordinator-gated | `lune run scripts/headless_fragment_merge.luau ...` | manifest digest validation and reload of merged place |
-| Production coordinator adapter seam exists | `npm --prefix asset-search-mcp run test:coordinator-adapter` | `plan_coordinator_merge`, `validate_coordinator_merge`, Lune adapter command, fake rbx-dom external command adapter |
-| JS-generated and Luau-emitted fragment manifests normalize through one schema | `npm --prefix asset-search-mcp run test:fragment-fixtures` | `asset-search-mcp/fixtures/fragment-manifests/*.json` and `validate_fragment_manifest` |
-| Authenticated asset delivery writes quarantine bytes and redacted receipts | `npm --prefix asset-search-mcp run test:asset-delivery` | `plan_asset_delivery`, `run-asset-delivery.mjs`, `validate_asset_delivery_receipt`, local fake Asset Delivery server |
-| Asset acquisition is a gated seam | `npm --prefix asset-search-mcp run test:asset-acquisition` and `npm --prefix asset-search-mcp run test:smoke` | `plan_asset_acquisition`, `validate_asset_acquisition`, delivery receipts, quarantine metadata, and metadata-only asset-brain checks |
-| World asset-family orientation and placement fixes are contract-gated | `npm --prefix asset-search-mcp run test:world-asset-family`, `npm --prefix asset-search-mcp run test:studio-world-family-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `plan_world_asset_family_sweep`, `validate_world_asset_family_sweep`, `run-studio-world-asset-family-sweep.mjs`, clean-clone/live screenshot requirements, propagation and temp-cleanup checks |
-| Studio proof can be batched and adapter-consumed | `npm --prefix asset-search-mcp run test:offline`, `npm --prefix asset-search-mcp run test:studio-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `plan_batch_visual_gate`, mock transport, fake Studio MCP stdio transport, `run-studio-batch-visual-gate.mjs`, and `validate_batch_visual_gate` coverage |
+| Production coordinator adapter seam exists | `npm --prefix asset-search-mcp run test:coordinator-adapter` | `roblox_plan_coordinator_merge`, `roblox_validate_coordinator_merge`, Lune adapter command, fake rbx-dom external command adapter |
+| JS-generated and Luau-emitted fragment manifests normalize through one schema | `npm --prefix asset-search-mcp run test:fragment-fixtures` | `asset-search-mcp/fixtures/fragment-manifests/*.json` and `roblox_validate_fragment_manifest` |
+| Authenticated asset delivery writes quarantine bytes and redacted receipts | `npm --prefix asset-search-mcp run test:asset-delivery` | `roblox_plan_asset_delivery`, `run-asset-delivery.mjs`, `roblox_validate_asset_delivery_receipt`, local fake Asset Delivery server |
+| Asset acquisition is a gated seam | `npm --prefix asset-search-mcp run test:asset-acquisition` and `npm --prefix asset-search-mcp run test:smoke` | `roblox_plan_asset_acquisition`, `roblox_validate_asset_acquisition`, delivery receipts, quarantine metadata, and metadata-only asset-brain checks |
+| World asset-family orientation and placement fixes are contract-gated | `npm --prefix asset-search-mcp run test:world-asset-family`, `npm --prefix asset-search-mcp run test:studio-world-family-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `roblox_plan_world_asset_family_sweep`, `roblox_validate_world_asset_family_sweep`, `run-studio-world-asset-family-sweep.mjs`, clean-clone/live screenshot requirements, propagation and temp-cleanup checks |
+| Studio proof can be batched and adapter-consumed | `npm --prefix asset-search-mcp run test:offline`, `npm --prefix asset-search-mcp run test:studio-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `roblox_plan_batch_visual_gate`, mock transport, fake Studio MCP stdio transport, `run-studio-batch-visual-gate.mjs`, and `roblox_validate_batch_visual_gate` coverage |
 | Prompts/docs stay present and aligned | `npm --prefix asset-search-mcp run test:prompt-contracts` | prompt and architecture contract test |
 | The full proposed loop has fresh local evidence | `node scripts/run_ai_game_dev_pocs.mjs` | `docs/poc-results/ai-game-dev-poc-latest.json` |
 | Source-game libraries can be converted into reusable module families | `node scripts/inventory_reusable_game_libraries.mjs` and `npm --prefix asset-search-mcp run test:game-kit` | `packages/roblox-game-kit/module-catalog.json`, `packages/roblox-game-kit/inventory/source-library-inventory.json` |
-| New game skeletons can be generated with gates prewired | `npm --prefix asset-search-mcp run test:project-template` | `plan_project_template`, `generate-project-template.mjs`, `validate_project_template` |
-| The e2e game-design loop is a custom MCP contract | `npm --prefix asset-search-mcp run test:offline`, `npm --prefix asset-search-mcp run test:studio-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `plan_ai_game_dev_loop`, `validate_ai_game_dev_loop`, `docs/e2e-roblox-ai-game-design-loop.md` |
+| New game skeletons can be generated with gates prewired | `npm --prefix asset-search-mcp run test:project-template` | `roblox_plan_project_template`, `generate-project-template.mjs`, `roblox_validate_project_template` |
+| The e2e game-design loop is a custom MCP contract | `npm --prefix asset-search-mcp run test:offline`, `npm --prefix asset-search-mcp run test:studio-adapter`, and `npm --prefix asset-search-mcp run test:smoke` | `roblox_plan_ai_game_dev_loop`, `roblox_validate_ai_game_dev_loop`, `docs/e2e-roblox-ai-game-design-loop.md` |
 
 ## Open Risks
 
@@ -394,6 +397,25 @@ from making the seams executable and smaller.
   asset curation, headless generation, Studio screenshots, and loop validation.
 - Studio screenshot quality still depends on camera occlusion, lighting, and the
   correct active Studio instance.
+
+## Implemented Deepenings (2026-06-08)
+
+An architecture review found five shallow seams where an interface was nearly as
+complex as its implementation, or where the same shape was copy-pasted across
+modules. Each was deepened so behavior, tests, and bugs concentrate in one place.
+All are covered by tests in `asset-search-mcp/test/`.
+
+| Deepening | Module | Before (shallow) | After (deep) | Test |
+| --- | --- | --- | --- |
+| Proof-bundle envelope and rendering | `src/proofBundle.js` | Eight gate validators each re-declared `errors`/`warnings`, recomputed `passed`/`counts`, and copy-pasted the `PASS`/`FAIL` + findings render in two dialects | One module owns the findings accumulator, the verdict seal, and both render dialects (`bullets` for the `*-validation/v1` family, `inline` for the studio gate family); each gate supplies only its domain checks | `test:proof-bundle` |
+| Studio capture driver | `src/studioMcpAdapterCore.js` | A thin utility bag plus the connect → select → preflight → serial-capture loop copy-pasted between the batch visual gate adapter and the world asset-family sweep adapter (live and mock) | `runStudioCaptureBatch` / `runMockStudioCaptureBatch` own the capture loop behind one interface; the two adapters keep only their report shaping | `test:studio-core` |
+| Tool registry | `src/mcpTools/registry.js` | `index.js` defined `text`/`result`/`errorText` and the annotation presets, threaded them into every cluster, and two clusters redefined a `tool()` helper; the format selector was repeated ~19 times and one error used a raw `isError` object | One registry owns the response envelope, annotation presets, the `rendered()` format selector, and the registrar factory; clusters import one seam and `index.js` passes only real dependencies (`store`) | `test:tool-registration` |
+| Asset delivery credential seam | `src/assetDelivery.js` | `resolveAssetDeliveryAuth` was exported and returned a live `headers` object, so a caller could read or log the credential | The credential is sealed in a closure (`apply(headers)`); only the redacted receipt crosses the seam, and the live-headers resolver is no longer part of the interface | `test:asset-delivery` |
+| Project-template on-disk verify seam | `src/projectTemplate.js` | `validateProjectTemplateReport` mixed report-shape checks with filesystem reads, so a failure could not be attributed to a layer and the validator could not run without disk | The filesystem check is an injectable seam (`verifyOnDisk`, default `verifyTemplateFilesOnDisk`); report-shape validation runs without disk and disk failures pin to the materialize layer | `test:project-template` |
+
+The persistence pair (`src/dal/` + `src/store.js`) was already deep — one small
+`Store` interface, all SQLite hidden behind six DAOs, a real storage seam — and
+served as the model these five were brought up to.
 
 ## Next Deepening Candidates
 

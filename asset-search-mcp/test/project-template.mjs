@@ -42,11 +42,11 @@ try {
   assert.equal(plan.schema, "roblox-ai-game-project-template-plan/v1");
   assert.equal(plan.project, "dino-dash");
   assert.ok(plan.files.some((file) => file.path === "asset-brain/v1/manifest.json"), "plan includes asset brain manifest");
-  assert.ok(plan.gates.includes("plan_asset_delivery"), "plan includes asset delivery gate");
-  assert.ok(plan.gates.includes("plan_coordinator_merge"), "plan includes coordinator gate");
-  assert.ok(plan.gates.includes("validate_project_template"), "plan includes template self-validation gate");
-  assert.ok(plan.gates.includes("validate_world_asset_family_sweep"), "plan includes world asset-family gate");
-  assert.ok(plan.gates.includes("plan_batch_visual_gate"), "plan includes Studio visual gate");
+  assert.ok(plan.gates.includes("roblox_plan_asset_delivery"), "plan includes asset delivery gate");
+  assert.ok(plan.gates.includes("roblox_plan_coordinator_merge"), "plan includes coordinator gate");
+  assert.ok(plan.gates.includes("roblox_validate_project_template"), "plan includes template self-validation gate");
+  assert.ok(plan.gates.includes("roblox_validate_world_asset_family_sweep"), "plan includes world asset-family gate");
+  assert.ok(plan.gates.includes("roblox_plan_batch_visual_gate"), "plan includes Studio visual gate");
 
   const publicPlan = publicProjectTemplatePlan(plan);
   assert.equal(publicPlan._contents, undefined, "public plan hides file contents");
@@ -72,6 +72,17 @@ try {
   assert.equal(badValidation.passed, false, "missing planned files fail validation");
   assert.ok(badValidation.errors.some((error) => error.includes("README.md")), "missing README error is explicit");
 
+  // On-disk verification is an injectable seam: report-shape validation runs
+  // without touching the filesystem, and an injected disk failure pins to that
+  // layer instead of the report-shape checks.
+  const pureValidation = await validateProjectTemplateReport(report, plan, { verifyOnDisk: () => [] });
+  assert.equal(pureValidation.passed, true, "report-shape validation passes without touching the filesystem");
+  const diskFail = await validateProjectTemplateReport(report, plan, {
+    verifyOnDisk: () => ["expected file not written: README.md"],
+  });
+  assert.equal(diskFail.passed, false, "injected on-disk failure flows into the verdict");
+  assert.ok(diskFail.errors.some((error) => error.includes("README.md")), "on-disk failure is attributable to the materialize layer");
+
   const cliRoot = path.join(tempDir, "cli-game");
   const cli = await runNode([
     path.join(root, "scripts", "generate-project-template.mjs"),
@@ -91,7 +102,7 @@ try {
   const cliResult = JSON.parse(cli.stdout);
   assert.equal(cliResult.schema, "roblox-ai-game-project-template-run/v1");
   assert.equal(cliResult.validation.passed, true, cliResult.validation.errors.join("; "));
-  assert.ok((await fs.readFile(path.join(cliRoot, "docs/e2e-loop.md"), "utf8")).includes("validate_ai_game_dev_loop"));
+  assert.ok((await fs.readFile(path.join(cliRoot, "docs/e2e-loop.md"), "utf8")).includes("roblox_validate_ai_game_dev_loop"));
 } finally {
   await fs.rm(tempDir, { recursive: true, force: true });
 }

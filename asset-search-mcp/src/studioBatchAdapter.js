@@ -1,14 +1,9 @@
 import {
   asObject,
-  callStudioTool,
   connectStudioMcp,
-  expectedPlaceMatches,
-  maybeSelectStudio,
-  normalizePreflightPayload,
-  preflightPassedFromPayload,
   responseJson,
-  toolArgsForStep,
-  writeImageContent,
+  runMockStudioCaptureBatch,
+  runStudioCaptureBatch,
 } from "./studioMcpAdapterCore.js";
 import { validateBatchVisualGateReport } from "./visualBatchGate.js";
 
@@ -44,6 +39,8 @@ function normalizeCaptureResult(capture, passed) {
   };
 }
 
+// A null response (mock transport) folds back to the contract default, so live
+// and mock captures share one normalizer.
 function normalizeLiveScreenshot(capture, response, passed) {
   const payload = responseJson(response);
   const contract = normalizeCaptureResult(capture, passed);
@@ -56,6 +53,42 @@ function normalizeLiveScreenshot(capture, response, passed) {
   };
 }
 
+function screenshotsFromRun(run) {
+  return run.captures.map(({ capture, response, passed }) => normalizeLiveScreenshot(capture, response, passed));
+}
+
+function buildBatchReport(visualPlan, { preflight, screenshots, transport }) {
+  return {
+    ...asObject(visualPlan.report_template),
+    project: visualPlan.project,
+    target_place: visualPlan.target_place,
+    active_place: {
+      name: preflight.placeName,
+      placeId: preflight.placeId,
+      transport,
+    },
+    preflight,
+    review_mode: visualPlan.review_mode,
+    spaces_reviewed: Object.keys(visualPlan.review_plan?.required_by_space || {}),
+    screenshots,
+    findings: [],
+    fixes: [],
+    verdict: signedOffVerdict(visualPlan, preflight.passed && screenshots.every((shot) => shot.passed !== false)),
+  };
+}
+
+function batchResultEnvelope(visualPlan, transport, report, executionLog, validation) {
+  return {
+    schema: "roblox-studio-batch-adapter-result/v1",
+    adapter: visualPlan.adapter || "studio_mcp_proxy",
+    transport,
+    artifact_root: visualPlan.artifact_root,
+    report,
+    execution_log: executionLog,
+    validation,
+  };
+}
+
 export async function executeStudioMcpBatchVisualGate(plan, {
   command = "/Applications/RobloxStudio.app/Contents/MacOS/StudioMCP",
   args = [],
@@ -65,115 +98,27 @@ export async function executeStudioMcpBatchVisualGate(plan, {
   studioName,
 } = {}) {
   const visualPlan = asObject(plan);
-  const expectedNames = visualPlan.studio_preflight?.expected_place_names || [];
-  const executionLog = [];
-  const screenshots = [];
   const client = await connectStudioMcp({ command, args });
   try {
-    const selection = await maybeSelectStudio(client, { studioId, studioName });
-    if (selection) {
-      executionLog.push({
-        sequence: executionLog.length,
-        tool: "set_active_studio",
-        purpose: "Select the requested Studio instance before preflight.",
-        ok: selection.selected === true,
-        result: selection,
-      });
-    }
-
-    let preflightPayload = {};
-    try {
-      const preflightResponse = await callStudioTool(client, visualPlan.studio_preflight?.studio_mcp_tool || "execute_luau", {
-        code: visualPlan.studio_preflight?.code || "",
-      });
-      preflightPayload = responseJson(preflightResponse);
-      executionLog.push({
-        sequence: executionLog.length,
-        tool: visualPlan.studio_preflight?.studio_mcp_tool || "execute_luau",
-        purpose: "Active-place preflight.",
-        ok: preflightPassedFromPayload(preflightPayload),
-        result: preflightPayload,
-      });
-    } catch (error) {
-      preflightPayload = { ok: false, error: error.message };
-      executionLog.push({
-        sequence: executionLog.length,
-        tool: visualPlan.studio_preflight?.studio_mcp_tool || "execute_luau",
-        purpose: "Active-place preflight.",
-        ok: false,
-        error: error.message,
-      });
-    }
-
-    const preflight = normalizePreflightPayload(preflightPayload, {
-      placeName: activePlaceName || visualPlan.target_place || "Unknown",
+    const run = await runStudioCaptureBatch(client, visualPlan, {
+      activePlaceName,
       placeId,
-      expectedPlaceNames: expectedNames,
+      studioId,
+      studioName,
       transport: "studio_mcp_stdio",
     });
-
-    if (preflight.passed) {
-      for (const capture of visualPlan.capture_batch?.captures || []) {
-        let capturePassed = true;
-        let captureResponse = null;
-        for (const step of capture.studio_mcp_steps || []) {
-          try {
-            const response = await callStudioTool(client, step.tool, toolArgsForStep(step));
-            executionLog.push({
-              sequence: executionLog.length,
-              capture_id: capture.capture_id,
-              tool: step.tool,
-              purpose: step.purpose,
-              ok: true,
-              result: responseJson(response),
-            });
-            if (step.tool === "screen_capture") {
-              await writeImageContent(response, capture.expected_image_path);
-              captureResponse = response;
-            }
-          } catch (error) {
-            capturePassed = false;
-            executionLog.push({
-              sequence: executionLog.length,
-              capture_id: capture.capture_id,
-              tool: step.tool,
-              purpose: step.purpose,
-              ok: false,
-              error: error.message,
-            });
-          }
-        }
-        screenshots.push(normalizeLiveScreenshot(capture, captureResponse, capturePassed));
-      }
-    }
-
-    const report = {
-      ...asObject(visualPlan.report_template),
-      project: visualPlan.project,
-      target_place: visualPlan.target_place,
-      active_place: {
-        name: preflight.placeName,
-        placeId: preflight.placeId,
-        transport: "studio_mcp_stdio",
-      },
-      preflight,
-      review_mode: visualPlan.review_mode,
-      spaces_reviewed: Object.keys(visualPlan.review_plan?.required_by_space || {}),
-      screenshots,
-      findings: [],
-      fixes: [],
-      verdict: signedOffVerdict(visualPlan, preflight.passed && screenshots.every((shot) => shot.passed !== false)),
-    };
-    const validation = validateBatchVisualGateReport(report, visualPlan);
-    return {
-      schema: "roblox-studio-batch-adapter-result/v1",
-      adapter: visualPlan.adapter || "studio_mcp_proxy",
+    const report = buildBatchReport(visualPlan, {
+      preflight: run.preflight,
+      screenshots: screenshotsFromRun(run),
       transport: "studio_mcp_stdio",
-      artifact_root: visualPlan.artifact_root,
+    });
+    return batchResultEnvelope(
+      visualPlan,
+      "studio_mcp_stdio",
       report,
-      execution_log: executionLog,
-      validation,
-    };
+      run.executionLog,
+      validateBatchVisualGateReport(report, visualPlan),
+    );
   } finally {
     await client.close?.();
   }
@@ -185,78 +130,19 @@ export function executeMockStudioBatchVisualGate(plan, {
   failCaptures = [],
 } = {}) {
   const visualPlan = asObject(plan);
-  const expectedNames = visualPlan.studio_preflight?.expected_place_names || [];
-  const placeName = activePlaceName || visualPlan.target_place || "MockPlace.rbxl";
-  const preflightPassed = expectedPlaceMatches(placeName, expectedNames);
-  const failedCaptureIds = new Set(failCaptures);
-  const captures = visualPlan.capture_batch?.captures || [];
-  const executionLog = [];
-
-  executionLog.push({
-    sequence: 0,
-    tool: visualPlan.studio_preflight?.studio_mcp_tool || "execute_luau",
-    purpose: "Active-place preflight.",
-    ok: preflightPassed,
-    result: {
-      placeName,
-      placeId,
-      expectedPlaceNames: expectedNames,
-    },
-  });
-
-  const screenshots = [];
-  if (preflightPassed) {
-    for (const capture of captures) {
-      const failed = failedCaptureIds.has(capture.capture_id);
-      for (const step of capture.studio_mcp_steps || []) {
-        executionLog.push({
-          sequence: executionLog.length,
-          capture_id: capture.capture_id,
-          tool: step.tool,
-          purpose: step.purpose,
-          ok: !failed,
-          suggested_output_path: step.suggested_output_path || null,
-        });
-      }
-      screenshots.push(normalizeCaptureResult(capture, !failed));
-    }
-  }
-
-  const report = {
-    ...asObject(visualPlan.report_template),
-    project: visualPlan.project,
-    target_place: visualPlan.target_place,
-    active_place: {
-      name: placeName,
-      placeId,
-      transport: "mock",
-    },
-    preflight: {
-      passed: preflightPassed,
-      ok: preflightPassed,
-      placeName,
-      placeId,
-      expectedPlaceNames: expectedNames,
-      transport: "mock",
-    },
-    review_mode: visualPlan.review_mode,
-    spaces_reviewed: Object.keys(visualPlan.review_plan?.required_by_space || {}),
-    screenshots,
-    findings: [],
-    fixes: [],
-    verdict: signedOffVerdict(visualPlan, preflightPassed && failedCaptureIds.size === 0),
-  };
-  const validation = validateBatchVisualGateReport(report, visualPlan);
-
-  return {
-    schema: "roblox-studio-batch-adapter-result/v1",
-    adapter: visualPlan.adapter || "studio_mcp_proxy",
+  const run = runMockStudioCaptureBatch(visualPlan, { activePlaceName, placeId, failCaptures });
+  const report = buildBatchReport(visualPlan, {
+    preflight: run.preflight,
+    screenshots: screenshotsFromRun(run),
     transport: "mock",
-    artifact_root: visualPlan.artifact_root,
+  });
+  return batchResultEnvelope(
+    visualPlan,
+    "mock",
     report,
-    execution_log: executionLog,
-    validation,
-  };
+    run.executionLog,
+    validateBatchVisualGateReport(report, visualPlan),
+  );
 }
 
 export function formatStudioBatchAdapterResult(result) {

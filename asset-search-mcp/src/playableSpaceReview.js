@@ -1,3 +1,5 @@
+import { createFindings, passLabel, renderFindings, sealVerdict } from "./proofBundle.js";
+
 const DEFAULT_RUBRIC = [
   "theme_accuracy",
   "asset_density",
@@ -265,7 +267,7 @@ export function buildPlayableSpaceReviewPlan({
       "Review each screenshot against the rubric before the next edit.",
       "Fix blockers and recapture the same capture_id or a *_recap capture.",
       "Audit for legacy generated filler such as ImportedDressingVisual, ImportedFoodVisual, VisibleRainVolume, and debug placeholders.",
-      "Run validate_playable_space_review before calling the game visually signed off.",
+      "Run roblox_validate_playable_space_review before calling the game visually signed off.",
     ],
     format,
   };
@@ -349,8 +351,8 @@ export function buildPlanForReviewReport(report, explicitPlan, {
 }
 
 export function validatePlayableSpaceReview(report, plan) {
-  const errors = [];
-  const warnings = [];
+  const verdictFindings = createFindings();
+  const { errors, warnings } = verdictFindings;
   const rawReport = asObject(report);
   if (!rawReport) {
     return { passed: false, errors: ["report must be a JSON object"], warnings, counts: {} };
@@ -425,19 +427,15 @@ export function validatePlayableSpaceReview(report, plan) {
     if (unresolvedBlocker) errors.push("signed_off_with_risks cannot include unresolved blockers");
   }
 
-  return {
-    passed: errors.length === 0,
-    errors,
-    warnings,
+  return sealVerdict(verdictFindings, {
+    fields: { verdict, review_mode: reviewPlan.review_mode || "full" },
     counts: {
       spaces_required: Object.keys(requiredBySpace).length,
       spaces_reviewed: spacesReviewed.length,
       screenshots: screenshots.length,
       findings: findings.length,
     },
-    verdict,
-    review_mode: reviewPlan.review_mode || "full",
-  };
+  });
 }
 
 export function formatPlayableSpaceReviewPlan(plan) {
@@ -461,9 +459,10 @@ export function formatPlayableSpaceReviewPlan(plan) {
 }
 
 export function formatPlayableSpaceReviewValidation(result) {
-  const lines = [result.passed ? "PASS playable-space review" : "FAIL playable-space review"];
-  lines.push(`mode=${result.review_mode || "full"} spaces=${result.counts.spaces_reviewed || 0}/${result.counts.spaces_required || 0} screenshots=${result.counts.screenshots || 0} findings=${result.counts.findings || 0} verdict=${result.verdict || "unknown"}`);
-  for (const error of result.errors) lines.push(`ERROR: ${error}`);
-  for (const warning of result.warnings) lines.push(`WARN: ${warning}`);
+  const lines = [
+    `${passLabel(result.passed)} playable-space review`,
+    `mode=${result.review_mode || "full"} spaces=${result.counts.spaces_reviewed || 0}/${result.counts.spaces_required || 0} screenshots=${result.counts.screenshots || 0} findings=${result.counts.findings || 0} verdict=${result.verdict || "unknown"}`,
+  ];
+  lines.push(...renderFindings(result, { style: "inline" }));
   return lines.join("\n");
 }

@@ -343,9 +343,9 @@ const loopPlan = buildAiGameDevLoopPlan({
   maxFragments: 2,
 });
 assert.equal(loopPlan.schema, "roblox-ai-game-dev-loop/v1", "e2e loop plan schema");
-assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_headless_assembly"), "e2e loop includes headless MCP support");
-assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_asset_acquisition"), "e2e loop includes asset acquisition MCP support");
-assert.ok(loopPlan.custom_mcp.supporting_tools.includes("plan_batch_visual_gate"), "e2e loop includes gated Studio MCP support");
+assert.ok(loopPlan.custom_mcp.supporting_tools.includes("roblox_plan_headless_assembly"), "e2e loop includes headless MCP support");
+assert.ok(loopPlan.custom_mcp.supporting_tools.includes("roblox_plan_asset_acquisition"), "e2e loop includes asset acquisition MCP support");
+assert.ok(loopPlan.custom_mcp.supporting_tools.includes("roblox_plan_batch_visual_gate"), "e2e loop includes gated Studio MCP support");
 assert.ok(loopPlan.phases.some((phase) => phase.id === "parser_writer_generation"), "e2e loop includes parser/writer phase");
 assert.ok(loopPlan.phases.some((phase) => phase.id === "gated_studio_batch"), "e2e loop includes gated Studio phase");
 assert.ok(loopPlan.studio_adapter.cli.includes("run-studio-batch-visual-gate"), "e2e loop includes executable Studio adapter CLI");
@@ -373,20 +373,20 @@ const loopReport = {
     custom_mcp_contract: {
       passed: true,
       tools: [
-        "plan_ai_game_dev_loop",
-        "validate_ai_game_dev_loop",
-        "plan_project_template",
-        "validate_project_template",
-        "plan_asset_acquisition",
-        "validate_asset_acquisition",
-        "plan_asset_delivery",
-        "validate_asset_delivery_receipt",
-        "plan_world_asset_family_sweep",
-        "validate_world_asset_family_sweep",
-        "plan_batch_visual_gate",
-        "validate_batch_visual_gate",
-        "plan_coordinator_merge",
-        "validate_coordinator_merge",
+        "roblox_plan_ai_game_dev_loop",
+        "roblox_validate_ai_game_dev_loop",
+        "roblox_plan_project_template",
+        "roblox_validate_project_template",
+        "roblox_plan_asset_acquisition",
+        "roblox_validate_asset_acquisition",
+        "roblox_plan_asset_delivery",
+        "roblox_validate_asset_delivery_receipt",
+        "roblox_plan_world_asset_family_sweep",
+        "roblox_validate_world_asset_family_sweep",
+        "roblox_plan_batch_visual_gate",
+        "roblox_validate_batch_visual_gate",
+        "roblox_plan_coordinator_merge",
+        "roblox_validate_coordinator_merge",
       ],
     },
     batch_visual_gate: {
@@ -403,11 +403,11 @@ const badLoopValidation = validateAiGameDevLoopReport({
   ...loopReport,
   gates: {
     ...loopReport.gates,
-    custom_mcp_contract: { passed: true, tools: ["plan_ai_game_dev_loop"] },
+    custom_mcp_contract: { passed: true, tools: ["roblox_plan_ai_game_dev_loop"] },
   },
 }, loopPlan);
 assert.equal(badLoopValidation.passed, false, "custom MCP proof must include loop, acquisition, delivery, and visual-gate tools");
-assert.ok(badLoopValidation.errors.some((error) => error.includes("validate_ai_game_dev_loop")), "missing e2e validator is explicit");
+assert.ok(badLoopValidation.errors.some((error) => error.includes("roblox_validate_ai_game_dev_loop")), "missing e2e validator is explicit");
 
 // ---- shared-brain: rejections + claims + annotation ----
 const dir = path.join(os.tmpdir(), "brain-offline-" + Date.now());

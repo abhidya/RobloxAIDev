@@ -135,7 +135,7 @@ export function buildGameAssetCoverage({
     roomThemes,
     slots,
     next: [
-      "Run curate_assets on these slots with extensive=true.",
+      "Run roblox_curate_assets on these slots with extensive=true.",
       "Claim shortlists before Studio inspection.",
       "Inspect only committed candidates in StudioMCP and record inspections.",
       "Build lobby queue/portal/team logic with code; build visible worlds from committed assets.",

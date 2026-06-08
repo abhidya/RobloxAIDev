@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ANNOTATIONS, createToolRegistrar, planSchema, rendered, reportSchema } from "./registry.js";
 import { buildGameAssetCoverage, formatGameAssetCoverage } from "../gameCoverage.js";
 import {
   buildHeadlessAssemblyPlan,
@@ -73,9 +74,14 @@ const assetFamilySchema = z.object({
   notes: z.string().optional(),
 });
 
-export function registerPlanningTools(server, { text }) {
-  server.tool(
-    "plan_ai_game_dev_loop",
+export function registerPlanningTools(server) {
+  // All planning/validation tools are deterministic local computations:
+  // read-only, idempotent, no external world interaction.
+  const tool = createToolRegistrar(server, ANNOTATIONS.READ_LOCAL);
+
+  tool(
+    "roblox_plan_ai_game_dev_loop",
+    "Plan the AI game-dev loop",
     "Plan the full AI Roblox game-dev loop: asset brain coverage/curation, reusable GameKit source adoption, Roblox file parser/writer generation, headless fragment merge, custom MCP validation, and gated Studio batch screenshots. This is the top-level custom MCP tool for reducing agent churn across the whole game design loop.",
     {
       project: z.string().optional().describe("Project or game slug."),
@@ -111,12 +117,13 @@ export function registerPlanningTools(server, { text }) {
         artifactRoot: args.artifact_root,
         maxCaptures: args.max_captures,
       });
-      return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatAiGameDevLoopPlan(plan));
+      return rendered(plan, args.format, formatAiGameDevLoopPlan);
     }
   );
 
-  server.tool(
-    "plan_project_template",
+  tool(
+    "roblox_plan_project_template",
+    "Plan a project template",
     "Plan a new Roblox AI game repo skeleton with asset brain metadata, prompt lanes, Rojo source stubs, POC script, and the asset delivery/coordinator/Studio gate commands prewired.",
     {
       project: z.string().optional(),
@@ -135,41 +142,44 @@ export function registerPlanningTools(server, { text }) {
         outputRoot: args.output_root,
       });
       const publicPlan = publicProjectTemplatePlan(plan);
-      return text(args.format === "json" ? JSON.stringify(publicPlan, null, 2) : formatProjectTemplatePlan(publicPlan));
+      return rendered(publicPlan, args.format, formatProjectTemplatePlan);
     }
   );
 
-  server.tool(
-    "validate_project_template",
+  tool(
+    "roblox_validate_project_template",
+    "Validate a project template report",
     "Validate a generated Roblox AI game project template report. Requires the planned files, metadata-only asset brain, prompt lanes, POC script, and prewired proof gates.",
     {
-      report: z.record(z.any()),
-      plan: z.record(z.any()).optional().describe("Optional public plan from plan_project_template(format='json')."),
+      report: reportSchema,
+      plan: planSchema.optional().describe("Optional public plan from roblox_plan_project_template(format='json')."),
       format: z.enum(["text", "json"]).optional(),
     },
     async (args) => {
-      const result = await validateProjectTemplateReport(args.report, args.plan);
-      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatProjectTemplateValidation(result));
+      const out = await validateProjectTemplateReport(args.report, args.plan);
+      return rendered(out, args.format, formatProjectTemplateValidation);
     }
   );
 
-  server.tool(
-    "validate_ai_game_dev_loop",
+  tool(
+    "roblox_validate_ai_game_dev_loop",
+    "Validate the AI game-dev loop report",
     "Validate a proof report for the full AI Roblox game-dev loop. Requires asset brain, GameKit build, parser/writer generation, fragment validation, custom MCP contract proof, and a passing gated Studio batch visual report.",
     {
-      report: z.record(z.any()),
-      plan: z.record(z.any()).optional().describe("Optional plan from plan_ai_game_dev_loop(format='json')."),
+      report: reportSchema,
+      plan: planSchema.optional().describe("Optional plan from roblox_plan_ai_game_dev_loop(format='json')."),
       format: z.enum(["text", "json"]).optional(),
     },
     async (args) => {
-      const result = validateAiGameDevLoopReport(args.report, args.plan);
-      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatAiGameDevLoopValidation(result));
+      const out = validateAiGameDevLoopReport(args.report, args.plan);
+      return rendered(out, args.format, formatAiGameDevLoopValidation);
     }
   );
 
-  server.tool(
-    "plan_game_asset_coverage",
-    "Create a generic Roblox game asset coverage plan for the asset-driven skill: lobby spawn, NPCs, portals, upgrade shop, leaderboard/cosmetics, and capacity-limited themed room packs. Use this before curate_assets so new rooms such as underwater, space, haunted, or jungle are grounded in searchable Creator Store slots instead of hand-built placeholders.",
+  tool(
+    "roblox_plan_game_asset_coverage",
+    "Plan game asset coverage",
+    "Create a generic Roblox game asset coverage plan for the asset-driven skill: lobby spawn, NPCs, portals, upgrade shop, leaderboard/cosmetics, and capacity-limited themed room packs. Use this before roblox_curate_assets so new rooms such as underwater, space, haunted, or jungle are grounded in searchable Creator Store slots instead of hand-built placeholders.",
     {
       game: z.string().optional().describe("Short game idea or title."),
       themes: z.array(z.string()).optional().describe("Room themes to cover, e.g. ['underwater reef', 'space station']."),
@@ -186,12 +196,13 @@ export function registerPlanningTools(server, { text }) {
         includeLobby: args.include_lobby !== false,
         maxThemes: args.max_themes ?? 6,
       });
-      return text(args.format === "json" ? JSON.stringify(coverage, null, 2) : formatGameAssetCoverage(coverage));
+      return rendered(coverage, args.format, formatGameAssetCoverage);
     }
   );
 
-  server.tool(
-    "plan_headless_assembly",
+  tool(
+    "roblox_plan_headless_assembly",
+    "Plan headless assembly",
     "Create the headless fan-out/fan-in assembly plan for parallel Roblox game agents. Returns agent fragment packets, the referent-safe manifest contract, asset/search/download/publish endpoints, coordinator merge steps, Rojo/Lune validation commands, and the Studio visual gate. Use assembly_profile='concert_defense' for GroanTubeHero/WorldV2-style concert arenas instead of Prop Hunt room parents.",
     {
       project: z.string().optional().describe("Project or game name (default: prophunt)."),
@@ -211,25 +222,27 @@ export function registerPlanningTools(server, { text }) {
         maxFragments: args.max_fragments ?? 6,
         assemblyProfile: args.assembly_profile,
       });
-      return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatHeadlessAssemblyPlan(plan));
+      return rendered(plan, args.format, formatHeadlessAssemblyPlan);
     }
   );
 
-  server.tool(
-    "validate_fragment_manifest",
+  tool(
+    "roblox_validate_fragment_manifest",
+    "Validate a fragment manifest",
     "Validate an agent-produced rbxm fragment manifest before a coordinator merges it into a Roblox place. Enforces one-root fragments, coordinator-owned referent remapping, strip/regenerate UniqueId policy, declared asset ids/external anchors, and blocks risky script loaders such as require(assetId), InsertService:LoadAsset, loadstring, and HttpService requests.",
     {
-      manifest: z.record(z.any()),
+      manifest: reportSchema,
       format: z.enum(["text", "json"]).optional(),
     },
     async (args) => {
-      const result = validateFragmentManifest(args.manifest);
-      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatFragmentManifestReport(result));
+      const out = validateFragmentManifest(args.manifest);
+      return rendered(out, args.format, formatFragmentManifestReport);
     }
   );
 
-  server.tool(
-    "plan_coordinator_merge",
+  tool(
+    "roblox_plan_coordinator_merge",
+    "Plan a coordinator merge",
     "Plan a replaceable headless Roblox coordinator merge. Adapter 'lune' wraps the proven Lune script; adapter 'rbx_dom' targets an external production rbx-dom coordinator command with the same report contract.",
     {
       adapter: z.enum(["lune", "rbx_dom"]).optional(),
@@ -257,26 +270,28 @@ export function registerPlanningTools(server, { text }) {
         rbxDomCommand: args.rbx_dom_command,
         rbxDomArgs: args.rbx_dom_args,
       });
-      return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatCoordinatorMergePlan(plan));
+      return rendered(plan, args.format, formatCoordinatorMergePlan);
     }
   );
 
-  server.tool(
-    "validate_coordinator_merge",
+  tool(
+    "roblox_validate_coordinator_merge",
+    "Validate a coordinator merge report",
     "Validate a headless coordinator merge report from the Lune or rbx-dom adapter. Requires passed process proof, reload validation, coordinator-owned identity policy, non-empty fragments, and non-asset-brain output paths.",
     {
-      report: z.record(z.any()),
-      plan: z.record(z.any()).optional().describe("Optional plan from plan_coordinator_merge(format='json')."),
+      report: reportSchema,
+      plan: planSchema.optional().describe("Optional plan from roblox_plan_coordinator_merge(format='json')."),
       format: z.enum(["text", "json"]).optional(),
     },
     async (args) => {
-      const result = validateCoordinatorMergeReport(args.report, args.plan);
-      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatCoordinatorMergeValidation(result));
+      const out = validateCoordinatorMergeReport(args.report, args.plan);
+      return rendered(out, args.format, formatCoordinatorMergeValidation);
     }
   );
 
-  server.tool(
-    "plan_playable_space_review",
+  tool(
+    "roblox_plan_playable_space_review",
+    "Plan a playable-space review",
     "Create a Studio screenshot plan for Roblox playable-space signoff. Covers lobby, portals, rooms, player-height quadrants, reverse shots, UI states, and the visual rubric. Use review_mode='player_angle' for scoped asset-fix passes that only need player-height screenshots.",
     {
       project: z.string().optional().describe("Project name for capture ids (default: prophunt)."),
@@ -293,13 +308,14 @@ export function registerPlanningTools(server, { text }) {
         reviewMode: args.review_mode || "full",
         format: args.format || "text",
       });
-      return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatPlayableSpaceReviewPlan(plan));
+      return rendered(plan, args.format, formatPlayableSpaceReviewPlan);
     }
   );
 
-  server.tool(
-    "plan_world_asset_family_sweep",
-    "Plan a strict Roblox world asset-family verification pass for repeated imported/staged assets that are sideways, face-down, floating, buried, mis-scaled, or inconsistently placed. The plan enforces one family at a time, clean-spot clone screenshots before/after fixes, live player-height proof, propagation to all live visual instances, record_inspection metadata, and temporary clone cleanup.",
+  tool(
+    "roblox_plan_world_asset_family_sweep",
+    "Plan a world asset-family sweep",
+    "Plan a strict Roblox world asset-family verification pass for repeated imported/staged assets that are sideways, face-down, floating, buried, mis-scaled, or inconsistently placed. The plan enforces one family at a time, clean-spot clone screenshots before/after fixes, live player-height proof, propagation to all live visual instances, roblox_record_inspection metadata, and temporary clone cleanup.",
     {
       project: z.string().optional(),
       target_place: z.string().optional(),
@@ -316,40 +332,43 @@ export function registerPlanningTools(server, { text }) {
         artifactRoot: args.artifact_root,
         maxFamilies: args.max_families ?? 24,
       });
-      return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatWorldAssetFamilySweepPlan(plan));
+      return rendered(plan, args.format, formatWorldAssetFamilySweepPlan);
     }
   );
 
-  server.tool(
-    "validate_world_asset_family_sweep",
-    "Validate a Roblox world asset-family sweep report. Fails when clean clone before/after screenshots are missing, live player-height proof is missing, canonical up/forward/scale/grounding/pivot metadata is missing, fixes were not propagated to all live visual instances, record_inspection proof is missing, blockers remain, or temporary validation clones were not removed.",
+  tool(
+    "roblox_validate_world_asset_family_sweep",
+    "Validate a world asset-family sweep report",
+    "Validate a Roblox world asset-family sweep report. Fails when clean clone before/after screenshots are missing, live player-height proof is missing, canonical up/forward/scale/grounding/pivot metadata is missing, fixes were not propagated to all live visual instances, roblox_record_inspection proof is missing, blockers remain, or temporary validation clones were not removed.",
     {
-      report: z.record(z.any()),
-      plan: z.record(z.any()).optional().describe("Optional plan from plan_world_asset_family_sweep(format='json')."),
+      report: reportSchema,
+      plan: planSchema.optional().describe("Optional plan from roblox_plan_world_asset_family_sweep(format='json')."),
       format: z.enum(["text", "json"]).optional(),
     },
     async (args) => {
-      const result = validateWorldAssetFamilySweep(args.report, args.plan);
-      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatWorldAssetFamilySweepValidation(result));
+      const out = validateWorldAssetFamilySweep(args.report, args.plan);
+      return rendered(out, args.format, formatWorldAssetFamilySweepValidation);
     }
   );
 
-  server.tool(
-    "validate_playable_space_review",
+  tool(
+    "roblox_validate_playable_space_review",
+    "Validate a playable-space review report",
     "Validate a Roblox playable-space visual review report. Fails when spaces are missing, player-height quadrant screenshots are missing, required screenshot kinds are skipped, or major/blocker findings remain unresolved. A supplied custom plan is authoritative; without one, custom/scoped reports are inferred from the report before falling back to the default Prop Hunt plan.",
     {
-      report: z.record(z.any()),
-      plan: z.record(z.any()).optional().describe("Optional plan from plan_playable_space_review(format='json')."),
+      report: reportSchema,
+      plan: planSchema.optional().describe("Optional plan from roblox_plan_playable_space_review(format='json')."),
       format: z.enum(["text", "json"]).optional(),
     },
     async (args) => {
-      const result = validatePlayableSpaceReview(args.report, args.plan);
-      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatPlayableSpaceReviewValidation(result));
+      const out = validatePlayableSpaceReview(args.report, args.plan);
+      return rendered(out, args.format, formatPlayableSpaceReviewValidation);
     }
   );
 
-  server.tool(
-    "plan_batch_visual_gate",
+  tool(
+    "roblox_plan_batch_visual_gate",
+    "Plan a batch visual gate",
     "Create a serial StudioMCP batch screenshot gate from a playable-space review plan. The returned packet includes active-place preflight Luau, deterministic camera steps, screen_capture requests, collation paths, accessibility fields, and a report template so a Studio wrapper can capture all views with minimal agent calls.",
     {
       project: z.string().optional().describe("Project name for capture ids (default: prophunt)."),
@@ -373,21 +392,22 @@ export function registerPlanningTools(server, { text }) {
         artifactRoot: args.artifact_root,
         maxCaptures: args.max_captures,
       });
-      return text(args.format === "json" ? JSON.stringify(plan, null, 2) : formatBatchVisualGatePlan(plan));
+      return rendered(plan, args.format, formatBatchVisualGatePlan);
     }
   );
 
-  server.tool(
-    "validate_batch_visual_gate",
+  tool(
+    "roblox_validate_batch_visual_gate",
+    "Validate a batch visual gate report",
     "Validate the collated output from a StudioMCP batch screenshot wrapper. Requires active-place preflight proof, image paths for every planned capture, and a passing playable-space review report.",
     {
-      batch_report: z.record(z.any()),
-      plan: z.record(z.any()).optional().describe("Optional plan from plan_batch_visual_gate(format='json')."),
+      batch_report: reportSchema,
+      plan: planSchema.optional().describe("Optional plan from roblox_plan_batch_visual_gate(format='json')."),
       format: z.enum(["text", "json"]).optional(),
     },
     async (args) => {
-      const result = validateBatchVisualGateReport(args.batch_report, args.plan);
-      return text(args.format === "json" ? JSON.stringify(result, null, 2) : formatBatchVisualGateValidation(result));
+      const out = validateBatchVisualGateReport(args.batch_report, args.plan);
+      return rendered(out, args.format, formatBatchVisualGateValidation);
     }
   );
 }

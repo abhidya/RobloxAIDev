@@ -164,7 +164,7 @@ function profileSettings(profile) {
       studioGate: [
         "Use StudioMCP only after direct file validation passes and the active Studio instance is confirmed as the target place.",
         "Capture stage, vendor ring, horde ring, and tour-bus spawn from player-height quadrant views.",
-        "Run validate_playable_space_review before claiming player-angle or full visual signoff.",
+        "Run roblox_validate_playable_space_review before claiming player-angle or full visual signoff.",
       ],
     };
   }
@@ -205,7 +205,7 @@ function profileSettings(profile) {
     studioGate: [
       "Use StudioMCP for final insertion checks only when direct file validation passes.",
       "Capture lobby, portal, and each room from player-height quadrant views.",
-      "Run validate_prop_hunt_gate before claiming the asset palette is ready.",
+      "Run roblox_validate_prop_hunt_gate before claiming the asset palette is ready.",
     ],
   };
 }

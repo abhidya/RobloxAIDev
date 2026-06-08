@@ -1,14 +1,14 @@
 {
-  "name": "asset-search-mcp",
-  "version": "0.8.0",
+  "name": "roblox-asset-search-mcp",
+  "version": "0.9.0",
   "private": true,
   "type": "module",
-  "description": "Standalone, search-only MCP for asset-driven Roblox game design: ranked Creator Store discovery, search cache preprocessing, per-slot curation, shared asset reviews, committed palettes, Prop Hunt validation, headless fragment assembly planning, scoped player-angle screenshot review, and playable-space visual gating. Decoupled from the Roblox Studio MCP.",
+  "description": "SQL-backed (node:sqlite DAL/DAO) shared asset brain MCP for asset-driven Roblox game design: ranked Creator Store discovery with explicit failure signaling, cross-process-safe claims/reviews/inspections/palettes, publish-permission gates, headless assembly planning, and Studio visual-gate validation. All tools prefixed roblox_. Decoupled from the Roblox Studio MCP.",
   "bin": {
-    "asset-search-mcp": "src/index.js"
+    "roblox-asset-search-mcp": "src/index.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.5"
   },
   "scripts": {
     "start": "node src/index.js",
@@ -16,7 +16,10 @@
     "gate:prop-hunt": "node scripts/validate-prop-hunt-gate.mjs --project prophunt",
     "gate:playable-space": "node scripts/validate-playable-space-review.mjs",
     "demo:offline": "node scripts/offline-demo-summary.mjs",
-    "test": "npm run test:offline && npm run test:gate && npm run test:playable-space && npm run test:world-asset-family && npm run test:studio-adapter && npm run test:studio-world-family-adapter && npm run test:fragment-fixtures && npm run test:coordinator-adapter && npm run test:asset-delivery && npm run test:asset-acquisition && npm run test:project-template && npm run test:asset-brain && npm run test:fixture && npm run test:prompt-contracts && npm run test:game-kit && npm run test:smoke",
+    "test": "npm run test:proof-bundle && npm run test:offline && npm run test:gate && npm run test:playable-space && npm run test:world-asset-family && npm run test:studio-adapter && npm run test:studio-world-family-adapter && npm run test:studio-core && npm run test:fragment-fixtures && npm run test:coordinator-adapter && npm run test:asset-delivery && npm run test:asset-acquisition && npm run test:project-template && npm run test:asset-brain && npm run test:fixture && npm run test:prompt-contracts && npm run test:game-kit && npm run test:smoke && npm run test:dal && npm run test:toolbox-failures && npm run test:tool-registration",
+    "test:proof-bundle": "node test/proof-bundle.mjs",
+    "test:studio-core": "node test/studio-core.mjs",
+    "test:tool-registration": "node test/tool-registration.mjs",
     "test:asset-brain": "node test/asset-brain-merge-artifacts.mjs",
     "test:fixture": "node test/fixture-import.mjs",
     "test:gate": "node test/gate-cli.mjs",
@@ -32,7 +35,9 @@
     "test:project-template": "node test/project-template.mjs",
     "test:prompt-contracts": "node test/prompt-contracts.mjs",
     "test:game-kit": "node test/game-kit-contracts.mjs",
-    "test:smoke": "node test/smoke.mjs"
+    "test:smoke": "node test/smoke.mjs",
+    "test:dal": "node test/dal.mjs",
+    "test:toolbox-failures": "node test/toolbox-failures.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
