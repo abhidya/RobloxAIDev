@@ -19,7 +19,7 @@ import { buildGameAssetCoverage } from "./gameCoverage.js";
 import { registerAcquisitionTools } from "./mcpTools/acquisitionTools.js";
 import { registerPlanningTools } from "./mcpTools/planningTools.js";
 import { registerPolicyTools } from "./mcpTools/policyTools.js";
-import { ANNOTATIONS, errorText, rendered, result, text } from "./mcpTools/registry.js";
+import { ANNOTATIONS, errorText, rendered, result, text, verdictOutputSchema } from "./mcpTools/registry.js";
 import { formatPropHuntGateReport, validatePropHuntGate } from "./propHuntGate.js";
 
 const PKG = JSON.parse(readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "package.json"), "utf8"));
@@ -770,6 +770,7 @@ server.registerTool(
       format: z.enum(["text", "json"]).optional(),
     },
     annotations: READ_LOCAL,
+    outputSchema: verdictOutputSchema,
   },
   async (args) => {
     const project = args.project || "prophunt";

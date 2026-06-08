@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ANNOTATIONS, createToolRegistrar, planSchema, rendered, reportSchema } from "./registry.js";
+import { ANNOTATIONS, createToolRegistrar, planSchema, rendered, reportSchema, verdictOutputSchema } from "./registry.js";
 import {
   buildAssetAcquisitionPlan,
   formatAssetAcquisitionPlan,
@@ -16,6 +16,8 @@ import {
 export function registerAcquisitionTools(server) {
   // Planners and validators only — these never call the network themselves.
   const tool = createToolRegistrar(server, ANNOTATIONS.READ_LOCAL);
+  // validate_* tools additionally declare the typed verdict output shape.
+  const validatorTool = createToolRegistrar(server, ANNOTATIONS.READ_LOCAL, { outputSchema: verdictOutputSchema });
 
   tool(
     "roblox_plan_asset_acquisition",
@@ -45,7 +47,7 @@ export function registerAcquisitionTools(server) {
     }
   );
 
-  tool(
+  validatorTool(
     "roblox_validate_asset_acquisition",
     "Validate an asset acquisition report",
     "Validate the proof report for an asset acquisition packet. Requires search/claim, permission proof, a direct-delivery or Studio-fallback path, quarantine scan, fragment manifest validation, visual proof, and metadata-only asset-brain outputs.",
@@ -90,7 +92,7 @@ export function registerAcquisitionTools(server) {
     }
   );
 
-  tool(
+  validatorTool(
     "roblox_validate_asset_delivery_receipt",
     "Validate an asset delivery receipt",
     "Validate an authenticated Asset Delivery receipt before downloaded bytes can leave quarantine. Requires redacted auth proof, 2xx delivery, sha256 digest, non-empty bytes, and no asset-brain binary paths.",

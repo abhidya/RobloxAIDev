@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ANNOTATIONS, errorText, rendered, result, text } from "./registry.js";
+import { ANNOTATIONS, errorText, rendered, result, text, verdictOutputSchema } from "./registry.js";
 import { passLabel, renderFindings } from "../proofBundle.js";
 
 const publishAccessSchema = z.enum(["grantable", "open_use", "open_use_dependency", "restricted_denied", "unknown"]);
@@ -139,6 +139,7 @@ export function registerPolicyTools(server, { store }) {
         format: z.enum(["text", "json"]).optional(),
       },
       annotations: READ_LOCAL,
+      outputSchema: verdictOutputSchema,
     },
     async (args) => {
       const out = store.validatePalettePublishPermissions(args.project || "prophunt", publishValidationOptions(args));

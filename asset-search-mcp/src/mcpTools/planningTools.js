@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ANNOTATIONS, createToolRegistrar, planSchema, rendered, reportSchema } from "./registry.js";
+import { ANNOTATIONS, createToolRegistrar, planSchema, rendered, reportSchema, verdictOutputSchema } from "./registry.js";
 import { buildGameAssetCoverage, formatGameAssetCoverage } from "../gameCoverage.js";
 import {
   buildHeadlessAssemblyPlan,
@@ -78,6 +78,8 @@ export function registerPlanningTools(server) {
   // All planning/validation tools are deterministic local computations:
   // read-only, idempotent, no external world interaction.
   const tool = createToolRegistrar(server, ANNOTATIONS.READ_LOCAL);
+  // validate_* tools additionally declare the typed verdict output shape.
+  const validatorTool = createToolRegistrar(server, ANNOTATIONS.READ_LOCAL, { outputSchema: verdictOutputSchema });
 
   tool(
     "roblox_plan_ai_game_dev_loop",
@@ -146,7 +148,7 @@ export function registerPlanningTools(server) {
     }
   );
 
-  tool(
+  validatorTool(
     "roblox_validate_project_template",
     "Validate a project template report",
     "Validate a generated Roblox AI game project template report. Requires the planned files, metadata-only asset brain, prompt lanes, POC script, and prewired proof gates.",
@@ -161,7 +163,7 @@ export function registerPlanningTools(server) {
     }
   );
 
-  tool(
+  validatorTool(
     "roblox_validate_ai_game_dev_loop",
     "Validate the AI game-dev loop report",
     "Validate a proof report for the full AI Roblox game-dev loop. Requires asset brain, GameKit build, parser/writer generation, fragment validation, custom MCP contract proof, and a passing gated Studio batch visual report.",
@@ -226,7 +228,7 @@ export function registerPlanningTools(server) {
     }
   );
 
-  tool(
+  validatorTool(
     "roblox_validate_fragment_manifest",
     "Validate a fragment manifest",
     "Validate an agent-produced rbxm fragment manifest before a coordinator merges it into a Roblox place. Enforces one-root fragments, coordinator-owned referent remapping, strip/regenerate UniqueId policy, declared asset ids/external anchors, and blocks risky script loaders such as require(assetId), InsertService:LoadAsset, loadstring, and HttpService requests.",
@@ -274,7 +276,7 @@ export function registerPlanningTools(server) {
     }
   );
 
-  tool(
+  validatorTool(
     "roblox_validate_coordinator_merge",
     "Validate a coordinator merge report",
     "Validate a headless coordinator merge report from the Lune or rbx-dom adapter. Requires passed process proof, reload validation, coordinator-owned identity policy, non-empty fragments, and non-asset-brain output paths.",
@@ -336,7 +338,7 @@ export function registerPlanningTools(server) {
     }
   );
 
-  tool(
+  validatorTool(
     "roblox_validate_world_asset_family_sweep",
     "Validate a world asset-family sweep report",
     "Validate a Roblox world asset-family sweep report. Fails when clean clone before/after screenshots are missing, live player-height proof is missing, canonical up/forward/scale/grounding/pivot metadata is missing, fixes were not propagated to all live visual instances, roblox_record_inspection proof is missing, blockers remain, or temporary validation clones were not removed.",
@@ -351,7 +353,7 @@ export function registerPlanningTools(server) {
     }
   );
 
-  tool(
+  validatorTool(
     "roblox_validate_playable_space_review",
     "Validate a playable-space review report",
     "Validate a Roblox playable-space visual review report. Fails when spaces are missing, player-height quadrant screenshots are missing, required screenshot kinds are skipped, or major/blocker findings remain unresolved. A supplied custom plan is authoritative; without one, custom/scoped reports are inferred from the report before falling back to the default Prop Hunt plan.",
@@ -396,7 +398,7 @@ export function registerPlanningTools(server) {
     }
   );
 
-  tool(
+  validatorTool(
     "roblox_validate_batch_visual_gate",
     "Validate a batch visual gate report",
     "Validate the collated output from a StudioMCP batch screenshot wrapper. Requires active-place preflight proof, image paths for every planned capture, and a passing playable-space review report.",

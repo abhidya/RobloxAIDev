@@ -84,6 +84,17 @@ assertWellFormed(acquisition.tools);
     ]) {
       assert.ok(names.includes(expected), `server registers ${expected}`);
     }
+
+    // validate_* tools declare a typed verdict outputSchema. Call one and
+    // confirm the server validates structuredContent against it (the call would
+    // error if the verdict shape did not match the declared output schema).
+    const validation = await client.callTool({
+      name: "roblox_validate_fragment_manifest",
+      arguments: { manifest: { schema: "roblox-fragment-manifest/v1" } },
+    });
+    assert.ok(!validation.isError, "validator call succeeds against its outputSchema");
+    assert.equal(typeof validation.structuredContent?.passed, "boolean", "typed verdict structuredContent is returned");
+    assert.ok(Array.isArray(validation.structuredContent.errors), "verdict carries an errors array");
   } finally {
     await client.close();
   }

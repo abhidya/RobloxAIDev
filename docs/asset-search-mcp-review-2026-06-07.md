@@ -9,10 +9,13 @@ Scope: `asset-search-mcp/` (37 tools across `src/index.js` + `src/mcpTools/{plan
 > `isError` object in `commit_palette` now uses the shared `errorText`), and
 > centralizes the repeated `format` selector. The new `src/proofBundle.js` gives
 > the `validate_*` tools **one verdict/finding/proof-bundle definition** and
-> render, the start of the "minimal top-level shape" idea in gap #7. The tool
-> count is now 41 (`roblox_`-prefixed), verified end-to-end by
-> `test:tool-registration`. The remaining MCP-best-practice gaps (#6 outputSchema,
-> #10 pagination breadth) are unchanged.
+> render, the start of the "minimal top-level shape" idea in gap #7. **Gap #6
+> (outputSchema)** is now done for the `validate_*` family: they declare a typed
+> verdict `outputSchema` (`passed`/`errors`/`warnings`, passthrough for gate-
+> specific extras) so clients consume structuredContent instead of parsing text.
+> The tool count is now 41 (`roblox_`-prefixed), verified end-to-end by
+> `test:tool-registration` (boots the server and calls a validator). The
+> remaining gap (#10 pagination breadth) is unchanged.
 
 ## What's already strong
 

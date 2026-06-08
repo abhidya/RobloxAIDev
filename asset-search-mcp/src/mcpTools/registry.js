@@ -30,12 +30,26 @@ export function rendered(out, format, render) {
   return result(out, format === "json" ? undefined : render(out));
 }
 
+// Output schema for the validate_* family. Every verdict carries these three
+// keys; .passthrough() makes the generated JSON schema allow a gate's extra
+// fields (counts, verdict, playable_space, …) instead of rejecting them. Declaring
+// it lets MCP clients consume typed structuredContent instead of parsing text.
+export const verdictOutputSchema = z.object({
+  passed: z.boolean(),
+  errors: z.array(z.string()),
+  warnings: z.array(z.string()),
+}).passthrough();
+
 // Registrar factory for the planner/validator clusters: bind a server and a
 // default annotation preset once, then register tools with the same
 // (title, description, inputSchema) shape instead of each cluster redefining it.
-export function createToolRegistrar(server, annotations = ANNOTATIONS.READ_LOCAL) {
-  return (name, title, description, inputSchema, handler) =>
-    server.registerTool(name, { title, description, inputSchema, annotations }, handler);
+// Pass { outputSchema } to declare a typed result shape (the validate_* family).
+export function createToolRegistrar(server, annotations = ANNOTATIONS.READ_LOCAL, { outputSchema } = {}) {
+  return (name, title, description, inputSchema, handler) => {
+    const spec = { title, description, inputSchema, annotations };
+    if (outputSchema) spec.outputSchema = outputSchema;
+    return server.registerTool(name, spec, handler);
+  };
 }
 
 // Shared input schemas for the validate_* tools. Reports/manifests stay
